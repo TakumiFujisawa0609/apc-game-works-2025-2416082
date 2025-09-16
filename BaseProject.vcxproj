@@ -136,9 +136,11 @@
     <ClCompile Include="Src\Application\Application.cpp" />
     <ClCompile Include="Src\Common\Vector2.cpp" />
     <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\Manager\Camera\Camera.cpp" />
     <ClCompile Include="Src\Manager\Collision\Collision.cpp" />
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
     <ClCompile Include="Src\Manager\Loading\Loading.cpp" />
+    <ClCompile Include="Src\Object\Player\Player.cpp" />
     <ClCompile Include="Src\Object\UnitBase.cpp" />
     <ClCompile Include="Src\Scene\Game\GameScene.cpp" />
     <ClCompile Include="Src\Scene\SceneManager\SceneManager.cpp" />
@@ -148,9 +150,11 @@
   <ItemGroup>
     <ClInclude Include="Src\Application\Application.h" />
     <ClInclude Include="Src\Common\Vector2.h" />
+    <ClInclude Include="Src\Manager\Camera\Camera.h" />
     <ClInclude Include="Src\Manager\Collision\Collision.h" />
     <ClInclude Include="Src\Manager\FPS\FPS.h" />
     <ClInclude Include="Src\Manager\Loading\Loading.h" />
+    <ClInclude Include="Src\Object\Player\Player.h" />
     <ClInclude Include="Src\Object\UnitBase.h" />
     <ClInclude Include="Src\Scene\Game\GameScene.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />

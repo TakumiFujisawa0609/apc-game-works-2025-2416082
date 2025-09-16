@@ -1,7 +1,5 @@
 #include "Application.h"
 
-#include <DxLib.h>
-
 #include"../Manager/FPS/FPS.h"
 #include"../Scene/SceneManager/SceneManager.h"
 

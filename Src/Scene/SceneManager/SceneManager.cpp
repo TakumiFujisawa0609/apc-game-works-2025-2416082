@@ -30,6 +30,30 @@ void SceneManager::Init(void)
 
 	// 最初はタイトル画面から
 	ChangeScene(SCENE_ID::TITLE);
+
+	// 背景色設定
+	SetBackgroundColor(100, 100, 100);
+
+	// Zバッファを有効にする
+	SetUseZBuffer3D(true);
+	// Zバッファへの書き込みを有効にする
+	SetWriteZBuffer3D(true);
+	// バックカリングを有効にする
+	SetUseBackCulling(false);
+	// ライトを有効にする
+	SetUseLighting(true);
+	// ディレクショナルライト方向の設定(正規化されていなくても良い)
+	// 正面から斜め下に向かったライト
+	ChangeLightTypeDir({ 0.00f, -1.00f, 1.00f });
+
+	// フォグ設定
+	SetFogEnable(true);
+	// フォグの色
+	SetFogColor(100, 100, 100);
+	// フォグを発生させる奥行きの最小、最大距離
+	SetFogStartEnd(1000.0f, 15000.0f);
+
+	SetTextureAddressMode(DX_TEXADDRESS_WRAP);
 }
 
 

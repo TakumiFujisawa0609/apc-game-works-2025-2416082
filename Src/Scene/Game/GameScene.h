@@ -7,6 +7,8 @@
 
 #include<vector>
 
+class Player;
+
 class GameScene : public SceneBase
 {
 public:
@@ -49,6 +51,7 @@ public:
 private:
 	Collision* collision_;
 
+	Player* player_;
 
 #pragma region 画面演出
 	bool ScreenProduction(void);
@@ -68,6 +71,25 @@ private:
 	Vector2I ShakePoint(void);
 	//---------------------------------
 #pragma endregion
+
+	// デバック用の座標線描画
+	void DrawAxis(VECTOR origin, float length)
+	{
+		// X軸（赤）
+		DrawLine3D(origin,
+			VAdd(origin, VGet(length, 0.0f, 0.0f)),
+			GetColor(255, 0, 0));
+
+		// Y軸（緑）
+		DrawLine3D(origin,
+			VAdd(origin, VGet(0.0f, length, 0.0f)),
+			GetColor(0, 255, 0));
+
+		// Z軸（青）
+		DrawLine3D(origin,
+			VAdd(origin, VGet(0.0f, 0.0f, length)),
+			GetColor(0, 0, 255));
+	}
 
 };
 

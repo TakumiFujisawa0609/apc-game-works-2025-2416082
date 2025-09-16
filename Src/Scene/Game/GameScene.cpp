@@ -8,6 +8,8 @@
 
 #include"../../Utility/Utility.h"
 
+#include"../../Object/Player/Player.h"
+
 #include"../Title/TitleScene.h"
 
 int GameScene::hitStop_ = 0;
@@ -21,7 +23,8 @@ ShakeSize GameScene::shakeSize_ = ShakeSize::MEDIUM;
 
 GameScene::GameScene():
 	mainScreen_(-1),
-	collision_(nullptr)
+	collision_(nullptr),
+	player_(nullptr)
 {
 }
 
@@ -37,11 +40,13 @@ void GameScene::Load(void)
 
 	collision_ = new Collision();
 
+	player_ = new Player();
+
 }
 
 void GameScene::Init(void)
 {
-
+	player_->Init();
 
 
 #pragma region 画面演出
@@ -65,6 +70,7 @@ void GameScene::Update(void)
 	// 画面演出更新
 	if (ScreenProduction()) { return; }
 
+
 #pragma region オブジェクト更新処理
 
 	if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
@@ -82,11 +88,16 @@ void GameScene::Update(void)
 		return;
 	}
 
+	player_->Update();
+
+
 #pragma endregion
 
 	// 当たり判定
 	collision_->Check();
 }
+
+
 
 void GameScene::Draw(void)
 {
@@ -94,13 +105,17 @@ void GameScene::Draw(void)
 	SetDrawScreen(mainScreen_);
 	ClearDrawScreen();
 
+#ifdef _DEBUG  // デバッグビルドのときだけ有効
+	VECTOR pos = { 0.0f,0.0f,0.0f };
+	DrawAxis(pos, 1000.0f);
+#endif
+
 #pragma region 描画処理
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
-
-
+	player_->Draw();
 
 	SetFontSize(32);
 	DrawString(0, 0, "ゲーム", 0xffffff);
@@ -121,6 +136,12 @@ void GameScene::Release(void)
 		collision_->Clear();
 		delete collision_;
 		collision_ = nullptr;
+	}
+
+	if (player_) {
+		player_->Release();
+		delete player_;
+		player_ = nullptr;
 	}
 
 	DeleteGraph(mainScreen_);

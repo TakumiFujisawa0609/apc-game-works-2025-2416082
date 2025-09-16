@@ -1,4 +1,5 @@
 #pragma once
+#include <DxLib.h>
 
 // クラスの前方宣言
 class FPS;
@@ -7,8 +8,8 @@ class Application
 {
 public:
 	// スクリーンサイズ
-	static constexpr int SCREEN_SIZE_X = 1500;	// スクリーン横幅;
-	static constexpr int SCREEN_SIZE_Y = 960;	// スクリーン縦幅;
+	static constexpr int SCREEN_SIZE_X = 1400;	// スクリーン横幅;
+	static constexpr int SCREEN_SIZE_Y = 760;	// スクリーン縦幅;
 
 public:
 	// シングルトン（生成・取得・削除）
@@ -30,6 +31,8 @@ public:
 
 	// ゲーム終了
 	void GameEnd(void) { gameEnd_ = true; }
+
+
 
 private:
 	// デフォルトコンストラクタをprivateにして、
