@@ -1,5 +1,8 @@
 #pragma once
 #include "../UnitBase.h"
+#include <map>
+
+class AnimationController;
 
 class Player : public UnitBase
 {
@@ -9,9 +12,36 @@ public:
 	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
 
 	static constexpr int MAX_MUSCLE = 100;
-	static constexpr int DEFAULT_MUSCLE = 50;
+	static constexpr VECTOR SMALL_MUSCLE = { 1.0f, 1.0f, 1.0f };
+	static constexpr VECTOR MEDIUM_MUSCLE = { 2.0f, 2.0f, 2.0f };
+	static constexpr VECTOR BIG_MUSCLE = { 3.0f, 3.0f, 3.0f };
 
 	static constexpr float MOVE_SPEED = 16.0f;
+
+	enum class ANIM_TYPE
+	{
+		IDLE,
+		MOVE,
+
+		MAX,
+	};
+
+	enum class STATE
+	{
+		IDLE,
+		MOVE,
+
+		MAX,
+	};
+
+	enum class MUSCLE
+	{
+		SMALL,
+		MEDIUM,
+		BIG,
+		 
+		MAX
+	};
 
 	Player();
 	~Player() override;
@@ -22,10 +52,24 @@ public:
 	void Draw(void) override;
 	void Release(void) override;
 
-	void Muscle(void);
-
 	void OnCollision(UnitBase* other) override;
+
+	void Muscle(void);
 
 private:
 
+	AnimationController* animation_;
+
+	STATE state_;
+	ANIM_TYPE animType_;
+	MUSCLE muscleStat_;
+
+	// 関数ポインタ
+	using StateFunc = void(Player::*)();
+	std::map<STATE, StateFunc> stateFuncs_;
+
+	void Idle(void);
+	void Move(void);
+
+	
 };

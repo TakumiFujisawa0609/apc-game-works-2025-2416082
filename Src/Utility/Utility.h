@@ -2,12 +2,15 @@
 #include <string>
 #include <vector>
 #include <DxLib.h>
+#include <DxLib.h>
 #include "../Common/Vector2.h"
 
 class Utility
 {
 
 public:
+
+	static constexpr VECTOR VECTOR_ZERO = { 0.0f,0.0f,0.0f };
 
 	// ラジアン(rad)・度(deg)変換用
 	static constexpr float RAD2DEG = (180.0f / DX_PI_F);

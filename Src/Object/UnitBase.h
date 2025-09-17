@@ -25,6 +25,7 @@ struct Base
 	bool   aliveCollision_ = true;  // 生存フラグによる当たり判定早期リターン
 	VECTOR pos_ = { -1.0f, -1.0f, -1.0f }; // ワールド座標（中心）
 	VECTOR angle_ = { -1.0f,-1.0f,-1.0f };
+	VECTOR scale_ = { 1.0f, 1.0f, 1.0f };
 
 	int    hp_ = -1;
 

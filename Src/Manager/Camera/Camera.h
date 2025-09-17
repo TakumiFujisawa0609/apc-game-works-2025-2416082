@@ -19,9 +19,8 @@ public:
 	void Update();	 // XVˆ—
 	void Release();	 // ‰ğ•ú
 
-	void PlayerFollow();
-
 	void SetMode(MODE mode) { mode_ = mode; }
+
 
 private:
 
@@ -33,5 +32,7 @@ private:
 	VECTOR pos_;
 
 	VECTOR targetPos_;
+
+	VECTOR angles_;
 
 };

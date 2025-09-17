@@ -54,12 +54,24 @@ void SceneManager::Init(void)
 	SetFogStartEnd(1000.0f, 15000.0f);
 
 	SetTextureAddressMode(DX_TEXADDRESS_WRAP);
+
+	// デルタタイム
+	preTime_ = std::chrono::system_clock::now();
+
+	// デルタタイム
+	deltaTime_ = 1.0f / 60.0f;
 }
 
 
 // 更新
 void SceneManager::Update(void)
 {
+	//デルタタイム
+	auto nowTime = std::chrono::system_clock::now();
+	deltaTime_ = static_cast<float>(
+		std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
+	preTime_ = nowTime;
+
 	// シーンがなければ終了
 	if (scenes_.empty()) { return; }
 

@@ -3,6 +3,8 @@
 #include<DxLib.h>
 #include<cmath>
 
+#include"../../Manager/Camera/Camera.h"
+
 #include"../../Application/Application.h"
 #include"../../scene/SceneManager/SceneManager.h"
 
@@ -41,7 +43,9 @@ void GameScene::Load(void)
 	collision_ = new Collision();
 
 	player_ = new Player();
+	player_->Load();
 
+	Camera::CreateInstance();
 }
 
 void GameScene::Init(void)
@@ -88,6 +92,7 @@ void GameScene::Update(void)
 		return;
 	}
 
+	Camera::GetInstance();
 	player_->Update();
 
 
@@ -145,6 +150,8 @@ void GameScene::Release(void)
 	}
 
 	DeleteGraph(mainScreen_);
+
+	Camera::DeleteInstance();
 }
 
 void GameScene::Shake(ShakeKinds kinds, ShakeSize size, int time)
