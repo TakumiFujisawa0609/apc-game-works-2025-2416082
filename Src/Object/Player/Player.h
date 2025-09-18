@@ -18,14 +18,6 @@ public:
 
 	static constexpr float MOVE_SPEED = 16.0f;
 
-	enum class ANIM_TYPE
-	{
-		IDLE,
-		MOVE,
-
-		MAX,
-	};
-
 	enum class STATE
 	{
 		IDLE,
@@ -61,7 +53,6 @@ private:
 	AnimationController* animation_;
 
 	STATE state_;
-	ANIM_TYPE animType_;
 	MUSCLE muscleStat_;
 
 	// ä÷êîÉ|ÉCÉìÉ^

@@ -1,6 +1,7 @@
 #pragma once
 
 #include<map>
+#include <string>
 
 class AnimationController
 {
@@ -9,6 +10,7 @@ public:
 	// アニメーションデータ
 	struct Animation
 	{
+		int model = -1;
 		int attachNo = -1;
 		int animIndex = 0;
 		float speed = 0.0f;
@@ -22,10 +24,13 @@ public:
 	// 同じFBX内のアニメーションを準備
 	void AddInFbx(int type, float speed, int animIndex);
 	// アニメーション再生
-	void Play(int type, bool isLoop8);
+	void Play(int type, bool isLoop);
 	void Update(void);
 	void Release(void);
 	bool IsEnd(int type) const;
+
+	// 外部FBXからアニメーション追加
+	void Add(int type, float speed, const std::string path);
 private:
 	// アニメーションするモデルのハンドルID
 	int modelId_;
@@ -39,4 +44,7 @@ private:
 	bool isLoop_;
 
 	Animation playAnim_;
+
+	//アニメーション追加の共通処理
+	void Add(int type, float speed, Animation& animation);
 };

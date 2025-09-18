@@ -16,14 +16,21 @@ AnimationController::~AnimationController(void)
 
 void AnimationController::AddInFbx(int type, float speed, int animIndex)
 {
+	//Animation animation;
+	//animation.animIndex = animIndex;
+	//animation.speed = speed;
+
+	//if (animations_.count(type) == 0)
+	//{
+	//	// 動的配列に追加
+	//	animations_.emplace(type, animation);
+	//}
+
 	Animation animation;
+	animation.model = -1;
 	animation.animIndex = animIndex;
-	animation.speed = speed;
-	if (animations_.count(type) == 0)
-	{
-		// 動的配列に追加
-		animations_.emplace(type, animation);
-	}
+
+	Add(type, speed, animation);
 }
 
 void AnimationController::Play(int type, bool isLoop)
@@ -61,11 +68,19 @@ void AnimationController::Play(int type, bool isLoop)
 	// 初期化
 	playAnim_.step = 0.0f;
 
-	// モデルと同じファイルからアニメーションをアタッチする
-	playAnim_.attachNo = MV1AttachAnim(modelId_, playType_);
+	if (playAnim_.model == -1) {
+		// モデルと同じファイルからアニメーションをアタッチする
+		playAnim_.attachNo = MV1AttachAnim(modelId_, playAnim_.animIndex);
+	}
+	else {
+		int animIndex = 0;
+		playAnim_.attachNo = MV1AttachAnim(modelId_, animIndex, playAnim_.model);
+	}
 
 	//アニメーション総時間の取得
 	playAnim_.totalTime = MV1GetAttachAnimTotalTime(modelId_, playAnim_.attachNo);
+
+
 }
 
 void AnimationController::Update(void)
@@ -84,11 +99,39 @@ void AnimationController::Update(void)
 
 void AnimationController::Release(void)
 {
+	// 外部FBXのモデル（アニメーション）解放
+	for (const std::pair<int, Animation>& pair : animations_)
+	{
+		if (pair.second.model != -1)
+		{
+			MV1DeleteModel(pair.second.model);
+		}
+	}
 
+	// 可変長配列をクリアする
+	animations_.clear();
 }
 
 bool AnimationController::IsEnd(int type) const
 {
 	if (playType_ != type) return false; // 再生中でない
 	return playAnim_.step >= playAnim_.totalTime;
+}
+
+void AnimationController::Add(int type, float speed, const std::string path)
+{
+	Animation animation;
+	animation.model = MV1LoadModel(path.c_str());
+	animation.animIndex = -1;
+
+	Add(type, speed, animation);
+}
+
+void AnimationController::Add(int type, float speed, Animation& animation)
+{
+	if (animations_.count(type) == 0)
+	{
+		animation.speed = speed;
+		animations_.emplace(type, animation);
+	}
 }

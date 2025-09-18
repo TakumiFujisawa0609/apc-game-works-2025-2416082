@@ -12,13 +12,18 @@ Player::~Player()
 
 void Player::Load(void)
 {
-    unit_.model_ = MV1LoadModel("Data/Model/Player/Player.mv1");
+
+   std::string path = "Data/Model/Player/";
+    unit_.model_ = MV1LoadModel((path + "Player.mv1").c_str());
 
     animation_ = new AnimationController(unit_.model_);
-    for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++)
-    {
-        animation_->AddInFbx(i, 30.0f, i);
-    }
+
+    animation_->Add((int)(STATE::IDLE), 30.0f, "Data/Model/Player/Idle.mv1");
+
+    //for (int i = 0; i < static_cast<int>(STATE::MAX); i++)
+    //{
+    //    animation_->AddInFbx(i, 30.0f, i);
+    //}
 }
 
 void Player::Init(void)
@@ -35,7 +40,6 @@ void Player::Init(void)
     };
     
     state_ = STATE::MOVE;
-    animType_ = ANIM_TYPE::MOVE;
     muscleStat_ = MUSCLE::SMALL;
 
 }
@@ -50,6 +54,9 @@ void Player::Update(void)
     (this->*(Func->second))();
 
     animation_->Update();
+
+    animation_->Add((int)(STATE::MOVE), 30.0f, "Data/Model/Player/Walk.mv1");
+    animation_->Play((int)(STATE::MOVE), true);
 
     Muscle();
 
