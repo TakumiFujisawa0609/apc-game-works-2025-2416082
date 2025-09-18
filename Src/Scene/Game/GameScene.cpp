@@ -92,7 +92,7 @@ void GameScene::Update(void)
 		return;
 	}
 
-	Camera::GetInstance();
+	Camera::GetInstance().Update(player_->GetPos(), player_->GetAngle());
 	player_->Update();
 
 
@@ -106,6 +106,8 @@ void GameScene::Update(void)
 
 void GameScene::Draw(void)
 {
+	Camera::GetInstance().Apply();
+
 	// 画面演出のために描画先を自前で用意したスクリーンに設定
 	SetDrawScreen(mainScreen_);
 	ClearDrawScreen();

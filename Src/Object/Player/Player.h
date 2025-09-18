@@ -1,6 +1,7 @@
 #pragma once
 #include "../UnitBase.h"
 #include <map>
+#include <DxLib.h>
 
 class AnimationController;
 
@@ -12,9 +13,6 @@ public:
 	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
 
 	static constexpr int MAX_MUSCLE = 100;
-	static constexpr VECTOR SMALL_MUSCLE = { 1.0f, 1.0f, 1.0f };
-	static constexpr VECTOR MEDIUM_MUSCLE = { 2.0f, 2.0f, 2.0f };
-	static constexpr VECTOR BIG_MUSCLE = { 3.0f, 3.0f, 3.0f };
 
 	static constexpr float MOVE_SPEED = 16.0f;
 
@@ -22,17 +20,7 @@ public:
 	{
 		IDLE,
 		MOVE,
-
-		MAX,
-	};
-
-	enum class MUSCLE
-	{
-		SMALL,
-		MEDIUM,
-		BIG,
-		 
-		MAX
+		ATTACK,
 	};
 
 	Player();
@@ -48,12 +36,18 @@ public:
 
 	void Muscle(void);
 
+	const VECTOR GetPos(void) { return unit_.pos_; }
+	const VECTOR GetAngle(void) { return unit_.angle_; }
+
 private:
 
 	AnimationController* animation_;
 
 	STATE state_;
-	MUSCLE muscleStat_;
+
+	VECTOR move_;
+
+	bool attackScaleApplied_ = false;
 
 	// 関数ポインタ
 	using StateFunc = void(Player::*)();
@@ -61,6 +55,15 @@ private:
 
 	void Idle(void);
 	void Move(void);
+	void Attack(void);
 
-	
+	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
+
+	// 状態遷移用の関数
+	void StateManager(void);
+	void DoWalk(void);
+	void DoIdle(void);
+	void DoAttack(void);
+
+	int prevSpace, nowSpace;
 };

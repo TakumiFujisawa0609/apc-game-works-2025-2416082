@@ -18,45 +18,41 @@ void Player::Load(void)
 
     animation_ = new AnimationController(unit_.model_);
 
-    animation_->Add((int)(STATE::IDLE), 30.0f, "Data/Model/Player/Idle.mv1");
+    animation_->Add((int)(STATE::IDLE), 30.0f, "Data/Model/Player/Animation/Idle.mv1");
+    animation_->Add((int)(STATE::MOVE), 50.0f, "Data/Model/Player/Animation/Run.mv1");
+    animation_->Add((int)(STATE::ATTACK), 30.0f, "Data/Model/Player/Animation/Throw.mv1");
 
-    //for (int i = 0; i < static_cast<int>(STATE::MAX); i++)
-    //{
-    //    animation_->AddInFbx(i, 30.0f, i);
-    //}
+    move_ = VGet(0.0f, 0.0f, 0.0f);
+
 }
 
 void Player::Init(void)
 {
 	unit_.isAlive_ = true;
 	unit_.pos_ = DEFAULT_POS;
-    unit_.scale_ = SMALL_MUSCLE;
+    unit_.angle_ = Utility::VECTOR_ZERO;
 
 
     stateFuncs_ =
     {
-        { STATE::IDLE,  &Player::Idle },
-        { STATE::MOVE,  &Player::Move }
+        { STATE::IDLE,      &Player::Idle   },
+        { STATE::MOVE,      &Player::Move   },
+        { STATE::ATTACK,    &Player::Attack },
     };
     
-    state_ = STATE::MOVE;
-    muscleStat_ = MUSCLE::SMALL;
+    state_ = STATE::IDLE;
 
 }
 
 void Player::Update(void)
 {
-    if (CheckHitKey(KEY_INPUT_1))muscleStat_ = MUSCLE::SMALL;
-    if (CheckHitKey(KEY_INPUT_2))muscleStat_ = MUSCLE::MEDIUM;
-    if (CheckHitKey(KEY_INPUT_3))muscleStat_ = MUSCLE::BIG;
+
+    StateManager();
 
     auto Func = stateFuncs_.find(state_);
     (this->*(Func->second))();
 
     animation_->Update();
-
-    animation_->Add((int)(STATE::MOVE), 30.0f, "Data/Model/Player/Walk.mv1");
-    animation_->Play((int)(STATE::MOVE), true);
 
     Muscle();
 
@@ -68,11 +64,33 @@ void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
-    MV1SetPosition(unit_.model_, unit_.pos_);
-    MV1SetScale(unit_.model_, unit_.scale_);
+    // 回転行列の作成　
+    MATRIX mat = MGetIdent();
+    mat = MMult(mat, MGetRotX(unit_.angle_.x));
+    mat = MMult(mat, MGetRotY(unit_.angle_.y));
+    mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+
+    MATRIX localMat = MGetIdent();
+    localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+    localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+    localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+
+    mat = MMult(localMat, mat);
+
+    // スケール行列
+    MATRIX matScale = MGetScale(unit_.scale_);
+
+    // スケールを先に適用
+    mat = MMult(matScale, mat);
+
+    mat.m[3][0] = unit_.pos_.x;
+    mat.m[3][1] = unit_.pos_.y;
+    mat.m[3][2] = unit_.pos_.z;
+
+    MV1SetMatrix(unit_.model_, mat);
+
     MV1DrawModel(unit_.model_);
 
-	//DrawSphere3D(unit_.pos_, RADIUS_SIZE, 30, 0xffffff, 0xffffff, true);
 }
 
 void Player::Release(void)
@@ -93,49 +111,102 @@ void Player::OnCollision(UnitBase* other)
 
 void Player::Muscle(void)
 {
-    switch (muscleStat_)
-    {
-    case Player::MUSCLE::SMALL:
-        unit_.scale_ = SMALL_MUSCLE;
-        break;
-    case Player::MUSCLE::MEDIUM:
-        unit_.scale_ = MEDIUM_MUSCLE;
-        break;
-    case Player::MUSCLE::BIG:
-        unit_.scale_ = BIG_MUSCLE;
-        break;
-    }
 }
 
 // 何もしていない
 void Player::Idle(void)
 {
+    animation_->Play((int)STATE::IDLE, true);
+
 }
 
 // 移動処理
 void Player::Move(void)
 {
-    VECTOR move = VGet(0.0f, 0.0f, 0.0f);
+    move_ = Utility::VECTOR_ZERO;
 
-    // 入力で方向ベクトルを作る
-    if (CheckHitKey(KEY_INPUT_LEFT) || CheckHitKey(KEY_INPUT_A))  move.x -= 1.0f;
-    if (CheckHitKey(KEY_INPUT_RIGHT) || CheckHitKey(KEY_INPUT_D)) move.x += 1.0f;
-    if (CheckHitKey(KEY_INPUT_UP) || CheckHitKey(KEY_INPUT_W))    move.z += 1.0f;
-    if (CheckHitKey(KEY_INPUT_DOWN) || CheckHitKey(KEY_INPUT_S))  move.z -= 1.0f;
+    if (CheckHitKey(KEY_INPUT_W)) move_.z += 1.0f;
+    if (CheckHitKey(KEY_INPUT_S)) move_.z -= 1.0f;
+    if (CheckHitKey(KEY_INPUT_A)) move_.x -= 1.0f;
+    if (CheckHitKey(KEY_INPUT_D)) move_.x += 1.0f;
 
-    // 移動量があるときだけ正規化して移動
-    if (move.x != 0.0f || move.z != 0.0f)
+    bool isRun = false;
+    if (CheckHitKey(KEY_INPUT_LSHIFT))isRun = true;
+
+    if (move_.x != 0.0f || move_.z != 0.0f)
     {
-        // 斜め移動の補正（正規化）
-        float len = sqrtf(move.x * move.x + move.z * move.z);
-        move.x = (move.x / len) * MOVE_SPEED;
-        move.z = (move.z / len) * MOVE_SPEED;
+        move_ = VNorm(move_);
+        move_ = VScale(move_, MOVE_SPEED);
 
-        // 位置を更新
-        unit_.pos_.x += move.x;
-        unit_.pos_.z += move.z;
+        unit_.pos_ = VAdd(unit_.pos_, move_);
+        unit_.angle_.y = atan2f(move_.x, move_.z);
     }
 
+    animation_->Play((int)STATE::MOVE, true);
 }
 
+void Player::Attack(void)
+{
+    animation_->Play((int)(STATE::ATTACK), false);
 
+    // 攻撃中でまだスケールを増やしていないなら一度だけ増やす
+    if (!attackScaleApplied_) {
+        unit_.scale_.x *= 1.10f;
+        unit_.scale_.y *= 1.10f;
+        unit_.scale_.z *= 1.10f;
+
+        const float MAX_SCALE = 5.0f;
+        if (unit_.scale_.x > MAX_SCALE) unit_.scale_ = VGet(MAX_SCALE, MAX_SCALE, MAX_SCALE);
+
+        attackScaleApplied_ = true; // 二度目は増えないようにする
+    }
+}
+
+void Player::StateManager(void)
+{
+    switch (state_)
+    {
+    case Player::STATE::IDLE:
+        DoWalk();
+        DoAttack();
+        break;
+    case Player::STATE::MOVE:
+        DoIdle();
+        DoAttack();
+        break;
+    case Player::STATE::ATTACK:
+        if (animation_->IsEnd((int)(STATE::ATTACK)))
+        {
+            state_ = STATE::IDLE;
+        }
+        break;
+    }
+}
+
+void Player::DoWalk(void)
+{
+    if (CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_S) ||
+        CheckHitKey(KEY_INPUT_A) || CheckHitKey(KEY_INPUT_D))
+    {
+        state_ = STATE::MOVE;
+    }
+}
+
+void Player::DoIdle(void)
+{
+    // 移動入力がなくなったらIDLEに戻る
+    if (!(CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_S) ||
+        CheckHitKey(KEY_INPUT_A) || CheckHitKey(KEY_INPUT_D)))
+    {
+        state_ = STATE::IDLE;
+    }
+}
+
+void Player::DoAttack(void)
+{
+    prevSpace = nowSpace;
+    nowSpace = CheckHitKey(KEY_INPUT_K);
+
+    attackScaleApplied_ = false;
+    if (nowSpace == 1 && prevSpace == 0)state_ = STATE::ATTACK;
+}

@@ -15,11 +15,9 @@ public:
 	static Camera& GetInstance(void) { return *instance_; }
 	static void DeleteInstance(void) { if (instance_ != nullptr) delete instance_; instance_ = nullptr; }
 
-	void Init();	 // 初期化
-	void Update();	 // 更新処理
-	void Release();	 // 解放
-
-	void SetMode(MODE mode) { mode_ = mode; }
+   void Init();
+    void Update(const VECTOR& playerPos, const VECTOR& playerAngle);
+    void Apply();
 
 
 private:
@@ -27,12 +25,10 @@ private:
 	// 静的インスタンス
 	static Camera* instance_;
 
-	MODE mode_;
+	VECTOR camPos_;
+	VECTOR camTarget_;
 
-	VECTOR pos_;
-
-	VECTOR targetPos_;
-
-	VECTOR angles_;
+	float distance_ = 10.0f;   // プレイヤーとの距離
+	float height_ = 5.0f;    // 見下ろす高さ
 
 };
