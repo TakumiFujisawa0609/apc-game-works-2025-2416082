@@ -5,23 +5,33 @@
 
 Camera* Camera::instance_ = nullptr;
 
-void Camera::Init() {
-    camPos_ = VGet(0, height_, -distance_);
-    camTarget_ = VGet(0, 0, 0);
+void Camera::Init() 
+{
+    angle_ = Utility::VECTOR_ZERO;
+
+    GetMousePoint(&mouseX, &mouseY);
 }
 
-void Camera::Update(const VECTOR& playerPos, const VECTOR& playerAngle) {
-    // プレイヤーの向きに合わせて後方に配置
-    float angle = playerAngle.y; // Y軸回転（向き）
-    camPos_.x = playerPos.x - sinf(angle) * distance_;
-    camPos_.z = playerPos.z - cosf(angle) * distance_;
-    camPos_.y = playerPos.y + height_;
+void Camera::Update()
+{
+    if (CheckHitKey(KEY_INPUT_RIGHT)) angle_.y += 5;
+    if (CheckHitKey(KEY_INPUT_LEFT))  angle_.y -= 5;
+    //if (CheckHitKey(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
+    //if (CheckHitKey(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
 
-    // 注視点はプレイヤー位置
-    camTarget_ = playerPos;
+    // Y軸回転行列を作成
+    MATRIX mat = MGetRotY(angle_.y * DX_PI_F / 180.0f);
+    mat = MGetRotX(angle_.x * DX_PI_F / 180.0f);
+
+    // LOCAL_POSの周りで回転させる
+    VECTOR rotatePos = VTransform(LOCAL_POS, mat);
+
+    // 回転後の位置をターゲット座標に加算
+    camPos_ = VAdd(*camTarget_, rotatePos);
 }
 
-void Camera::Apply() {
-    SetCameraPositionAndTarget_UpVecY(camPos_, camTarget_);
+void Camera::Apply()
+{
+    SetCameraPositionAndTarget_UpVecY(camPos_, *camTarget_);
 }
 

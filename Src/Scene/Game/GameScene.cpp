@@ -11,6 +11,7 @@
 #include"../../Utility/Utility.h"
 
 #include"../../Object/Player/Player.h"
+#include"../../Object/Grid/Grid.h"
 
 #include"../Title/TitleScene.h"
 
@@ -26,7 +27,8 @@ ShakeSize GameScene::shakeSize_ = ShakeSize::MEDIUM;
 GameScene::GameScene():
 	mainScreen_(-1),
 	collision_(nullptr),
-	player_(nullptr)
+	player_(nullptr),
+	grid_(nullptr)
 {
 }
 
@@ -45,13 +47,17 @@ void GameScene::Load(void)
 	player_ = new Player();
 	player_->Load();
 
+	grid_ = new Grid();
+
 	Camera::CreateInstance();
 }
 
 void GameScene::Init(void)
 {
 	player_->Init();
+	grid_->Init();
 
+	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos());
 
 #pragma region 画面演出
 	// ヒットストップカウンターの初期化
@@ -92,9 +98,9 @@ void GameScene::Update(void)
 		return;
 	}
 
-	Camera::GetInstance().Update(player_->GetPos(), player_->GetAngle());
+	Camera::GetInstance().Update();
 	player_->Update();
-
+	grid_->Update();
 
 #pragma endregion
 
@@ -106,23 +112,20 @@ void GameScene::Update(void)
 
 void GameScene::Draw(void)
 {
-	Camera::GetInstance().Apply();
 
 	// 画面演出のために描画先を自前で用意したスクリーンに設定
 	SetDrawScreen(mainScreen_);
 	ClearDrawScreen();
 
-#ifdef _DEBUG  // デバッグビルドのときだけ有効
-	VECTOR pos = { 0.0f,0.0f,0.0f };
-	DrawAxis(pos, 1000.0f);
-#endif
-
 #pragma region 描画処理
+	Camera::GetInstance().Apply();
+
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
 	player_->Draw();
+	grid_->Draw();
 
 	SetFontSize(32);
 	DrawString(0, 0, "ゲーム", 0xffffff);
@@ -152,7 +155,6 @@ void GameScene::Release(void)
 	}
 
 	DeleteGraph(mainScreen_);
-
 	Camera::DeleteInstance();
 }
 

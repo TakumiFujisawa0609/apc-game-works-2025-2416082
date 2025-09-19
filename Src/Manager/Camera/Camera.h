@@ -5,6 +5,7 @@ class Camera
 {
 public:
 
+
 	enum MODE
 	{
 		PLAYER_FOLLOW,
@@ -16,8 +17,11 @@ public:
 	static void DeleteInstance(void) { if (instance_ != nullptr) delete instance_; instance_ = nullptr; }
 
    void Init();
-    void Update(const VECTOR& playerPos, const VECTOR& playerAngle);
+    void Update();
     void Apply();
+
+	void SetTarget(const VECTOR* target) { camTarget_ = target; }
+	VECTOR GetAngle(void) { return angle_; }
 
 
 private:
@@ -26,9 +30,11 @@ private:
 	static Camera* instance_;
 
 	VECTOR camPos_;
-	VECTOR camTarget_;
+	VECTOR angle_;
 
-	float distance_ = 10.0f;   // ÉvÉåÉCÉÑÅ[Ç∆ÇÃãóó£
-	float height_ = 5.0f;    // å©â∫ÇÎÇ∑çÇÇ≥
+	int mouseX, mouseY;
 
+	const VECTOR* camTarget_;
+
+	const VECTOR LOCAL_POS = { 0.0f, 400.0f, -500.0f };
 };
