@@ -17,7 +17,8 @@ public:
 	static constexpr float MOVE_SPEED = 16.0f;
 	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;
 
-	static constexpr int NEXT_DASH_TIME = 60;
+	static constexpr int ROLLING_TIME = 30;
+	static constexpr int NEXT_ROLL_TIME = 60;
 #pragma endregion
 
 
@@ -50,7 +51,9 @@ public:
 
 	void Muscle(void);
 
-	const VECTOR &GetCameraLocalPos(void) { return unit_.pos_; }
+	void CameraPosUpdate(void);
+
+	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR GetAngle(void) { return unit_.angle_; }
 
 private:
@@ -73,6 +76,12 @@ private:
 
 	// 回避用カウンタ
 	int nextRollCounter_;
+
+	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
+	float currentHeight;
+
+
+	VECTOR cameraPos_;
 #pragma endregion
 
 #pragma region ステート管理関係

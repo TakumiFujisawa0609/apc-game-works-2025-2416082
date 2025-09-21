@@ -34,6 +34,10 @@ void Player::Init(void)
 	unit_.pos_ = DEFAULT_POS;
     unit_.angle_ = Utility::VECTOR_ZERO;
 
+    currentHeight = Camera::CAMERA_PLAYER_POS;
+
+    cameraPos_ = Utility::VECTOR_ZERO;
+
     nextRollCounter_ = 0;
 
     stateFuncs_ =
@@ -50,6 +54,7 @@ void Player::Init(void)
 
 void Player::Update(void)
 {
+    CameraPosUpdate();
 
     if (nextRollCounter_ <= 0)
     {
@@ -141,11 +146,9 @@ void Player::OnCollision(UnitBase* other)
 
 void Player::Muscle(void)
 {
-
     static int cnt = 0;
 
     if (state_ != STATE::ATTACK)cnt = 0;
-
     if (attackScaleApplied_) {
         cnt++;
         if (cnt < 10) {
@@ -155,7 +158,14 @@ void Player::Muscle(void)
         const float MAX_SCALE = 5.0f;
         if (unit_.scale_.x > MAX_SCALE) unit_.scale_ = VGet(MAX_SCALE, MAX_SCALE, MAX_SCALE);
     }
+
+    if (CheckHitKey(KEY_INPUT_0))
+    {
+        unit_.scale_ = VAdd(unit_.scale_, { -0.02f, -0.02f, -0.02f });
+        if (unit_.scale_.x < 1.0f)unit_.scale_ = VGet(1.0f, 1.0f, 1.0f);
+    };
 }
+
 
 // 何もしていない
 void Player::Idle(void)
@@ -169,7 +179,7 @@ void Player::Move(void)
     auto& camera = Camera::GetInstance();
     move_ = Utility::VECTOR_ZERO;
 
-    // ① 入力方向ベクトル（カメラ基準のローカル座標）
+    // 入力方向ベクトル（カメラ基準のローカル座標）
     if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, { 0.0f, 0.0f,  1.0f }); }
     if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, { 0.0f, 0.0f, -1.0f }); }
     if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f, 0.0f }); }
@@ -210,33 +220,47 @@ void Player::Attack(void)
 
 void Player::Roll(void)
 {
-    static int cnt = 0;
+    auto& camera = Camera::GetInstance();
 
-    if (cnt > 30)
+    static int cnt = 0;
+    cnt++;
+
+    // アイドルステートに移行
+    if (cnt > ROLLING_TIME)
     {
         state_ = STATE::IDLE;
         cnt = 0;
-        nextRollCounter_ = NEXT_DASH_TIME;
+        nextRollCounter_ = NEXT_ROLL_TIME;
         return;
     }
-    cnt++;
+
+    // ローリング中
     if (move_.x != 0.0f || move_.z != 0.0f)
     {
         animation_->Play((int)ANIM_TYPE::Roll, false);
 
-        move_ = VNorm(move_);
-        move_ = VScale(move_, ROLL_SPEED);
+        // カメラの向きから回転行列を作る
+        MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
 
-        unit_.pos_ = VAdd(unit_.pos_, move_);
-        unit_.angle_.y = atan2f(move_.x, move_.z);
+        // カメラ基準の方向をワールド基準に変換
+        VECTOR worldMove = VTransform(move_, mat);
+
+        // 正規化＋スケーリング
+        worldMove = VNorm(worldMove);
+        worldMove = VScale(worldMove, ROLL_SPEED);
+
+        unit_.pos_ = VAdd(unit_.pos_, worldMove);
+
+        // プレイヤーの向きも移動方向に合わせる
+        unit_.angle_.y = atan2f(worldMove.x, worldMove.z);
         return;
     }
 
-    if (CheckHitKey(KEY_INPUT_W)) { move_ = { 0.0f, 0.0f, 1.0f }; }
+    // プレイヤーがどこに向いているかどうか
+    if (CheckHitKey(KEY_INPUT_W)) { move_ = { 0.0f, 0.0f, 1.0f  }; }
     if (CheckHitKey(KEY_INPUT_S)) { move_ = { 0.0f, 0.0f, -1.0f }; }
     if (CheckHitKey(KEY_INPUT_A)) { move_ = { -1.0f, 0.0f, 0.0f }; }
-    if (CheckHitKey(KEY_INPUT_D)) { move_ = { 1.0f, 0.0f, 0.0f }; }
-
+    if (CheckHitKey(KEY_INPUT_D)) { move_ = { 1.0f, 0.0f, 0.0f  }; }
 }
 
 void Player::StateManager(void)
@@ -260,6 +284,7 @@ void Player::StateManager(void)
 
 void Player::DoWalk(void)
 {
+    // 移動入力があったらMOVEに移行する
     if (CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_S) ||
         CheckHitKey(KEY_INPUT_A) || CheckHitKey(KEY_INPUT_D))
     {
@@ -283,14 +308,16 @@ void Player::DoAttack(void)
     static int nowJ = 0;
     prevJ = nowJ;
     nowJ = CheckHitKey(KEY_INPUT_J);
-
-    attackScaleApplied_ = false;
+    // Jキーが押されたら攻撃に移る
     if (nowJ == 1 && prevJ == 0)state_ = STATE::ATTACK;
+
+    // 攻撃処理の初期化
+    attackScaleApplied_ = false;
 }
 
 void Player::DoRoll(void)
 {
-    if (nextRollCounter_ > 0)return;
+    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK)))return;
     static int prev, now;
     prev = 0;
     now = 0;
@@ -299,3 +326,21 @@ void Player::DoRoll(void)
     now = CheckHitKey(KEY_INPUT_K);
     if (now == 1 && prev == 0)state_ = STATE::ROLL;
 }
+
+// カメラが向く方向の処理
+void Player::CameraPosUpdate(void)
+{
+    cameraPos_ = unit_.pos_;
+
+    // 補間用static変数
+
+    // プレイヤーのスケールに応じた目標高さ
+    float scaleAvg = (unit_.scale_.x + unit_.scale_.y + unit_.scale_.z) / 3.0f;
+    float targetHeight = Camera::CAMERA_PLAYER_POS * scaleAvg;
+
+    // 線形補間（0.2は追従速度）
+    currentHeight += (targetHeight - currentHeight) * 0.2f;
+
+    cameraPos_.y = unit_.pos_.y + currentHeight;
+}
+

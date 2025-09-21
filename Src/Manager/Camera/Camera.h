@@ -5,6 +5,7 @@ class Camera
 {
 public:
 
+	static constexpr float CAMERA_PLAYER_POS = 200.0f;
 
 	enum MODE
 	{
@@ -36,5 +37,5 @@ private:
 
 	const VECTOR* camTarget_;
 
-	const VECTOR LOCAL_POS = { 0.0f, 400.0f, -500.0f };
+	const VECTOR LOCAL_POS = { 0.0f, 300.0f, -500.0f };
 };

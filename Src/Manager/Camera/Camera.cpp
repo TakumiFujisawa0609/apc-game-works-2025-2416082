@@ -16,12 +16,13 @@ void Camera::Update()
 {
     if (CheckHitKey(KEY_INPUT_RIGHT)) angle_.y += 5;
     if (CheckHitKey(KEY_INPUT_LEFT))  angle_.y -= 5;
-    //if (CheckHitKey(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
-    //if (CheckHitKey(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
+    if (CheckHitKey(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
+    if (CheckHitKey(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
 
     // Yé≤âÒì]çsóÒÇçÏê¨
-    MATRIX mat = MGetRotY(angle_.y * DX_PI_F / 180.0f);
-    mat = MGetRotX(angle_.x * DX_PI_F / 180.0f);
+    MATRIX matY = MGetRotY(angle_.y * DX_PI_F / 180.0f);
+    MATRIX matX = MGetRotX(angle_.x * DX_PI_F / 180.0f);
+    MATRIX mat = MMult(matX, matY);
 
     // LOCAL_POSÇÃé¸ÇËÇ≈âÒì]Ç≥ÇπÇÈ
     VECTOR rotatePos = VTransform(LOCAL_POS, mat);
