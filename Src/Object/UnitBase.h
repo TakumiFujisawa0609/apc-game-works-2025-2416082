@@ -5,7 +5,7 @@
 
 #include"../Utility/Utility.h"
 
-enum class CollisionShape { NON = -1, SPHERE, AABB, CAPSULE, MAX };
+enum class CollisionShape { NON = -1, SPHERE, OBB, CAPSULE, MAX };
 enum class CollisionType { NON = -2, ALLY/*–¡•û*/, ENEMY/*“G*/ };
 
 struct Base

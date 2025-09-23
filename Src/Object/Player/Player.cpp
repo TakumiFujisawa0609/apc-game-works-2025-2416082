@@ -278,6 +278,11 @@ void Player::StateManager(void)
         DoRoll();
         break;
     case Player::STATE::ATTACK:
+        if (animation_->IsPassedRatio((int)(ANIM_TYPE::ATTACK), 0.7f))
+        {
+            DoWalk();
+            DoRoll();
+        }
         break;
     }
 }
@@ -317,14 +322,22 @@ void Player::DoAttack(void)
 
 void Player::DoRoll(void)
 {
-    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK)))return;
-    static int prev, now;
-    prev = 0;
-    now = 0;
+    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK))) return;
 
-    prev = now;
-    now = CheckHitKey(KEY_INPUT_K);
-    if (now == 1 && prev == 0)state_ = STATE::ROLL;
+    // staticにして毎フレーム値を保持する
+    static int prevK = 0, prevShift = 0;
+
+    int nowK = CheckHitKey(KEY_INPUT_K);
+    int nowShift = CheckHitKey(KEY_INPUT_LSHIFT);
+
+    // どちらかのキーが押された瞬間にROLLへ
+    if ((nowK == 1 && prevK == 0) || (nowShift == 1 && prevShift == 0)) {
+        state_ = STATE::ROLL;
+    }
+
+    // 前フレームの状態を更新
+    prevK = nowK;
+    prevShift = nowShift;
 }
 
 // カメラが向く方向の処理

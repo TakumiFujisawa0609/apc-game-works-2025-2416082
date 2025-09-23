@@ -354,3 +354,149 @@ void Utility::LoadArrayImg(std::string path, int AllNum, int XNum, int YNum, int
     }
 }
 
+MATRIX Utility::MatrixAllMultX(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) { m = MMult(m, MGetRotX(vec.x)); }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultY(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) { m = MMult(m, MGetRotY(vec.y)); }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultZ(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) { m = MMult(m, MGetRotZ(vec.z)); }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultXY(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotY(vec.y));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultXZ(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotZ(vec.z));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultXYZ(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotZ(vec.z));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultXZY(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotY(vec.y));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultYX(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotX(vec.x));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultYZ(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotZ(vec.z));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultYXZ(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotZ(vec.z));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultYZX(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotX(vec.x));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultZX(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotX(vec.x));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultZY(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotY(vec.y));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultZXY(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotX(vec.x));
+        m = MMult(m, MGetRotY(vec.y));
+    }
+    return m;
+}
+
+MATRIX Utility::MatrixAllMultZYX(const std::initializer_list<VECTOR>& vecs)
+{
+    MATRIX m = MGetIdent();
+    for (const auto& vec : vecs) {
+        m = MMult(m, MGetRotZ(vec.z));
+        m = MMult(m, MGetRotY(vec.y));
+        m = MMult(m, MGetRotX(vec.x));
+    }
+    return m;
+}

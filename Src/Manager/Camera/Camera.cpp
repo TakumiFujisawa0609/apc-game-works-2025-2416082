@@ -1,6 +1,8 @@
 #include "Camera.h"
 #include <math.h>
 
+#include "../../Application/Application.h"
+
 #include "../../Utility/Utility.h"
 
 Camera* Camera::instance_ = nullptr;
@@ -14,6 +16,8 @@ void Camera::Init()
 
 void Camera::Update()
 {
+    MouseMoveCamera();
+
     if (CheckHitKey(KEY_INPUT_RIGHT)) angle_.y += 5;
     if (CheckHitKey(KEY_INPUT_LEFT))  angle_.y -= 5;
     if (CheckHitKey(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
@@ -34,5 +38,36 @@ void Camera::Update()
 void Camera::Apply()
 {
     SetCameraPositionAndTarget_UpVecY(camPos_, *camTarget_);
+}
+
+void Camera::MouseMoveCamera(void)
+{
+    // 画面の中央を基準にする
+
+    int nowMouseX, nowMouseY;
+    GetMousePoint(&nowMouseX, &nowMouseY);
+
+    // 差分計算（相対移動量）
+    int deltaX = nowMouseX - Application::SCREEN_SIZE_X / 2;
+    int deltaY = nowMouseY - Application::SCREEN_SIZE_Y / 2;
+
+    // マウスを再び中央に戻す
+    SetMousePoint(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2);
+
+    // 初回だけ差分を無視（大ジャンプ防止）
+    static bool first = true;
+    if (first) {
+        first = false;
+        return;
+    }
+
+    const float sens = 0.3f; // 感度調整
+    angle_.y += deltaX * sens;
+    angle_.x += deltaY * sens;
+
+    // 上下の回転制限
+    float limit = DX_PI_F / 3.0f; // 約60度
+    if (angle_.x > limit) angle_.x = limit;
+    if (angle_.x < -limit) angle_.x = -limit;
 }
 

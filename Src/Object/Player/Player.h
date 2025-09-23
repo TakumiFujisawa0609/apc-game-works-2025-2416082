@@ -9,16 +9,15 @@ class Player : public UnitBase
 {
 public:
 #pragma region 定数定義
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f }; //初期座標
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
 	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
 
-	static constexpr int MAX_MUSCLE = 100;
 
-	static constexpr float MOVE_SPEED = 16.0f;
-	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;
+	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
 
-	static constexpr int ROLLING_TIME = 30;
-	static constexpr int NEXT_ROLL_TIME = 60;
+	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
+	static constexpr int ROLLING_TIME = 30;		// 回避時間
+	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
 #pragma endregion
 
 

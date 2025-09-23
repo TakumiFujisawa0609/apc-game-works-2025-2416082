@@ -2,27 +2,24 @@
 #include <algorithm>
 #include <cmath>
 
+#include"../../Utility/Utility.h"
+
 Collision::Collision() : objects_() {}
 Collision::~Collision() {}
 
 void Collision::Check()
 {
-	for (size_t i = 0; i < objects_.size(); ++i) {
-		for (size_t j = i + 1; j < objects_.size(); ++j) {
-			UnitBase* a = objects_[i];
-			UnitBase* b = objects_[j];
+	// ステージオブジェクトとオブジェクトの当たり判定
+	for (auto& s : stageObject_) {
+		for (auto& o : objects_) {
+			const Base& us = s->GetUnit();
+			const Base& uo = o->GetUnit();
 
-			const Base& ua = a->GetUnit();
-			const Base& ub = b->GetUnit();
+			if ((us.aliveCollision_ && !us.isAlive_) || (uo.aliveCollision_ && !uo.isAlive_)) continue;
 
-			if (ua.para_.colliType == ub.para_.colliType) continue; // 同陣営スキップ
-
-			if ((ua.aliveCollision_ && !ua.isAlive_) || (ub.aliveCollision_ && !ub.isAlive_)) continue;
-			if ((ua.isInvici_ && ua.inviciCounter_ > 0) || (ub.isInvici_ && ub.inviciCounter_ > 0)) continue;
-
-			if (IsHit(ua, ub)) {
-				a->OnCollision(b);
-				b->OnCollision(a);
+			if (IsHit(us, uo)) {
+				s->OnCollision(o);
+				o->OnCollision(s);
 			}
 		}
 	}
@@ -39,27 +36,37 @@ bool Collision::IsHit(const Base& a, const Base& b)
 
 	// 同種
 	if (sA == CollisionShape::SPHERE && sB == CollisionShape::SPHERE)    return SphereSphere(A, B);
-	if (sA == CollisionShape::AABB && sB == CollisionShape::AABB) return AabbAabb(A, B);
+	if (sA == CollisionShape::OBB && sB == CollisionShape::OBB) return ObbObb(A, B);
 	if (sA == CollisionShape::CAPSULE && sB == CollisionShape::CAPSULE)   return CapsuleCapsule(A, B);
 
 	// 混合
-	if (sA == CollisionShape::SPHERE && sB == CollisionShape::AABB) return SphereAabb(A, B);
-	if (sA == CollisionShape::AABB && sB == CollisionShape::SPHERE)    return SphereAabb(B, A);
+	if (sA == CollisionShape::SPHERE && sB == CollisionShape::OBB) return SphereObb(A, B);
+	if (sA == CollisionShape::OBB && sB == CollisionShape::SPHERE)    return SphereObb(B, A);
 
 	if (sA == CollisionShape::SPHERE && sB == CollisionShape::CAPSULE)   return SphereCapsule(A, B);
 	if (sA == CollisionShape::CAPSULE && sB == CollisionShape::SPHERE)    return SphereCapsule(B, A);
 
-	if (sA == CollisionShape::CAPSULE && sB == CollisionShape::AABB) return CapsuleAabb(A, B);
-	if (sA == CollisionShape::AABB && sB == CollisionShape::CAPSULE)   return CapsuleAabb(B, A);
+	if (sA == CollisionShape::CAPSULE && sB == CollisionShape::OBB) return CapsuleObb(A, B);
+	if (sA == CollisionShape::OBB && sB == CollisionShape::CAPSULE)   return CapsuleObb(B, A);
 
 	return false;
 }
 
-Collision::Aabb Collision::MakeAabb(const Base& box) const
+Collision::Obb Collision::MakeObb(const Base& box) const
 {
-	Collision::Aabb r;
-	r.center = box.pos_;
-	r.half = { box.para_.size.x * 0.5f, box.para_.size.y * 0.5f, box.para_.size.z * 0.5f };
+	Obb r;
+
+	// ワールドでの中心
+	r.center = VAdd(box.pos_, box.para_.center);
+
+	// 半分サイズ
+	r.half = VScale(box.para_.size, 0.5f);
+
+	// 単位基底を回転して取得（正規直交）
+	r.axis[0] = VTransform({ 1.0f, 0.0f, 0.0f }, Utility::MatrixAllMultXYZ({ box.angle_ }));
+	r.axis[1] = VTransform({ 0.0f, 1.0f, 0.0f }, Utility::MatrixAllMultXYZ({ box.angle_ }));
+	r.axis[2] = VTransform({ 0.0f, 0.0f, 1.0f }, Utility::MatrixAllMultXYZ({ box.angle_ }));
+
 	return r;
 }
 
@@ -70,97 +77,224 @@ bool Collision::SphereSphere(const Base& a, const Base& b) const
 	return VDot(d, d) <= rr * rr;
 }
 
-bool Collision::AabbAabb(const Base& a, const Base& b) const
+bool Collision::ObbObb(const Base& a, const Base& b) const
 {
-	Aabb A = MakeAabb(a);
-	Aabb B = MakeAabb(b);
+	Obb A = MakeObb(a);
+	Obb B = MakeObb(b);
 
-	if (A.center.x - A.half.x >= B.center.x + B.half.x) return false;
-	if (A.center.x + A.half.x <= B.center.x - B.half.x) return false;
-	if (A.center.y - A.half.y >= B.center.y + B.half.y) return false;
-	if (A.center.y + A.half.y <= B.center.y - B.half.y) return false;
-	if (A.center.z - A.half.z >= B.center.z + B.half.z) return false;
-	if (A.center.z + A.half.z <= B.center.z - B.half.z) return false;
+	// 回転行列 R_ij = Ai・Bj
+	float R[3][3], AbsR[3][3];
+	const float EPS = 1e-6f;
+
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			R[i][j] = VDot(A.axis[i], B.axis[j]);
+			AbsR[i][j] = std::fabs(R[i][j]) + EPS;
+		}
+	}
+
+	// t を A のローカル基底へ
+	VECTOR t3 = VSub(B.center, A.center);
+	float t[3] = { VDot(t3, A.axis[0]), VDot(t3, A.axis[1]), VDot(t3, A.axis[2]) };
+
+#define VCOMP(v,i) ((i)==0 ? (v).x : ((i)==1 ? (v).y : (v).z))
+
+	// 1) A の軸
+	for (int i = 0; i < 3; ++i) {
+		float ra = VCOMP(A.half, i);
+		float rb = B.half.x * AbsR[i][0] + B.half.y * AbsR[i][1] + B.half.z * AbsR[i][2];
+		if (std::fabs(t[i]) > ra + rb) return false;
+	}
+
+	// 2) B の軸
+	for (int i = 0; i < 3; ++i) {
+		float ra = A.half.x * AbsR[0][i] + A.half.y * AbsR[1][i] + A.half.z * AbsR[2][i];
+		float rb = VCOMP(B.half, i);
+		float tj = std::fabs(VDot(t3, B.axis[i]));
+		if (tj > ra + rb) return false;
+	}
+
+	// 3) 交差軸 9本（Ai x Bj）
+	// 関数内で安全に各成分を取得
+	auto comp = [](const VECTOR& v, int i) -> float {
+		if (i == 0) return v.x;
+		if (i == 1) return v.y;
+		return v.z;
+		};
+
+	for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) {
+		float ra = A.half.y * AbsR[(i + 2) % 3][j] + A.half.z * AbsR[(i + 1) % 3][j];
+		float rb = B.half.y * AbsR[i][(j + 1) % 3] + B.half.z * AbsR[i][(j + 2) % 3];
+
+		// |t・(Ai×Bj)| を計算。Ai×Bj は正規直交系の外積なので、tをB基底へ写して近似
+		// 簡易で | t.y * R[(i+2)%3][j] - t.z * R[(i+1)%3][j] | のように成分を組む方法が知られている
+		float tval = std::fabs(
+			t[(i + 1) % 3] * R[(i + 2) % 3][j] - t[(i + 2) % 3] * R[(i + 1) % 3][j]
+		);
+
+		if (tval > ra + rb) return false;
+	}
+
 	return true;
 }
 
 bool Collision::CapsuleCapsule(const Base& a, const Base& b) const 
 {
-	// 線分-線分最近距離計算（短縮版）
-	// 両カプセル中心線の端点
-	VECTOR a1 = VAdd(a.pos_, { 0, a.para_.capsuleHalfLen, 0 });
-	VECTOR a2 = VSub(a.pos_, { 0, a.para_.capsuleHalfLen, 0 });
-	VECTOR b1 = VAdd(b.pos_, { 0, b.para_.capsuleHalfLen, 0 });
-	VECTOR b2 = VSub(b.pos_, { 0, b.para_.capsuleHalfLen, 0 });
+	// 中心線方向（Y軸を回転）
+	VECTOR aDir = VTransform({ 0, 1, 0 }, Utility::MatrixAllMultXYZ({ a.angle_ }));
+	VECTOR bDir = VTransform({ 0, 1, 0 }, Utility::MatrixAllMultXYZ({ b.angle_ }));
 
-	// 線分間距離?を求める（必要に応じて完全版を実装）
-	// ここでは簡易的に各端点と相手線分距離の最小で判定
-	auto pointSegDistSq = [](const VECTOR& p, const VECTOR& s1, const VECTOR& s2) {
-		VECTOR seg = VSub(s2, s1);
-		VECTOR sp = VSub(p, s1);
-		float t = VDot(sp, seg) / VDot(seg, seg);
-		t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-		VECTOR closest = VAdd(s1, VScale(seg, t));
-		VECTOR d = VSub(p, closest);
-		return VDot(d, d);
-		};
+	VECTOR a1 = VAdd(a.pos_, VScale(aDir, a.para_.capsuleHalfLen));
+	VECTOR a2 = VSub(a.pos_, VScale(aDir, a.para_.capsuleHalfLen));
+	VECTOR b1 = VAdd(b.pos_, VScale(bDir, b.para_.capsuleHalfLen));
+	VECTOR b2 = VSub(b.pos_, VScale(bDir, b.para_.capsuleHalfLen));
 
-	float distSq = (std::min)({
-		pointSegDistSq(a1, b1, b2),
-		pointSegDistSq(a2, b1, b2),
-		pointSegDistSq(b1, a1, a2),
-		pointSegDistSq(b2, a1, a2)
-		});
-
+	float distSq = SegmentSegmentDistSq(a1, a2, b1, b2);
 	float rr = a.para_.radius + b.para_.radius;
 	return distSq <= rr * rr;
 }
 
-bool Collision::SphereAabb(const Base& sphere, const Base& aabb) const
+bool Collision::SphereObb(const Base& sphere, const Base& obb) const
 {
-	Aabb B = MakeAabb(aabb);
-	VECTOR minB = { B.center.x - B.half.x, B.center.y - B.half.y, B.center.z - B.half.z };
-	VECTOR maxB = { B.center.x + B.half.x, B.center.y + B.half.y, B.center.z + B.half.z };
-	VECTOR closest = Utility::Clamp(sphere.pos_, minB, maxB);
-	VECTOR d = VSub(sphere.pos_, closest);
-	return VDot(d, d) <= sphere.para_.radius * sphere.para_.radius;
+	Obb B = MakeObb(obb);
+
+	// 球中心→OBB ローカルへ
+	VECTOR d = VSub(sphere.pos_, B.center);
+	float local[3] = { VDot(d, B.axis[0]), VDot(d, B.axis[1]), VDot(d, B.axis[2]) };
+
+	// クリップして最近点
+	float qx = (local[0] < -B.half.x) ? -B.half.x : (local[0] > B.half.x ? B.half.x : local[0]);
+	float qy = (local[1] < -B.half.y) ? -B.half.y : (local[1] > B.half.y ? B.half.y : local[1]);
+	float qz = (local[2] < -B.half.z) ? -B.half.z : (local[2] > B.half.z ? B.half.z : local[2]);
+
+	// 最近点をワールドへ戻す
+	VECTOR closest = VAdd(B.center,
+		VAdd(VScale(B.axis[0], qx),
+			VAdd(VScale(B.axis[1], qy),
+				VScale(B.axis[2], qz))));
+
+	VECTOR diff = VSub(sphere.pos_, closest);
+	return VDot(diff, diff) <= sphere.para_.radius * sphere.para_.radius;
 }
 
 bool Collision::SphereCapsule(const Base& sphere, const Base& capsule) const {
-	// カプセル中心線の端点計算
-	VECTOR dir = { 0, capsule.para_.capsuleHalfLen, 0 }; // Y軸方向と仮定（必要に応じ回転対応）
-	VECTOR p1 = VAdd(capsule.pos_, dir);
-	VECTOR p2 = VSub(capsule.pos_, dir);
+	// カプセルの中心線方向（Y軸ベースを angle_ で回転）
+	VECTOR dir = VTransform({ 0.0f, 1.0f, 0.0f }, Utility::MatrixAllMultXYZ({ capsule.angle_ }));
 
-	// 球中心から線分最近点
-	VECTOR seg = VSub(p2, p1);
-	VECTOR sp1 = VSub(sphere.pos_, p1);
-	float t = VDot(sp1, seg) / VDot(seg, seg);
-	t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-	VECTOR closest = VAdd(p1, VScale(seg, t));
+	// 中心線の端点（center は IsHit で pos_ に既に加算済み）
+	VECTOR p1 = VAdd(capsule.pos_, VScale(dir, capsule.para_.capsuleHalfLen));
+	VECTOR p2 = VSub(capsule.pos_, VScale(dir, capsule.para_.capsuleHalfLen));
 
-	VECTOR d = VSub(sphere.pos_, closest);
+	// 球中心から中心線（線分）までの最近距離
+	float dist2 = PointSegmentDistSq(sphere.pos_, p1, p2);
+
+	// 半径の和と比較（カプセル半径＋球半径）
 	float rr = sphere.para_.radius + capsule.para_.radius;
-	return VDot(d, d) <= rr * rr;
+	return dist2 <= rr * rr;
 }
 
-bool Collision::CapsuleAabb(const Base& capsule, const Base& aabb) const {
-	// カプセル中心線の端点
-	VECTOR p1 = VAdd(capsule.pos_, { 0, capsule.para_.capsuleHalfLen, 0 });
-	VECTOR p2 = VSub(capsule.pos_, { 0, capsule.para_.capsuleHalfLen, 0 });
+bool Collision::CapsuleObb(const Base& capsule, const Base& obb) const {
 
-	// AABB最近点との距離比較（線分-ボックス判定）
-	// 簡易版: 線分を細かくサンプリングして距離判定（高速化可）
-	const int steps = 4;
+	Obb B = MakeObb(obb);
+
+	// カプセル中心線（任意向き）
+	VECTOR dir = VTransform({ 0, 1, 0 }, Utility::MatrixAllMultXYZ({ capsule.angle_ }));
+	VECTOR p1 = VAdd(capsule.pos_, VScale(dir, capsule.para_.capsuleHalfLen));
+	VECTOR p2 = VSub(capsule.pos_, VScale(dir, capsule.para_.capsuleHalfLen));
+
+	// OBB ローカルへ変換（原点=box.center、基底=axis[3]）
+	auto toLocal = [&](const VECTOR& p)->VECTOR {
+		VECTOR d = VSub(p, B.center);
+		return {
+			VDot(d, B.axis[0]),
+			VDot(d, B.axis[1]),
+			VDot(d, B.axis[2])
+		};
+		};
+
+	VECTOR lp1 = toLocal(p1);
+	VECTOR lp2 = toLocal(p2);
+
+	float distSq = SegmentAabbDistSq_Local(lp1, lp2, B.half);
+	return distSq <= capsule.para_.radius * capsule.para_.radius;
+}
+
+float Collision::SegmentSegmentDistSq(const VECTOR& p1, const VECTOR& q1, const VECTOR& p2, const VECTOR& q2) const {
+	VECTOR d1 = VSub(q1, p1); // 1の方向
+	VECTOR d2 = VSub(q2, p2); // 2の方向
+	VECTOR r = VSub(p1, p2);
+	float a = VDot(d1, d1);
+	float e = VDot(d2, d2);
+	float f = VDot(d2, r);
+
+	float s, t;
+
+	if (a <= 1e-8f && e <= 1e-8f) {
+		// 双方点
+		return VDot(r, r);
+	}
+	if (a <= 1e-8f) {
+		// 1が点
+		s = 0.0f;
+		t = std::clamp(f / e, 0.0f, 1.0f);
+	}
+	else {
+		float c = VDot(d1, r);
+		if (e <= 1e-8f) {
+			// 2が点
+			t = 0.0f;
+			s = std::clamp(-c / a, 0.0f, 1.0f);
+		}
+		else {
+			float b = VDot(d1, d2);
+			float denom = a * e - b * b;
+			if (denom != 0.0f) s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+			else               s = 0.0f;
+			float tnom = (b * s + f);
+			t = std::clamp(tnom / e, 0.0f, 1.0f);
+
+			// s を再調整
+			float sNom = (b * t - c);
+			s = std::clamp((denom != 0.0f) ? sNom / a : 0.0f, 0.0f, 1.0f);
+		}
+	}
+
+	VECTOR c1 = VAdd(p1, VScale(d1, s));
+	VECTOR c2 = VAdd(p2, VScale(d2, t));
+	VECTOR d = VSub(c1, c2);
+	return VDot(d, d);
+}
+
+float Collision::SegmentAabbDistSq_Local(const VECTOR& p0, const VECTOR& p1, const VECTOR& half) const
+{
+	const int steps = 10; // 必要に応じて増減
+	float best = FLT_MAX;
 	for (int i = 0; i <= steps; ++i) {
 		float t = (float)i / steps;
-		VECTOR p = VAdd(p1, VScale(VSub(p2, p1), t));
-		Aabb box = MakeAabb(aabb);
-		VECTOR minB = { box.center.x - box.half.x, box.center.y - box.half.y, box.center.z - box.half.z };
-		VECTOR maxB = { box.center.x + box.half.x, box.center.y + box.half.y, box.center.z + box.half.z };
-		VECTOR closest = Utility::Clamp(p, minB, maxB);
-		VECTOR d = VSub(p, closest);
-		if (VDot(d, d) <= capsule.para_.radius * capsule.para_.radius) return true;
+		VECTOR p = VAdd(p0, VScale(VSub(p1, p0), t));
+		float qx = (p.x < -half.x) ? -half.x : (p.x > half.x ? half.x : p.x);
+		float qy = (p.y < -half.y) ? -half.y : (p.y > half.y ? half.y : p.y);
+		float qz = (p.z < -half.z) ? -half.z : (p.z > half.z ? half.z : p.z);
+		VECTOR q = { qx, qy, qz };
+		VECTOR d = VSub(p, q);
+		best = (std::min)(best, VDot(d, d));
 	}
-	return false;
+	return best;
 }
+
+float Collision::PointSegmentDistSq(const VECTOR& p, const VECTOR& a, const VECTOR& b) const {
+	VECTOR ab = VSub(b, a);
+	VECTOR ap = VSub(p, a);
+	float ab2 = VDot(ab, ab);
+	if (ab2 <= 1e-8f) {
+		VECTOR d = VSub(p, a);
+		return VDot(d, d);
+	}
+	float t = VDot(ap, ab) / ab2;
+	if (t < 0.0f) t = 0.0f;
+	else if (t > 1.0f) t = 1.0f;
+	VECTOR q = VAdd(a, VScale(ab, t));
+	VECTOR d = VSub(p, q);
+	return VDot(d, d);
+}
+

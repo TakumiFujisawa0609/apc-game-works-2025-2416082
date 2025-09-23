@@ -118,6 +118,17 @@ bool AnimationController::IsEnd(int type) const
 	return playAnim_.step >= playAnim_.totalTime;
 }
 
+bool AnimationController::IsPassedRatio(int type, float ratio) const
+{
+	// 再生中のアニメーションが違うなら false
+	if (playType_ != type) return false;
+
+	// ratio は 0.0f～1.0f の範囲で指定する想定
+	float currentRatio = playAnim_.step / playAnim_.totalTime;
+
+	return currentRatio >= ratio;
+}
+
 void AnimationController::Add(int type, float speed, const std::string path)
 {
 	Animation animation;

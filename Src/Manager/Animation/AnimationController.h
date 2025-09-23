@@ -29,6 +29,8 @@ public:
 	void Release(void);
 	bool IsEnd(int type) const;
 
+	bool IsPassedRatio(int type, float ratio) const;
+
 	// 外部FBXからアニメーション追加
 	void Add(int type, float speed, const std::string path);
 private:

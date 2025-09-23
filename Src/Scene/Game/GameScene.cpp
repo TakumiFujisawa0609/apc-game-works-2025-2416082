@@ -11,6 +11,7 @@
 #include"../../Utility/Utility.h"
 
 #include"../../Object/Player/Player.h"
+#include"../../Object/Boss/Boss.h"
 #include"../../Object/Grid/Grid.h"
 
 #include"../Title/TitleScene.h"
@@ -24,10 +25,11 @@ int GameScene::shake_ = 0;
 ShakeKinds GameScene::shakeKinds_ = ShakeKinds::DIAG;
 ShakeSize GameScene::shakeSize_ = ShakeSize::MEDIUM;
 
-GameScene::GameScene():
+GameScene::GameScene() :
 	mainScreen_(-1),
 	collision_(nullptr),
 	player_(nullptr),
+	boss_(nullptr),
 	grid_(nullptr)
 {
 }
@@ -47,6 +49,9 @@ void GameScene::Load(void)
 	player_ = new Player();
 	player_->Load();
 
+	boss_ = new Boss();
+	boss_->Load();
+
 	grid_ = new Grid();
 
 	Camera::CreateInstance();
@@ -55,6 +60,7 @@ void GameScene::Load(void)
 void GameScene::Init(void)
 {
 	player_->Init();
+	boss_->Init();
 	grid_->Init();
 
 	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos());
@@ -100,6 +106,7 @@ void GameScene::Update(void)
 
 	Camera::GetInstance().Update();
 	player_->Update();
+	boss_->Update();
 	grid_->Update();
 
 #pragma endregion
@@ -125,6 +132,7 @@ void GameScene::Draw(void)
 	int y = app::SCREEN_SIZE_Y / 2;
 
 	player_->Draw();
+	boss_->Draw();
 	grid_->Draw();
 
 	SetFontSize(32);
@@ -152,6 +160,13 @@ void GameScene::Release(void)
 		player_->Release();
 		delete player_;
 		player_ = nullptr;
+	}
+
+	if (boss_)
+	{
+		boss_->Release();
+		delete boss_;
+		boss_ = nullptr;
 	}
 
 	DeleteGraph(mainScreen_);
