@@ -18,6 +18,10 @@ public:
 	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
 	static constexpr int ROLLING_TIME = 30;		// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
+
+	//両腕のインデックス
+	static constexpr int LEFT_ARM = 12;   // 左腕
+	static constexpr int RIGHT_ARM = 36;   // 右腕
 #pragma endregion
 
 
@@ -48,7 +52,6 @@ public:
 
 	void OnCollision(UnitBase* other) override;
 
-	void Muscle(void);
 
 	void CameraPosUpdate(void);
 
@@ -58,6 +61,8 @@ public:
 private:
 
 	AnimationController* animation_;
+
+	MATRIX MatrixSet(void);
 
 #pragma region 列挙型定義
 	// ステート管理用
@@ -81,6 +86,11 @@ private:
 
 
 	VECTOR cameraPos_;
+#pragma endregion
+
+#pragma region 筋肉関係
+	void Muscle(void);
+	void BoneScale(int index, VECTOR scale);
 #pragma endregion
 
 #pragma region ステート管理関係
@@ -107,4 +117,6 @@ private:
 	void DoRoll(void);
 
 #pragma endregion
+
+	int frameScrollIndex_ = 0;
 };

@@ -3,6 +3,7 @@
 #include "../../Manager/Animation/AnimationController.h"
 #include "../../Manager/Camera/Camera.h"
 
+
 Player::Player()
 {
 }
@@ -13,7 +14,6 @@ Player::~Player()
 
 void Player::Load(void)
 {
-
    std::string path = "Data/Model/Player/";
     unit_.model_ = MV1LoadModel((path + "Player1.mv1").c_str());
 
@@ -50,12 +50,13 @@ void Player::Init(void)
     
     state_ = STATE::IDLE;
     animType_ = ANIM_TYPE::IDLE;
+
+    BoneScale(12, VGet(3.0f, 1.0f, 3.0f));
+    BoneScale(36, VGet(3.0f, 1.0f, 3.0f));
 }
 
 void Player::Update(void)
 {
-    CameraPosUpdate();
-
     if (nextRollCounter_ <= 0)
     {
         nextRollCounter_ = 0;
@@ -77,38 +78,19 @@ void Player::Update(void)
 
     // プレイヤーの無敵処理
 	Invi();
+
+    CameraPosUpdate();
 }
 
 void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
-    // 回転行列の作成　
-    MATRIX mat = MGetIdent();
-    mat = MMult(mat, MGetRotX(unit_.angle_.x));
-    mat = MMult(mat, MGetRotY(unit_.angle_.y));
-    mat = MMult(mat, MGetRotZ(unit_.angle_.z));
-
-    MATRIX localMat = MGetIdent();
-    localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-    localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-    localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
-
-    mat = MMult(localMat, mat);
-
-    // スケール行列
-    MATRIX matScale = MGetScale(unit_.scale_);
-
-    // スケールを先に適用
-    mat = MMult(matScale, mat);
-
-    mat.m[3][0] = unit_.pos_.x;
-    mat.m[3][1] = unit_.pos_.y;
-    mat.m[3][2] = unit_.pos_.z;
-
-    MV1SetMatrix(unit_.model_, mat);
+    MV1SetMatrix(unit_.model_, MatrixSet());
 
     MV1DrawModel(unit_.model_);
+
+#ifdef _DEBUG
 
     switch (state_)
     {
@@ -126,6 +108,42 @@ void Player::Draw(void)
         break;
     }
 
+    int frameNum = MV1GetFrameNum(unit_.model_);
+
+    static int prevUp = 0, prevDown = 0;
+    int nowUp = CheckHitKey(KEY_INPUT_UP);
+    int nowDown = CheckHitKey(KEY_INPUT_DOWN);
+
+    if (nowUp == 1 && prevUp == 0)
+    {
+        frameScrollIndex_--;
+        if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
+    }
+
+    if (nowDown == 1 && prevDown == 0)
+    {
+        frameScrollIndex_++;
+        if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
+    }
+
+    prevUp = nowUp;
+    prevDown = nowDown;
+
+    // ===== 画面に描画 =====
+    int y = 200;
+    const int maxLines = 20; // 一度に表示する行数
+
+    for (int i = 0; i < maxLines; i++)
+    {
+        int idx = frameScrollIndex_ + i;
+        if (idx >= frameNum) break;
+
+        const char* name = MV1GetFrameName(unit_.model_, idx);
+        DrawFormatString(0, y, GetColor(255, 255, 255),
+            "Frame %d : %s", idx, name ? name : "(null)");
+        y += 16;
+    }
+#endif 
 }
 
 void Player::Release(void)
@@ -144,26 +162,45 @@ void Player::OnCollision(UnitBase* other)
 {
 }
 
+float mara = 1.0f;
+
 void Player::Muscle(void)
 {
-    static int cnt = 0;
+    if (CheckHitKey(KEY_INPUT_1))mara += 0.001;
+    else if(CheckHitKey(KEY_INPUT_2))mara -= 0.001;
 
-    if (state_ != STATE::ATTACK)cnt = 0;
-    if (attackScaleApplied_) {
-        cnt++;
-        if (cnt < 10) {
-            unit_.scale_ = VAdd(unit_.scale_, { 0.02f, 0.02f, 0.02f });
-        }
+    BoneScale(12, VGet(1.0f + mara, 1.0f + mara, 1.0f + mara));
 
-        const float MAX_SCALE = 5.0f;
-        if (unit_.scale_.x > MAX_SCALE) unit_.scale_ = VGet(MAX_SCALE, MAX_SCALE, MAX_SCALE);
-    }
+    //static int cnt = 0;
+
+    //if (state_ != STATE::ATTACK)cnt = 0;
+    //if (attackScaleApplied_) {
+    //    cnt++;
+    //    if (cnt < 10) {
+    //        unit_.scale_ = VAdd(unit_.scale_, { 0.02f, 0.02f, 0.02f });
+    //    }
+
+    //    const float MAX_SCALE = 5.0f;
+    //    if (unit_.scale_.x > MAX_SCALE) unit_.scale_ = VGet(MAX_SCALE, MAX_SCALE, MAX_SCALE);
+    //}
 
     if (CheckHitKey(KEY_INPUT_0))
     {
         unit_.scale_ = VAdd(unit_.scale_, { -0.02f, -0.02f, -0.02f });
         if (unit_.scale_.x < 1.0f)unit_.scale_ = VGet(1.0f, 1.0f, 1.0f);
     };
+
+}
+
+void Player::BoneScale(int index, VECTOR scale)
+{
+    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
+
+    //スケール行列をかける
+    MATRIX scaleMat = MGetScale(scale);
+    mat = MMult(mat, scaleMat);
+
+    MV1SetFrameUserLocalMatrix(unit_.model_, index, mat);
 }
 
 
@@ -345,15 +382,39 @@ void Player::CameraPosUpdate(void)
 {
     cameraPos_ = unit_.pos_;
 
-    // 補間用static変数
-
-    // プレイヤーのスケールに応じた目標高さ
     float scaleAvg = (unit_.scale_.x + unit_.scale_.y + unit_.scale_.z) / 3.0f;
     float targetHeight = Camera::CAMERA_PLAYER_POS * scaleAvg;
 
-    // 線形補間（0.2は追従速度）
     currentHeight += (targetHeight - currentHeight) * 0.2f;
 
     cameraPos_.y = unit_.pos_.y + currentHeight;
+}
+
+MATRIX Player::MatrixSet(void)
+{
+    // 回転行列の作成　
+    MATRIX mat = MGetIdent();
+    mat = MMult(mat, MGetRotX(unit_.angle_.x));
+    mat = MMult(mat, MGetRotY(unit_.angle_.y));
+    mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+
+    MATRIX localMat = MGetIdent();
+    localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+    localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+    localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+
+    mat = MMult(localMat, mat);
+
+    // スケール行列
+    MATRIX matScale = MGetScale(unit_.scale_);
+
+    // スケールを先に適用
+    mat = MMult(matScale, mat);
+
+    mat.m[3][0] = unit_.pos_.x;
+    mat.m[3][1] = unit_.pos_.y;
+    mat.m[3][2] = unit_.pos_.z;
+
+    return mat;
 }
 
