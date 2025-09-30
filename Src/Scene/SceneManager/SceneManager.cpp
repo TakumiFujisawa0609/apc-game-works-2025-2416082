@@ -6,6 +6,7 @@
 
 #include"../Title/TitleScene.h"
 #include"../Game/GameScene.h"
+#include"../PauseScene/PauseScene.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
 
@@ -163,6 +164,9 @@ void SceneManager::ChangeScene(SCENE_ID scene)
 	case SCENE_ID::GAME:
 		ChangeScene(std::make_shared<GameScene>());
 		break;
+	case SCENE_ID::PAUSE:
+		ChangeScene(std::make_shared<PauseScene>());
+		break;
 	default:
 		break;
 	}
@@ -186,7 +190,8 @@ void SceneManager::PushScene(SCENE_ID scene)
 	case SCENE_ID::GAME:
 		PushScene(std::make_shared<GameScene>());
 		break;
-	default:
+	case SCENE_ID::PAUSE:
+		PushScene(std::make_shared<PauseScene>());
 		break;
 	}
 }
@@ -220,6 +225,9 @@ void SceneManager::JumpScene(SCENE_ID scene)
 		break;
 	case SCENE_ID::GAME:
 		JumpScene(std::make_shared<GameScene>());
+		break;
+	case SCENE_ID::PAUSE:
+		JumpScene(std::make_shared<PauseScene>());
 		break;
 	default:
 		break;

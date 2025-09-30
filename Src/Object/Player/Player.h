@@ -90,7 +90,7 @@ private:
 
 #pragma region 筋肉関係
 	void Muscle(void);
-	void BoneScale(int index, VECTOR scale);
+	void BoneScaleChange(int index, VECTOR scale);
 #pragma endregion
 
 #pragma region ステート管理関係

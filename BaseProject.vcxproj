@@ -148,6 +148,7 @@
     <ClCompile Include="Src\Object\Player\Player.cpp" />
     <ClCompile Include="Src\Object\UnitBase.cpp" />
     <ClCompile Include="Src\Scene\Game\GameScene.cpp" />
+    <ClCompile Include="Src\Scene\PauseScene\PauseScene.cpp" />
     <ClCompile Include="Src\Scene\SceneManager\SceneManager.cpp" />
     <ClCompile Include="Src\Scene\Title\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\Utility.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="Src\Object\Player\Player.h" />
     <ClInclude Include="Src\Object\UnitBase.h" />
     <ClInclude Include="Src\Scene\Game\GameScene.h" />
+    <ClInclude Include="Src\Scene\PauseScene\PauseScene.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\SceneManager\SceneManager.h" />
     <ClInclude Include="Src\Scene\Title\TitleScene.h" />

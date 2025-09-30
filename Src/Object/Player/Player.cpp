@@ -51,8 +51,7 @@ void Player::Init(void)
     state_ = STATE::IDLE;
     animType_ = ANIM_TYPE::IDLE;
 
-    BoneScale(12, VGet(3.0f, 1.0f, 3.0f));
-    BoneScale(36, VGet(3.0f, 1.0f, 3.0f));
+
 }
 
 void Player::Update(void)
@@ -162,45 +161,52 @@ void Player::OnCollision(UnitBase* other)
 {
 }
 
-float mara = 1.0f;
 
 void Player::Muscle(void)
 {
-    if (CheckHitKey(KEY_INPUT_1))mara += 0.001;
-    else if(CheckHitKey(KEY_INPUT_2))mara -= 0.001;
+    static int cnt = 0;
 
-    BoneScale(12, VGet(1.0f + mara, 1.0f + mara, 1.0f + mara));
-
-    //static int cnt = 0;
-
-    //if (state_ != STATE::ATTACK)cnt = 0;
-    //if (attackScaleApplied_) {
-    //    cnt++;
-    //    if (cnt < 10) {
-    //        unit_.scale_ = VAdd(unit_.scale_, { 0.02f, 0.02f, 0.02f });
-    //    }
-
-    //    const float MAX_SCALE = 5.0f;
-    //    if (unit_.scale_.x > MAX_SCALE) unit_.scale_ = VGet(MAX_SCALE, MAX_SCALE, MAX_SCALE);
-    //}
-
-    if (CheckHitKey(KEY_INPUT_0))
-    {
-        unit_.scale_ = VAdd(unit_.scale_, { -0.02f, -0.02f, -0.02f });
-        if (unit_.scale_.x < 1.0f)unit_.scale_ = VGet(1.0f, 1.0f, 1.0f);
-    };
-
+    if (state_ != STATE::ATTACK)cnt = 0;
+    if (attackScaleApplied_) {
+        cnt++;
+        if (cnt < 10) {
+            BoneScaleChange(11, VGet(0.05f, 0.05f, 0.05f));
+            BoneScaleChange(35, VGet(0.05f, 0.05f, 0.05f));
+        }
+    }
 }
 
-void Player::BoneScale(int index, VECTOR scale)
+void Player::BoneScaleChange(int index, VECTOR scale)
 {
     MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
 
-    //スケール行列をかける
-    MATRIX scaleMat = MGetScale(scale);
-    mat = MMult(mat, scaleMat);
+    // 行列からスケール成分を抽出
+    VECTOR currentScale;
+    currentScale.x = VSize(VGet(mat.m[0][0], mat.m[0][1], mat.m[0][2]));
+    currentScale.y = VSize(VGet(mat.m[1][0], mat.m[1][1], mat.m[1][2]));
+    currentScale.z = VSize(VGet(mat.m[2][0], mat.m[2][1], mat.m[2][2]));
 
-    MV1SetFrameUserLocalMatrix(unit_.model_, index, mat);
+    // スケール加算
+    VECTOR newScale = {
+        currentScale.x + scale.x,
+        currentScale.y + scale.y,
+        currentScale.z + scale.z
+    };
+
+    const VECTOR MAX = { 3.0f, 3.0f, 3.0f };
+    if (newScale.x > MAX.x) newScale.x = MAX.x;
+    if (newScale.y > MAX.y) newScale.y = MAX.y;
+    if (newScale.z > MAX.z) newScale.z = MAX.z;
+
+    const VECTOR MIN = { 1.0f, 1.0f, 1.0f };
+    if (newScale.x < MIN.x) newScale.x = MIN.x;
+    if (newScale.y < MIN.y) newScale.y = MIN.y;
+    if (newScale.z < MIN.z) newScale.z = MIN.z;
+
+    // スケール行列を作成
+    MATRIX scaleMat = MGetScale(newScale);
+
+    MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
 }
 
 
@@ -346,12 +352,17 @@ void Player::DoIdle(void)
 
 void Player::DoAttack(void)
 {
-    static int  prevJ = 0;
-    static int nowJ = 0;
-    prevJ = nowJ;
-    nowJ = CheckHitKey(KEY_INPUT_J);
-    // Jキーが押されたら攻撃に移る
-    if (nowJ == 1 && prevJ == 0)state_ = STATE::ATTACK;
+    static int  prevJ[2];
+    static int nowJ[2];
+
+    for (int i = 0; i < 2; i++)
+    {
+        prevJ[i] = nowJ[i];
+        nowJ[i] = (i) ? CheckHitKey(KEY_INPUT_J) : GetMouseInput() & MOUSE_INPUT_LEFT;
+        // Jキーが押されたら攻撃に移る
+        if (nowJ[i] == 1 && prevJ[i] == 0)state_ = STATE::ATTACK;
+    }
+
 
     // 攻撃処理の初期化
     attackScaleApplied_ = false;

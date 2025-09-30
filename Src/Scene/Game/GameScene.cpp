@@ -81,6 +81,8 @@ void GameScene::Init(void)
 #pragma endregion
 }
 
+
+
 void GameScene::Update(void)
 {
 	// 画面演出更新
@@ -89,25 +91,37 @@ void GameScene::Update(void)
 
 #pragma region オブジェクト更新処理
 
-	if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
+	//if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
 
-		//シーン遷移の書き方2種類
-		
-		//今まで通りの
-		SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
+	//	//シーン遷移の書き方2種類
+	//	
+	//	//今まで通りの
+	//	SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
 
-		//列挙型(enum)とかswitchとか書かないやり方
-		SceneManager::GetInstance().ChangeScene(std::make_shared<TitleScene>());
-		
-		//まあ実際、上のは使いやすいように下をオーバーロードしたものだから内部的には一緒
+	//	//列挙型(enum)とかswitchとか書かないやり方
+	//	SceneManager::GetInstance().ChangeScene(std::make_shared<TitleScene>());
+	//	
+	//	//まあ実際、上のは使いやすいように下をオーバーロードしたものだから内部的には一緒
 
-		return;
-	}
+	//	return;
+	//}
 
 	Camera::GetInstance().Update();
 	player_->Update();
 	//boss_->Update();
 	grid_->Update();
+
+	static int prev = 0;
+	static int now = 0;
+
+	prev = now;
+	now = CheckHitKey(KEY_INPUT_ESCAPE);
+
+	if (now == 1 && prev == 0)
+	{
+		auto& scene = SceneManager::GetInstance();
+		scene.PushScene(SCENE_ID::PAUSE);
+	}
 
 #pragma endregion
 
