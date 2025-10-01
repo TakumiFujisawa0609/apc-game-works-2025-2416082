@@ -2,6 +2,7 @@
 
 #include "../../Manager/Animation/AnimationController.h"
 #include "../../Manager/Camera/Camera.h"
+#include "../../Manager/Input/InputManager.h"   
 
 
 Player::Player()
@@ -203,6 +204,7 @@ void Player::Idle(void)
 void Player::Move(void)
 {
     auto& camera = Camera::GetInstance();
+
     move_ = Utility::VECTOR_ZERO;
 
     // 入力方向ベクトル（カメラ基準のローカル座標）
@@ -337,15 +339,12 @@ void Player::DoIdle(void)
 
 void Player::DoAttack(void)
 {
-    static int  prevJ[2];
-    static int nowJ[2];
+    auto& input = InputManager::GetInstance();
 
     for (int i = 0; i < 2; i++)
     {
-        prevJ[i] = nowJ[i];
-        nowJ[i] = (i) ? CheckHitKey(KEY_INPUT_J) : GetMouseInput() & MOUSE_INPUT_LEFT;
         // Jキーが押されたら攻撃に移る
-        if (nowJ[i] == 1 && prevJ[i] == 0)state_ = STATE::ATTACK;
+        if (input.IsClickMouseLeft() || input.IsTrgDown(KEY_INPUT_J))state_ = STATE::ATTACK;
     }
 
 

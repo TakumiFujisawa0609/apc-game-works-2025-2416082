@@ -3,6 +3,7 @@
 #include <DxLib.h>
 
 #include "../../Manager/Loading/Loading.h"
+#include "../../Manager/Input/InputManager.h"
 
 #include"../Title/TitleScene.h"
 #include"../Game/GameScene.h"
@@ -28,6 +29,8 @@ void SceneManager::Init(void)
 	Loading::GetInstance()->CreateInstance();
 	Loading::GetInstance()->Init();
 	Loading::GetInstance()->Load();
+
+	InputManager::CreateInstance();
 
 	// Å‰‚Íƒ^ƒCƒgƒ‹‰æ–Ê‚©‚ç
 	ChangeScene(SCENE_ID::TITLE);

@@ -1,6 +1,8 @@
 #include <DxLib.h>
 #include "InputManager.h"
 
+#include "../../Common/Vector2.h"
+
 InputManager* InputManager::instance_ = nullptr;
 
 void InputManager::CreateInstance(void)
@@ -33,6 +35,7 @@ void InputManager::Init(void)
 	InputManager::GetInstance().Add(KEY_INPUT_A);
 	InputManager::GetInstance().Add(KEY_INPUT_S);
 	InputManager::GetInstance().Add(KEY_INPUT_D);
+	InputManager::GetInstance().Add(KEY_INPUT_J);
 
 	InputManager::GetInstance().Add(KEY_INPUT_RIGHT);
 	InputManager::GetInstance().Add(KEY_INPUT_LEFT);
@@ -76,7 +79,7 @@ void InputManager::Update(void)
 
 	// マウス検知
 	mouseInput_ = GetMouseInput();
-	//GetMousePoint(&mousePos_.x, &mousePos_.y);
+	GetMousePoint(&mousePos_.x, &mousePos_.y);
 
 	for (auto& p : mouseInfos_)
 	{
@@ -132,10 +135,10 @@ bool InputManager::IsTrgUp(int key) const
 	return Find(key).keyTrgUp;
 }
 
-//Vector2 InputManager::GetMousePos(void) const
-//{
-//	return mousePos_;
-//}
+Vector2 InputManager::GetMousePos(void) const
+{
+	return mousePos_;
+}
 
 int InputManager::GetMouse(void) const
 {
