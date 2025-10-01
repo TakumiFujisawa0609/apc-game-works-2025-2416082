@@ -14,14 +14,16 @@ Player::~Player()
 
 void Player::Load(void)
 {
+    // モデルや画像、アニメーションのロード
+
    std::string path = "Data/Model/Player/";
-    unit_.model_ = MV1LoadModel((path + "Player1.mv1").c_str());
+    unit_.model_ = MV1LoadModel((path + "Player2.mv1").c_str());
 
     animation_ = new AnimationController(unit_.model_);
 
     animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, "Data/Model/Player/Animation/Idle.mv1");
     animation_->Add((int)(ANIM_TYPE::RUN), 50.0f, "Data/Model/Player/Animation/Run.mv1");
-    animation_->Add((int)(ANIM_TYPE::ATTACK), 30.0f, "Data/Model/Player/Animation/Throw.mv1");
+    animation_->Add((int)(ANIM_TYPE::ATTACK), 60.0f, "Data/Model/Player/Animation/Punching.mv1");
     animation_->Add((int)(ANIM_TYPE::Roll), 100.0f, "Data/Model/Player/Animation/Evasion.mv1");
 
     move_ = VGet(0.0f, 0.0f, 0.0f);
@@ -30,32 +32,35 @@ void Player::Load(void)
 
 void Player::Init(void)
 {
-	unit_.isAlive_ = true;
+    // 変数の初期化
+
+    unit_.isAlive_ = true;
 	unit_.pos_ = DEFAULT_POS;
     unit_.angle_ = Utility::VECTOR_ZERO;
 
     currentHeight = Camera::CAMERA_PLAYER_POS;
-
     cameraPos_ = Utility::VECTOR_ZERO;
 
     nextRollCounter_ = 0;
 
+    frameScrollIndex_ = 0;
+
+    // 関数ポインタに登録
     stateFuncs_ =
     {
         { STATE::IDLE,      &Player::Idle   },
         { STATE::MOVE,      &Player::Move   },
         { STATE::ATTACK,    &Player::Attack },
-        { STATE::ROLL,      &Player::Roll },
+        { STATE::ROLL,      &Player::Roll   },
     };
     
     state_ = STATE::IDLE;
     animType_ = ANIM_TYPE::IDLE;
-
-
 }
 
 void Player::Update(void)
 {
+    // ローリング制御
     if (nextRollCounter_ <= 0)
     {
         nextRollCounter_ = 0;
@@ -65,88 +70,46 @@ void Player::Update(void)
         nextRollCounter_--;
     }
 
-    StateManager();
+    //マッスル関係の処理用関数
+    Muscle();
 
+    // 関数ポインタでそれぞれのステートの
+    // アップデート関数を呼び出している
     auto Func = stateFuncs_.find(state_);
     (this->*(Func->second))();
 
-    animation_->Update();
-
-    //マッスル関係の処理用関数
-    Muscle();
+    //状態遷移用関数
+    StateManager();
 
     // プレイヤーの無敵処理
 	Invi();
 
+    //カメラ
     CameraPosUpdate();
+
+    // アニメーション処理
+    animation_->Update();
 }
 
 void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
+    //for(int i = 0;)
+
     MV1SetMatrix(unit_.model_, MatrixSet());
 
     MV1DrawModel(unit_.model_);
 
 #ifdef _DEBUG
-
-    switch (state_)
-    {
-    case Player::STATE::IDLE:
-        DrawString(0, 100, "IDLE", 0xffffff);
-        break;
-    case Player::STATE::MOVE:
-        DrawString(0, 100, "MOVE", 0xffffff);
-        break;
-    case Player::STATE::ATTACK:
-        DrawString(0, 100, "ATTACK", 0xffffff);
-        break;
-    case Player::STATE::ROLL:
-        DrawString(0, 100, "Roll", 0xffffff);
-        break;
-    }
-
-    int frameNum = MV1GetFrameNum(unit_.model_);
-
-    static int prevUp = 0, prevDown = 0;
-    int nowUp = CheckHitKey(KEY_INPUT_UP);
-    int nowDown = CheckHitKey(KEY_INPUT_DOWN);
-
-    if (nowUp == 1 && prevUp == 0)
-    {
-        frameScrollIndex_--;
-        if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
-    }
-
-    if (nowDown == 1 && prevDown == 0)
-    {
-        frameScrollIndex_++;
-        if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
-    }
-
-    prevUp = nowUp;
-    prevDown = nowDown;
-
-    // ===== 画面に描画 =====
-    int y = 200;
-    const int maxLines = 20; // 一度に表示する行数
-
-    for (int i = 0; i < maxLines; i++)
-    {
-        int idx = frameScrollIndex_ + i;
-        if (idx >= frameNum) break;
-
-        const char* name = MV1GetFrameName(unit_.model_, idx);
-        DrawFormatString(0, y, GetColor(255, 255, 255),
-            "Frame %d : %s", idx, name ? name : "(null)");
-        y += 16;
-    }
+    DebugDraw();
 #endif 
 }
 
+// 解放処理
 void Player::Release(void)
 {
+    //アニメーション
     if (animation_)
     {
         animation_->Release();
@@ -154,14 +117,16 @@ void Player::Release(void)
         animation_ = nullptr;
     }
 
+    // モデルの解放
     MV1DeleteModel(unit_.model_);
 }
 
+//当たり判定
 void Player::OnCollision(UnitBase* other)
 {
 }
 
-
+// 筋肉処理
 void Player::Muscle(void)
 {
     static int cnt = 0;
@@ -170,12 +135,22 @@ void Player::Muscle(void)
     if (attackScaleApplied_) {
         cnt++;
         if (cnt < 10) {
-            BoneScaleChange(11, VGet(0.05f, 0.05f, 0.05f));
-            BoneScaleChange(35, VGet(0.05f, 0.05f, 0.05f));
+            BoneScaleChange(LEFT_ARM, VGet(0.05f, 0.05f, 0.05f));
+            BoneScaleChange(RIGHT_ARM, VGet(0.05f, 0.05f, 0.05f));
         }
     }
+
+    if (CheckHitKey(KEY_INPUT_0))
+    {
+        BoneScaleChange(LEFT_ARM, VGet(-0.05f, -0.05f, -0.05f));
+        BoneScaleChange(RIGHT_ARM, VGet(-0.05f, -0.05f, -0.05f));
+    }
+
+    BoneScaleChange(RIGHT_ARM, { -0.0005, -0.0005, -0.0005 });
+    BoneScaleChange(LEFT_ARM, { -0.0005, -0.0005, -0.0005 });
 }
 
+// どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
 void Player::BoneScaleChange(int index, VECTOR scale)
 {
     MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
@@ -193,19 +168,27 @@ void Player::BoneScaleChange(int index, VECTOR scale)
         currentScale.z + scale.z
     };
 
-    const VECTOR MAX = { 3.0f, 3.0f, 3.0f };
-    if (newScale.x > MAX.x) newScale.x = MAX.x;
-    if (newScale.y > MAX.y) newScale.y = MAX.y;
-    if (newScale.z > MAX.z) newScale.z = MAX.z;
+    if (newScale.x > MAX_MUSCLE.x) newScale.x = MAX_MUSCLE.x;
+    if (newScale.y > MAX_MUSCLE.y) newScale.y = MAX_MUSCLE.y;
+    if (newScale.z > MAX_MUSCLE.z) newScale.z = MAX_MUSCLE.z;
 
-    const VECTOR MIN = { 1.0f, 1.0f, 1.0f };
-    if (newScale.x < MIN.x) newScale.x = MIN.x;
-    if (newScale.y < MIN.y) newScale.y = MIN.y;
-    if (newScale.z < MIN.z) newScale.z = MIN.z;
+    if (newScale.x < MIN_MUSCLE.x) newScale.x = MIN_MUSCLE.x;
+    if (newScale.y < MIN_MUSCLE.y) newScale.y = MIN_MUSCLE.y;
+    if (newScale.z < MIN_MUSCLE.z) newScale.z = MIN_MUSCLE.z;
+
+#pragma region 筋肉量を確認する用の処理
+    // 平均を取って割合にする
+    float avgScale = (newScale.x + newScale.y + newScale.z) / 3.0f;
+    float avgMin = (MIN_MUSCLE.x + MIN_MUSCLE.y + MIN_MUSCLE.z) / 3.0f;
+    float avgMax = (MAX_MUSCLE.x + MAX_MUSCLE.y + MAX_MUSCLE.z) / 3.0f;
+
+    muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin); // 0～1 に正規化
+#pragma endregion
 
     // スケール行列を作成
     MATRIX scaleMat = MGetScale(newScale);
 
+    // 適用
     MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
 }
 
@@ -243,7 +226,9 @@ void Player::Move(void)
         unit_.pos_ = VAdd(unit_.pos_, worldMove);
 
         // プレイヤーの向きも移動方向に合わせる
-        unit_.angle_.y = atan2f(worldMove.x, worldMove.z);
+        float targetY = atan2f(worldMove.x, worldMove.z);
+
+        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.5f);
     }
 
     animation_->Play((int)ANIM_TYPE::RUN, true);
@@ -391,6 +376,8 @@ void Player::DoRoll(void)
 // カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
 {
+    //もともとボーンごとじゃなくてモデル自体を
+    //大きくしていたのでそれに応じてカメラの位置も高くなるようにしていた
     cameraPos_ = unit_.pos_;
 
     float scaleAvg = (unit_.scale_.x + unit_.scale_.y + unit_.scale_.z) / 3.0f;
@@ -399,6 +386,73 @@ void Player::CameraPosUpdate(void)
     currentHeight += (targetHeight - currentHeight) * 0.2f;
 
     cameraPos_.y = unit_.pos_.y + currentHeight;
+}
+
+void Player::DebugDraw(void)
+{
+    //デバック用Draw
+
+    switch (state_)
+    {
+    case Player::STATE::IDLE:
+        DrawString(0, 100, "IDLE", 0xffffff);
+        break;
+    case Player::STATE::MOVE:
+        DrawString(0, 100, "MOVE", 0xffffff);
+        break;
+    case Player::STATE::ATTACK:
+        DrawString(0, 100, "ATTACK", 0xffffff);
+        break;
+    case Player::STATE::ROLL:
+        DrawString(0, 100, "Roll", 0xffffff);
+        break;
+    }
+
+    // ===== 筋肉ゲージ描画 =====
+    int mx = 50, my = 50; // 表示位置
+    int width = 200, height = 20; // ゲージのサイズ
+    int filled = (int)(width * muscleRatio_);
+
+    // 外枠
+    DrawBox(mx, my, mx + width, my + height, GetColor(255, 255, 255), FALSE);
+    // 中身（割合に応じて伸ばす）
+    DrawBox(mx, my, mx + filled, my + height, GetColor(255, 0, 0), TRUE);
+
+    int frameNum = MV1GetFrameNum(unit_.model_);
+
+    static int prevUp = 0, prevDown = 0;
+    int nowUp = CheckHitKey(KEY_INPUT_UP);
+    int nowDown = CheckHitKey(KEY_INPUT_DOWN);
+
+    if (nowUp == 1 && prevUp == 0)
+    {
+        frameScrollIndex_--;
+        if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
+    }
+
+    if (nowDown == 1 && prevDown == 0)
+    {
+        frameScrollIndex_++;
+        if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
+    }
+
+    prevUp = nowUp;
+    prevDown = nowDown;
+
+    // ===== 画面に描画 =====
+    int y = 200;
+    const int maxLines = 20; // 一度に表示する行数
+
+    for (int i = 0; i < maxLines; i++)
+    {
+        int idx = frameScrollIndex_ + i;
+        if (idx >= frameNum) break;
+
+        const char* name = MV1GetFrameName(unit_.model_, idx);
+        DrawFormatString(0, y, GetColor(255, 255, 255),
+            "Frame %d : %s", idx, name ? name : "(null)");
+        y += 16;
+    }
 }
 
 MATRIX Player::MatrixSet(void)

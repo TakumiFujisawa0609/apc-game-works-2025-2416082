@@ -66,10 +66,10 @@
     <ClCompile Include="Src\Object\Boss\BossBase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Manager\Input\KeyManager.cpp">
+    <ClCompile Include="Src\Scene\PauseScene\PauseScene.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\PauseScene\PauseScene.cpp">
+    <ClCompile Include="Src\Manager\Input\InputManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -125,10 +125,10 @@
     <ClInclude Include="Src\Object\Boss\BossBase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Manager\Input\KeyManager.h">
+    <ClInclude Include="Src\Scene\PauseScene\PauseScene.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\PauseScene\PauseScene.h">
+    <ClInclude Include="Src\Manager\Input\InputManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

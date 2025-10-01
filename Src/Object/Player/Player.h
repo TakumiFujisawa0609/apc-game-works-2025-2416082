@@ -20,8 +20,11 @@ public:
 	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
 
 	//両腕のインデックス
-	static constexpr int LEFT_ARM = 12;   // 左腕
-	static constexpr int RIGHT_ARM = 36;   // 右腕
+	static constexpr int LEFT_ARM = 11;   // 左腕
+	static constexpr int RIGHT_ARM = 35;   // 右腕
+
+	static constexpr VECTOR MAX_MUSCLE = { 3.0f,3.0f,3.0f };
+	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
 #pragma endregion
 
 
@@ -61,7 +64,8 @@ public:
 private:
 
 	AnimationController* animation_;
-
+	
+	void DebugDraw(void);
 	MATRIX MatrixSet(void);
 
 #pragma region 列挙型定義
@@ -84,6 +88,7 @@ private:
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
 
+	float muscleRatio_;
 
 	VECTOR cameraPos_;
 #pragma endregion
@@ -118,5 +123,6 @@ private:
 
 #pragma endregion
 
-	int frameScrollIndex_ = 0;
+	// デバッグ用変数
+	int frameScrollIndex_;
 };
