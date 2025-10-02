@@ -3,6 +3,8 @@
 
 #include "../../Application/Application.h"
 
+#include "../../Manager/Input/InputManager.h"
+
 #include "../../Utility/Utility.h"
 
 Camera* Camera::instance_ = nullptr;
@@ -16,12 +18,13 @@ void Camera::Init()
 
 void Camera::Update()
 {
+    auto& input = InputManager::GetInstance();
     MouseMoveCamera();
 
-    if (CheckHitKey(KEY_INPUT_RIGHT)) angle_.y += 5;
-    if (CheckHitKey(KEY_INPUT_LEFT))  angle_.y -= 5;
-    //if (CheckHitKey(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
-    //if (CheckHitKey(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
+    if (input.IsNew(KEY_INPUT_RIGHT)) angle_.y += 5;
+    if (input.IsNew(KEY_INPUT_LEFT))  angle_.y -= 5;
+    if (input.IsNew(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
+    if (input.IsNew(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
 
     // YŽ²‰ñ“]s—ñ‚ðì¬
     MATRIX matY = MGetRotY(angle_.y * DX_PI_F / 180.0f);
@@ -61,12 +64,12 @@ void Camera::MouseMoveCamera(void)
         return;
     }
 
-    const float sens = 0.3f; // Š´“x’²®
+    const float sens = 0.2f; // Š´“x’²®
     angle_.y += deltaX * sens;
     angle_.x += deltaY * sens;
 
     // ã‰º‚Ì‰ñ“]§ŒÀ
-    float limit = DX_PI_F / 3.0f; // –ñ60“x
+    float limit = DX_PI_F * 12;
     if (angle_.x > limit) angle_.x = limit;
     if (angle_.x < -limit) angle_.x = -limit;
 }

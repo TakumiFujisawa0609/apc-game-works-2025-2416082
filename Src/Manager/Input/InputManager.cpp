@@ -135,7 +135,7 @@ bool InputManager::IsTrgUp(int key) const
 	return Find(key).keyTrgUp;
 }
 
-Vector2 InputManager::GetMousePos(void) const
+Vector2I InputManager::GetMousePos(void) const
 {
 	return mousePos_;
 }

@@ -15,17 +15,21 @@ Player::~Player()
 
 void Player::Load(void)
 {
-    // モデルや画像、アニメーションのロード
-
    std::string path = "Data/Model/Player/";
+
+    // モデルのロード
     unit_.model_ = MV1LoadModel((path + "Player2.mv1").c_str());
 
+    // アニメーションクラス
     animation_ = new AnimationController(unit_.model_);
 
-    animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, "Data/Model/Player/Animation/Idle.mv1");
-    animation_->Add((int)(ANIM_TYPE::RUN), 50.0f, "Data/Model/Player/Animation/Run.mv1");
-    animation_->Add((int)(ANIM_TYPE::ATTACK), 60.0f, "Data/Model/Player/Animation/Punching.mv1");
-    animation_->Add((int)(ANIM_TYPE::Roll), 100.0f, "Data/Model/Player/Animation/Evasion.mv1");
+    // アニメーションのロード
+    animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, (path + "Animation/Idle.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::RUN), 50.0f, (path + "Animation/Run.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::Roll), 100.0f, (path + "Animation/Evasion.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::ATTACK1), 100.0f, (path + "Animation/Punching.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::ATTACK2), 100.0f, (path + "Animation/Punching2.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::ATTACK3), 100.0f, (path + "Animation/Swiping.mv1").c_str());
 
     move_ = VGet(0.0f, 0.0f, 0.0f);
 
@@ -34,7 +38,6 @@ void Player::Load(void)
 void Player::Init(void)
 {
     // 変数の初期化
-
     unit_.isAlive_ = true;
 	unit_.pos_ = DEFAULT_POS;
     unit_.angle_ = Utility::VECTOR_ZERO;
@@ -46,6 +49,8 @@ void Player::Init(void)
 
     frameScrollIndex_ = 0;
 
+    attacConboCnt_ = 0;
+
     // 関数ポインタに登録
     stateFuncs_ =
     {
@@ -56,7 +61,6 @@ void Player::Init(void)
     };
     
     state_ = STATE::IDLE;
-    animType_ = ANIM_TYPE::IDLE;
 }
 
 void Player::Update(void)
@@ -132,23 +136,23 @@ void Player::Muscle(void)
 {
     static int cnt = 0;
 
-    if (state_ != STATE::ATTACK)cnt = 0;
-    if (attackScaleApplied_) {
+  /*  if (state_ != STATE::ATTACK)cnt = 0;
+    if (isAttacked_) {
         cnt++;
         if (cnt < 10) {
-            BoneScaleChange(LEFT_ARM, VGet(0.05f, 0.05f, 0.05f));
-            BoneScaleChange(RIGHT_ARM, VGet(0.05f, 0.05f, 0.05f));
+            BoneScaleChange(LEFT_ARM, UP_MUSCLE);
+            BoneScaleChange(RIGHT_ARM, UP_MUSCLE);
         }
-    }
+    }*/
 
     if (CheckHitKey(KEY_INPUT_0))
     {
-        BoneScaleChange(LEFT_ARM, VGet(-0.05f, -0.05f, -0.05f));
-        BoneScaleChange(RIGHT_ARM, VGet(-0.05f, -0.05f, -0.05f));
+        BoneScaleChange(LEFT_ARM, { -1.0f,-1.0f,-1.0f });
+        BoneScaleChange(RIGHT_ARM, { -1.0f,-1.0f,-1.0f });
     }
 
-    BoneScaleChange(RIGHT_ARM, { -0.0005, -0.0005, -0.0005 });
-    BoneScaleChange(LEFT_ARM, { -0.0005, -0.0005, -0.0005 });
+    BoneScaleChange(RIGHT_ARM, DOWN_MUSCLE);
+    BoneScaleChange(LEFT_ARM, DOWN_MUSCLE);
 }
 
 // どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
@@ -169,22 +173,24 @@ void Player::BoneScaleChange(int index, VECTOR scale)
         currentScale.z + scale.z
     };
 
+    // 最大値の制限
     if (newScale.x > MAX_MUSCLE.x) newScale.x = MAX_MUSCLE.x;
     if (newScale.y > MAX_MUSCLE.y) newScale.y = MAX_MUSCLE.y;
     if (newScale.z > MAX_MUSCLE.z) newScale.z = MAX_MUSCLE.z;
 
+    // 最低値の制限
     if (newScale.x < MIN_MUSCLE.x) newScale.x = MIN_MUSCLE.x;
     if (newScale.y < MIN_MUSCLE.y) newScale.y = MIN_MUSCLE.y;
     if (newScale.z < MIN_MUSCLE.z) newScale.z = MIN_MUSCLE.z;
 
-#pragma region 筋肉量を確認する用の処理
-    // 平均を取って割合にする
+#ifdef _DEBUG
+    // 筋肉量を確認する用の処理(デバッグ用)
     float avgScale = (newScale.x + newScale.y + newScale.z) / 3.0f;
     float avgMin = (MIN_MUSCLE.x + MIN_MUSCLE.y + MIN_MUSCLE.z) / 3.0f;
     float avgMax = (MAX_MUSCLE.x + MAX_MUSCLE.y + MAX_MUSCLE.z) / 3.0f;
 
-    muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin); // 0～1 に正規化
-#pragma endregion
+    muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin);
+#endif // _DEBUG
 
     // スケール行列を作成
     MATRIX scaleMat = MGetScale(newScale);
@@ -238,14 +244,72 @@ void Player::Move(void)
 
 void Player::Attack(void)
 {
-    if (animation_->IsEnd((int)(STATE::ATTACK)))
-    {
-        state_ = STATE::IDLE;
-        return;
-    }
+    auto& input = InputManager::GetInstance();
 
-    animation_->Play((int)(ANIM_TYPE::ATTACK), false);
-    attackScaleApplied_ = true; 
+    // 共通処理（攻撃中は腕を強調）
+    BoneScaleChange(LEFT_ARM, UP_MUSCLE);
+    BoneScaleChange(RIGHT_ARM, UP_MUSCLE);
+
+    switch (attacConboCnt_)
+    {
+    case 1: //1段目
+        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
+
+        // 7割を超えていて、入力があれば次へ
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 0.7f) &&
+            (input.IsTrgDown(KEY_INPUT_J) || input.IsTrgMouseLeft()))
+        {
+            attacConboCnt_ = 2;
+            break;
+        }
+
+        // アニメーションが終わったら終了
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 1.0f))
+        {
+            attacConboCnt_ = 1;
+            state_ = STATE::IDLE;
+        }
+        break;
+
+    case 2: //2段目
+        // 1段目がある程度進んでいたら2段目を再生
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 0.7f)) {
+            animation_->Play((int)ANIM_TYPE::ATTACK2, false);
+        }
+
+        // 7割を超えていて、入力があれば次へ
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 0.7f) &&
+            (input.IsTrgDown(KEY_INPUT_J) || input.IsTrgMouseLeft()))
+        {
+            attacConboCnt_ = 3;
+            break;
+        }
+
+        // アニメーションが終わったら終了
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 1.0f))
+        {
+            attacConboCnt_ = 1;
+            state_ = STATE::IDLE;
+        }
+        break;
+
+    case 3: //3段目
+        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 0.7f)) {
+            animation_->Play((int)ANIM_TYPE::ATTACK3, false);
+        }
+
+        // 3段目は追加コンボなし → 終了判定だけ
+        if (animation_->IsEnd((int)ANIM_TYPE::ATTACK3))
+        {
+            attacConboCnt_ = 1;
+            state_ = STATE::IDLE;
+        }
+        break;
+
+    default:
+        attacConboCnt_ = 1;
+        break;
+    }
 }
 
 void Player::Roll(void)
@@ -308,11 +372,6 @@ void Player::StateManager(void)
         DoRoll();
         break;
     case Player::STATE::ATTACK:
-        if (animation_->IsPassedRatio((int)(ANIM_TYPE::ATTACK), 0.7f))
-        {
-            DoWalk();
-            DoRoll();
-        }
         break;
     }
 }
@@ -341,20 +400,18 @@ void Player::DoAttack(void)
 {
     auto& input = InputManager::GetInstance();
 
-    for (int i = 0; i < 2; i++)
-    {
-        // Jキーが押されたら攻撃に移る
-        if (input.IsClickMouseLeft() || input.IsTrgDown(KEY_INPUT_J))state_ = STATE::ATTACK;
+    // Jキー or マウス左クリックを押した瞬間だけ攻撃に移る
+    if (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J)) {
+        state_ = STATE::ATTACK;
     }
 
-
     // 攻撃処理の初期化
-    attackScaleApplied_ = false;
+    isAttacked_ = false;
 }
 
 void Player::DoRoll(void)
 {
-    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK))) return;
+    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK1))) return;
 
     // staticにして毎フレーム値を保持する
     static int prevK = 0, prevShift = 0;
@@ -413,9 +470,9 @@ void Player::DebugDraw(void)
     int filled = (int)(width * muscleRatio_);
 
     // 外枠
-    DrawBox(mx, my, mx + width, my + height, GetColor(255, 255, 255), FALSE);
+    DrawBox(mx, my, mx + width, my + height, GetColor(255, 255, 255), false);
     // 中身（割合に応じて伸ばす）
-    DrawBox(mx, my, mx + filled, my + height, GetColor(255, 0, 0), TRUE);
+    DrawBox(mx, my, mx + filled, my + height, GetColor(255, 0, 0), true);
 
     int frameNum = MV1GetFrameNum(unit_.model_);
 

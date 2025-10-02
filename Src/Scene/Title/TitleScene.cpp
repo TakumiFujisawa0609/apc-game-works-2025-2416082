@@ -3,7 +3,9 @@
 #include<DxLib.h>
 
 #include"../../Application/Application.h"
+
 #include"../SceneManager/SceneManager.h"
+#include"../../Manager/Input/InputManager.h"
 #include"../../Utility/Utility.h"
 
 
@@ -23,7 +25,8 @@ void TitleScene::Init(void)
 }
 void TitleScene::Update(void)
 {
-	if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
+	auto& input = InputManager::GetInstance();
+	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
 		SceneManager::GetInstance().ChangeScene(SCENE_ID::GAME);
 	}
 }

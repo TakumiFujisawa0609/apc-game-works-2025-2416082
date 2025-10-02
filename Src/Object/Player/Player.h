@@ -23,10 +23,12 @@ public:
 	static constexpr int LEFT_ARM = 11;   // 左腕
 	static constexpr int RIGHT_ARM = 35;   // 右腕
 
-	static constexpr VECTOR MAX_MUSCLE = { 3.0f,3.0f,3.0f };
+	static constexpr VECTOR MAX_MUSCLE = { 5.0f,5.0f,5.0f };
 	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
-#pragma endregion
 
+	static constexpr VECTOR UP_MUSCLE = { 0.01f,0.01f,0.01f };
+	static constexpr VECTOR DOWN_MUSCLE = { -0.0005f,-0.0005f,-0.0005f };
+#pragma endregion
 
 	enum class STATE
 	{
@@ -40,8 +42,16 @@ public:
 	{
 		IDLE,
 		RUN,
-		ATTACK,
+		ATTACK1,
+		ATTACK2,
+		ATTACK3,
 		Roll
+	};
+
+	struct AttackComboData {
+		ANIM_TYPE anim;      // このコンボのアニメーション
+		float inputWindow;   // 次攻撃を入力できる割合
+		float endTime;       // 攻撃終了割合
 	};
 
 	Player();
@@ -71,8 +81,7 @@ private:
 #pragma region 列挙型定義
 	// ステート管理用
 	STATE state_;
-	// アニメション管理用
-	ANIM_TYPE animType_;
+
 #pragma endregion
 
 #pragma region 変数
@@ -80,10 +89,13 @@ private:
 	VECTOR move_;
 
 	// 攻撃したかどうかの確認用
-	bool attackScaleApplied_ = false;
+	bool isAttacked_ = false;
 
 	// 回避用カウンタ
 	int nextRollCounter_;
+
+	// 攻撃コンボ用
+	int attacConboCnt_;
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
