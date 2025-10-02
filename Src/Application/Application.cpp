@@ -31,7 +31,6 @@ void Application::Init(void)
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);	// サイズ変更
 	ChangeWindowMode(true);	// false = フルスクリーン
 
-	SetMouseDispFlag(false);
 
 	// DxLibの初期化
 	isInitFail_ = false;

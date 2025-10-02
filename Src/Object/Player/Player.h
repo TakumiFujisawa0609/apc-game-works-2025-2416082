@@ -23,7 +23,7 @@ public:
 	static constexpr int LEFT_ARM = 11;   // ç∂òr
 	static constexpr int RIGHT_ARM = 35;   // âEòr
 
-	static constexpr VECTOR MAX_MUSCLE = { 5.0f,5.0f,5.0f };
+	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };
 	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
 
 	static constexpr VECTOR UP_MUSCLE = { 0.01f,0.01f,0.01f };

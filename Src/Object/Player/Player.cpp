@@ -372,6 +372,7 @@ void Player::StateManager(void)
         DoRoll();
         break;
     case Player::STATE::ATTACK:
+        DoWalk();
         break;
     }
 }
@@ -411,22 +412,15 @@ void Player::DoAttack(void)
 
 void Player::DoRoll(void)
 {
+    auto& input = InputManager::GetInstance();
     if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK1))) return;
 
-    // staticにして毎フレーム値を保持する
-    static int prevK = 0, prevShift = 0;
-
-    int nowK = CheckHitKey(KEY_INPUT_K);
-    int nowShift = CheckHitKey(KEY_INPUT_LSHIFT);
 
     // どちらかのキーが押された瞬間にROLLへ
-    if ((nowK == 1 && prevK == 0) || (nowShift == 1 && prevShift == 0)) {
+    if (input.IsTrgDown(KEY_INPUT_LSHIFT) || input.IsTrgDown(KEY_INPUT_K)) {
         state_ = STATE::ROLL;
     }
 
-    // 前フレームの状態を更新
-    prevK = nowK;
-    prevShift = nowShift;
 }
 
 // カメラが向く方向の処理

@@ -63,6 +63,8 @@ void GameScene::Init(void)
 	//boss_->Init();
 	grid_->Init();
 
+	SetMouseDispFlag(false);
+
 	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos());
 
 #pragma region ‰æ–Ê‰‰o
