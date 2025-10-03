@@ -61,6 +61,7 @@ void Player::Init(void)
     };
     
     state_ = STATE::IDLE;
+    conbo_ = CONBO::CONBO1;
 }
 
 void Player::Update(void)
@@ -246,70 +247,7 @@ void Player::Attack(void)
 {
     auto& input = InputManager::GetInstance();
 
-    // 共通処理（攻撃中は腕を強調）
-    BoneScaleChange(LEFT_ARM, UP_MUSCLE);
-    BoneScaleChange(RIGHT_ARM, UP_MUSCLE);
 
-    switch (attacConboCnt_)
-    {
-    case 1: //1段目
-        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
-
-        // 7割を超えていて、入力があれば次へ
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 0.7f) &&
-            (input.IsTrgDown(KEY_INPUT_J) || input.IsTrgMouseLeft()))
-        {
-            attacConboCnt_ = 2;
-            break;
-        }
-
-        // アニメーションが終わったら終了
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 1.0f))
-        {
-            attacConboCnt_ = 1;
-            state_ = STATE::IDLE;
-        }
-        break;
-
-    case 2: //2段目
-        // 1段目がある程度進んでいたら2段目を再生
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK1, 0.7f)) {
-            animation_->Play((int)ANIM_TYPE::ATTACK2, false);
-        }
-
-        // 7割を超えていて、入力があれば次へ
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 0.7f) &&
-            (input.IsTrgDown(KEY_INPUT_J) || input.IsTrgMouseLeft()))
-        {
-            attacConboCnt_ = 3;
-            break;
-        }
-
-        // アニメーションが終わったら終了
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 1.0f))
-        {
-            attacConboCnt_ = 1;
-            state_ = STATE::IDLE;
-        }
-        break;
-
-    case 3: //3段目
-        if (animation_->IsPassedRatio((int)ANIM_TYPE::ATTACK2, 0.7f)) {
-            animation_->Play((int)ANIM_TYPE::ATTACK3, false);
-        }
-
-        // 3段目は追加コンボなし → 終了判定だけ
-        if (animation_->IsEnd((int)ANIM_TYPE::ATTACK3))
-        {
-            attacConboCnt_ = 1;
-            state_ = STATE::IDLE;
-        }
-        break;
-
-    default:
-        attacConboCnt_ = 1;
-        break;
-    }
 }
 
 void Player::Roll(void)
@@ -400,6 +338,17 @@ void Player::DoIdle(void)
 void Player::DoAttack(void)
 {
     auto& input = InputManager::GetInstance();
+
+    switch (conbo_)
+    {
+    case Player::CONBO::CONBO1:
+        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
+        break;
+    case Player::CONBO::CONBO2:
+        break;
+    case Player::CONBO::CONBO3:
+        break;
+    }
 
     // Jキー or マウス左クリックを押した瞬間だけ攻撃に移る
     if (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J)) {

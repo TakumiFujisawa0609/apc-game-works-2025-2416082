@@ -48,11 +48,16 @@ public:
 		Roll
 	};
 
-	struct AttackComboData {
-		ANIM_TYPE anim;      // このコンボのアニメーション
-		float inputWindow;   // 次攻撃を入力できる割合
-		float endTime;       // 攻撃終了割合
+	enum class CONBO
+	{
+		CONBO1,
+		CONBO2,
+		CONBO3,
+
+		MAX,
 	};
+
+
 
 	Player();
 	~Player() override;
@@ -82,6 +87,8 @@ private:
 	// ステート管理用
 	STATE state_;
 
+	CONBO conbo_;
+
 #pragma endregion
 
 #pragma region 変数
@@ -89,7 +96,7 @@ private:
 	VECTOR move_;
 
 	// 攻撃したかどうかの確認用
-	bool isAttacked_ = false;
+	bool isAttacked_;
 
 	// 回避用カウンタ
 	int nextRollCounter_;
@@ -99,8 +106,6 @@ private:
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
-
-	float muscleRatio_;
 
 	VECTOR cameraPos_;
 #pragma endregion
@@ -137,4 +142,5 @@ private:
 
 	// デバッグ用変数
 	int frameScrollIndex_;
+	float muscleRatio_;
 };
