@@ -12,12 +12,13 @@ public:
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
 	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
 
-
 	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
 
 	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
 	static constexpr int ROLLING_TIME = 30;		// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
+
+	static constexpr float ATTACK_MOVE = 20.0f;
 
 	//両腕のインデックス
 	static constexpr int LEFT_ARM = 11;   // 左腕
@@ -26,7 +27,9 @@ public:
 	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };
 	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
 
-	static constexpr VECTOR UP_MUSCLE = { 0.01f,0.01f,0.01f };
+	static constexpr VECTOR UP_MUSCLE_CONBO1 = { 0.01f,0.01f,0.01f };
+	static constexpr VECTOR UP_MUSCLE_CONBO2 = { 0.02f,0.02f,0.02f };
+	static constexpr VECTOR UP_MUSCLE_CONBO3 = { 0.03f,0.03f,0.03f };
 	static constexpr VECTOR DOWN_MUSCLE = { -0.0005f,-0.0005f,-0.0005f };
 #pragma endregion
 
@@ -97,6 +100,9 @@ private:
 
 	// 攻撃したかどうかの確認用
 	bool isAttacked_;
+
+	// 筋肉を増やす
+	bool isUpMuscle_;
 
 	// 回避用カウンタ
 	int nextRollCounter_;

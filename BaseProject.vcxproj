@@ -142,6 +142,7 @@
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
     <ClCompile Include="Src\Manager\Loading\Loading.cpp" />
+    <ClCompile Include="Src\Manager\Sound\SoundManager.cpp" />
     <ClCompile Include="Src\Object\Boss\Boss.cpp" />
     <ClCompile Include="Src\Object\Boss\BossBase.cpp" />
     <ClCompile Include="Src\Object\Grid\Grid.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="Src\Manager\FPS\FPS.h" />
     <ClInclude Include="Src\Manager\Input\InputManager.h" />
     <ClInclude Include="Src\Manager\Loading\Loading.h" />
+    <ClInclude Include="Src\Manager\Sound\SoundManager.h" />
     <ClInclude Include="Src\Object\Boss\Boss.h" />
     <ClInclude Include="Src\Object\Boss\BossBase.h" />
     <ClInclude Include="Src\Object\Grid\Grid.h" />

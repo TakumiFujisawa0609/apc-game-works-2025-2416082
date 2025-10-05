@@ -3,6 +3,7 @@
 #include "../../Manager/Animation/AnimationController.h"
 #include "../../Manager/Camera/Camera.h"
 #include "../../Manager/Input/InputManager.h"   
+#include "../../Manager/Sound/SoundManager.h"
 
 
 Player::Player()
@@ -31,8 +32,8 @@ void Player::Load(void)
     animation_->Add((int)(ANIM_TYPE::ATTACK2), 100.0f, (path + "Animation/Punching2.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::ATTACK3), 100.0f, (path + "Animation/Swiping.mv1").c_str());
 
+    SoundManager::GetIns().Load(SOUND::PLAYER_ATTACK);
     move_ = VGet(0.0f, 0.0f, 0.0f);
-
 }
 
 void Player::Init(void)
@@ -50,6 +51,12 @@ void Player::Init(void)
     frameScrollIndex_ = 0;
 
     attacConboCnt_ = 0;
+
+    // 攻撃処理の初期化
+    isAttacked_ = false;
+
+    // 筋肉を増やす
+    isUpMuscle_ = false;
 
     // 関数ポインタに登録
     stateFuncs_ =
@@ -125,6 +132,10 @@ void Player::Release(void)
 
     // モデルの解放
     MV1DeleteModel(unit_.model_);
+
+    for (int i = 0; i < (int)SOUND::MAX; i++) {
+        SoundManager::GetIns().Delete((SOUND)i);
+    }
 }
 
 //当たり判定
@@ -137,20 +148,42 @@ void Player::Muscle(void)
 {
     static int cnt = 0;
 
-  /*  if (state_ != STATE::ATTACK)cnt = 0;
-    if (isAttacked_) {
+    if (state_ != STATE::ATTACK)cnt = 0;
+    if (isUpMuscle_) {
         cnt++;
         if (cnt < 10) {
-            BoneScaleChange(LEFT_ARM, UP_MUSCLE);
-            BoneScaleChange(RIGHT_ARM, UP_MUSCLE);
+            switch (conbo_)
+            {
+            case Player::CONBO::CONBO1:
+                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO1);
+                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO1);
+                break;
+            case Player::CONBO::CONBO2:
+                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO2);
+                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO2);
+                break;
+            case Player::CONBO::CONBO3:
+                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO3);
+                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO3);
+                break;
+            default:
+                break;
+            }
         }
-    }*/
+        else
+        {
+            cnt = 0;
+            isUpMuscle_ = false;
+        }
+    }
 
+#ifdef _DEBUG
     if (CheckHitKey(KEY_INPUT_0))
     {
         BoneScaleChange(LEFT_ARM, { -1.0f,-1.0f,-1.0f });
         BoneScaleChange(RIGHT_ARM, { -1.0f,-1.0f,-1.0f });
     }
+#endif // _DEBUG
 
     BoneScaleChange(RIGHT_ARM, DOWN_MUSCLE);
     BoneScaleChange(LEFT_ARM, DOWN_MUSCLE);
@@ -246,8 +279,77 @@ void Player::Move(void)
 void Player::Attack(void)
 {
     auto& input = InputManager::GetInstance();
+    auto& camera = Camera::GetInstance();
+
+    move_ = Utility::VECTOR_ZERO;
+
+    if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, { 0.0f, 0.0f,  1.0f }); }
+    if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, { 0.0f, 0.0f, -1.0f }); }
+    if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f, 0.0f }); }
+    if (CheckHitKey(KEY_INPUT_D)) { move_ = VAdd(move_, { 1.0f, 0.0f, 0.0f }); }
+
+    if (move_.x != 0.0f || move_.z != 0.0f)
+    {
+        MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
+        VECTOR worldMove = VTransform(move_, mat);
+        worldMove = VNorm(worldMove);
+
+        float targetY = atan2f(worldMove.x, worldMove.z);
+        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.5f);
+    }
+
+    int anim = 0;
+    switch (conbo_)
+    {
+    case CONBO::CONBO1: 
+        anim = (int)ANIM_TYPE::ATTACK1;
+        break;
+    case CONBO::CONBO2: 
+        anim = (int)ANIM_TYPE::ATTACK2; 
+        break;
+    case CONBO::CONBO3:
+        anim = (int)ANIM_TYPE::ATTACK3; 
+        break;
+    }
+    animation_->Play(anim, false);
+
+    // 攻撃判定管理
+    DoAttack();
+
+    if (animation_->IsPassedRatio(anim, 0.1f) && !animation_->IsPassedRatio(anim, 0.4f))
+    {
+        VECTOR forward = VGet(
+            sinf(unit_.angle_.y),
+            0.0f,
+            cosf(unit_.angle_.y)
+        );
+
+        float dashPower = 0.0f;
+        switch (conbo_)
+        {
+        case CONBO::CONBO1: 
+            dashPower = ATTACK_MOVE;
+            break;
+        case CONBO::CONBO2:
+            dashPower = ATTACK_MOVE;
+            break;
+        case CONBO::CONBO3:
+            dashPower = ATTACK_MOVE;
+            break;
+        }
+
+        unit_.pos_ = VAdd(unit_.pos_, VScale(forward, dashPower));
 
 
+    }
+
+    // アニメーションが終了したらリセット
+    if (animation_->IsPassedRatio(anim, 0.7))
+    {
+        isAttacked_ = false;
+        state_ = STATE::IDLE;
+        conbo_ = CONBO::CONBO1;
+    }
 }
 
 void Player::Roll(void)
@@ -310,7 +412,6 @@ void Player::StateManager(void)
         DoRoll();
         break;
     case Player::STATE::ATTACK:
-        DoWalk();
         break;
     }
 }
@@ -338,25 +439,41 @@ void Player::DoIdle(void)
 void Player::DoAttack(void)
 {
     auto& input = InputManager::GetInstance();
+    auto& sound = SoundManager::GetIns();
 
-    switch (conbo_)
+    // 攻撃開始（1段目）
+    if (!isAttacked_ && (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J)))
     {
-    case Player::CONBO::CONBO1:
-        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
-        break;
-    case Player::CONBO::CONBO2:
-        break;
-    case Player::CONBO::CONBO3:
-        break;
-    }
-
-    // Jキー or マウス左クリックを押した瞬間だけ攻撃に移る
-    if (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J)) {
+        conbo_ = CONBO::CONBO1;
         state_ = STATE::ATTACK;
+        isAttacked_ = true;
+
+        isUpMuscle_ = true;
+        sound.Stop(SOUND::PLAYER_ATTACK);
+        sound.Play(SOUND::PLAYER_ATTACK,false,255,false,true);
+        return;
     }
 
-    // 攻撃処理の初期化
-    isAttacked_ = false;
+    int animIndex = (int)ANIM_TYPE::ATTACK1 + (int)conbo_;
+    if (animation_->IsPassedRatio(animIndex, 0.5f) &&
+        (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J)))
+    {
+        // 次の段階がある場合のみ進める
+        if (conbo_ < CONBO::CONBO3)
+        {
+            conbo_ = (CONBO)((int)conbo_ + 1);
+            state_ = STATE::ATTACK;
+            isUpMuscle_ = true;
+
+            if (conbo_ == CONBO::CONBO3) {
+
+            }
+            else {
+                sound.Stop(SOUND::PLAYER_ATTACK);
+                sound.Play(SOUND::PLAYER_ATTACK, false, 255, false, true);
+            }
+        }
+    }
 }
 
 void Player::DoRoll(void)

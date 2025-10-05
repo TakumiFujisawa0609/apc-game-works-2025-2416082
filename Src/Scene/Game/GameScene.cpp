@@ -154,6 +154,9 @@ void GameScene::Draw(void)
 	SetFontSize(32);
 	DrawString(0, 0, "ƒQ[ƒ€", 0xffffff);
 	SetFontSize(16);
+
+	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
+
 #pragma endregion
 
 	// ‰‰o‚ğŠÜ‚ß‚½•`‰æ‚ğ‚à‚Æ‚ÌDX_SCREEN_BACK‚É‘‚«‚Ş

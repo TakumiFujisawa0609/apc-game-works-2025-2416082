@@ -4,6 +4,7 @@
 
 #include "../../Manager/Loading/Loading.h"
 #include "../../Manager/Input/InputManager.h"
+#include "../../Manager/Sound/SoundManager.h"
 
 #include"../Title/TitleScene.h"
 #include"../Game/GameScene.h"
@@ -31,6 +32,7 @@ void SceneManager::Init(void)
 	Loading::GetInstance()->Load();
 
 	InputManager::CreateInstance();
+	SoundManager::CreateIns();
 
 	// 最初はタイトル画面から
 	ChangeScene(SCENE_ID::TITLE);
@@ -134,6 +136,8 @@ void SceneManager::Release(void)
 	// ロード画面の削除
 	Loading::GetInstance()->Release();
 	Loading::GetInstance()->DeleteInstance();
+
+	SoundManager::DeleteIns();
 }
 
 // 状態遷移関数
