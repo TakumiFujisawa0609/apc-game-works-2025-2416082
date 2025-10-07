@@ -1,38 +1,19 @@
 #pragma once
 #include "../UnitBase.h"
+
 #include <map>
 #include <DxLib.h>
 
 class AnimationController;
 
+class LeftArm;
+class RightArm;
+
 class Player : public UnitBase
 {
 public:
-#pragma region 定数定義
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
-	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
 
-	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
-
-	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
-	static constexpr int ROLLING_TIME = 30;		// 回避時間
-	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
-
-	static constexpr float ATTACK_MOVE = 20.0f;
-
-	//両腕のインデックス
-	static constexpr int LEFT_ARM = 11;   // 左腕
-	static constexpr int RIGHT_ARM = 35;   // 右腕
-
-	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };
-	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
-
-	static constexpr VECTOR UP_MUSCLE_CONBO1 = { 0.01f,0.01f,0.01f };
-	static constexpr VECTOR UP_MUSCLE_CONBO2 = { 0.02f,0.02f,0.02f };
-	static constexpr VECTOR UP_MUSCLE_CONBO3 = { 0.03f,0.03f,0.03f };
-	static constexpr VECTOR DOWN_MUSCLE = { -0.0005f,-0.0005f,-0.0005f };
-#pragma endregion
-
+		// プレイヤーのステート管理
 	enum class STATE
 	{
 		IDLE,
@@ -41,6 +22,7 @@ public:
 		ROLL
 	};
 
+	// アニメーション管理用
 	enum class ANIM_TYPE
 	{
 		IDLE,
@@ -51,6 +33,7 @@ public:
 		Roll
 	};
 
+	// コンボ管理用
 	enum class CONBO
 	{
 		CONBO1,
@@ -59,6 +42,35 @@ public:
 
 		MAX,
 	};
+#pragma region 定数定義
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
+	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
+
+	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
+
+	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
+	static constexpr int ROLLING_TIME = 30;		// 回避時間
+	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
+
+	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
+	{
+		20.0f,
+		25.0f,
+		30.0f
+	};
+
+	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };
+	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
+
+	static constexpr VECTOR UP_MUSCLE[(int)CONBO::MAX] =
+	{
+		{ 0.01f, 0.01f, 0.01f },
+		{ 0.02f, 0.02f, 0.02f },
+		{ 0.03f, 0.03f, 0.03f }
+	}; 
+
+	static constexpr VECTOR DOWN_MUSCLE = { -0.0005f,-0.0005f,-0.0005f };
+#pragma endregion
 
 
 
@@ -79,9 +91,15 @@ public:
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR GetAngle(void) { return unit_.angle_; }
 
+	LeftArm* GetLeftArm(void) { return lArm_; }
+	RightArm* GetRightArm(void) { return rArm_; }
+
 private:
 
 	AnimationController* animation_;
+
+	LeftArm* lArm_;
+	RightArm* rArm_;;
 	
 	void DebugDraw(void);
 	MATRIX MatrixSet(void);
@@ -95,8 +113,10 @@ private:
 #pragma endregion
 
 #pragma region 変数
+
 	//　移動用
 	VECTOR move_;
+	VECTOR cameraPos_;
 
 	// 攻撃したかどうかの確認用
 	bool isAttacked_;
@@ -113,7 +133,6 @@ private:
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
 
-	VECTOR cameraPos_;
 #pragma endregion
 
 #pragma region 筋肉関係

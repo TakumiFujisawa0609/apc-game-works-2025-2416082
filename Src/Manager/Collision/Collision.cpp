@@ -4,14 +4,14 @@
 
 #include"../../Utility/Utility.h"
 
-Collision::Collision() : objects_() {}
+Collision::Collision() : player(),stageObject_(),enemy() {}
 Collision::~Collision() {}
 
 void Collision::Check()
 {
 	// ステージオブジェクトとオブジェクトの当たり判定
 	for (auto& s : stageObject_) {
-		for (auto& o : objects_) {
+		for (auto& o : player) {
 			const Base& us = s->GetUnit();
 			const Base& uo = o->GetUnit();
 
@@ -20,6 +20,34 @@ void Collision::Check()
 			if (IsHit(us, uo)) {
 				s->OnCollision(o);
 				o->OnCollision(s);
+			}
+		}
+	}
+
+	for (auto& s : stageObject_) {
+		for (auto& e : enemy) {
+			const Base& us = s->GetUnit();
+			const Base& ue = e->GetUnit();
+
+			if ((us.aliveCollision_ && !us.isAlive_) || (ue.aliveCollision_ && !ue.isAlive_)) continue;
+
+			if (IsHit(us, ue)) {
+				s->OnCollision(e);
+				e->OnCollision(s);
+			}
+		}
+	}
+
+	for (auto& o : player) {
+		for (auto& e : enemy) {
+			const Base& uo = o->GetUnit();
+			const Base& ue = e->GetUnit();
+
+			if ((uo.aliveCollision_ && !uo.isAlive_) || (ue.aliveCollision_ && !ue.isAlive_)) continue;
+
+			if (IsHit(uo, ue)) {
+				o->OnCollision(e);
+				e->OnCollision(o);
 			}
 		}
 	}

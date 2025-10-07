@@ -41,6 +41,16 @@ void Camera::Update()
 void Camera::Apply()
 {
     SetCameraPositionAndTarget_UpVecY(camPos_, *camTarget_);
+
+    SetUseLighting(FALSE);
+
+    // ã‹ó‚Í–¾‚é‚¢ÂA’n•½ü‚Í’W‚¢Â
+    int topColor = GetColor(100, 180, 255);
+    int bottomColor = GetColor(180, 220, 255);
+
+    DrawSphere3D(camPos_, 10000.0f, 32, topColor, bottomColor, TRUE);
+
+    SetUseLighting(TRUE);
 }
 
 void Camera::MouseMoveCamera(void)

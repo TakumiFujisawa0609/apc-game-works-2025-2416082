@@ -103,7 +103,9 @@ void SoundManager::Init(void)
 		sound.volume_ = 255;
 	}
 
-	sounds_[SOUND::PLAYER_ATTACK].path_ = "Attack.mp3";
+	sounds_[SOUND::PLAYER_BIG_ATTACK].path_ = "BigAttack.mp3";
+	sounds_[SOUND::PLAYER_SMALL_ATTACK].path_ = "SmallAttack.mp3";
+	sounds_[SOUND::HIT].path_ = "Hit.mp3";
 }
 
 void SoundManager:: Release(void)
