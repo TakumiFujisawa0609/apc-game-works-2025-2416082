@@ -11,6 +11,9 @@
 #include"../../Utility/Utility.h"
 
 #include"../../Object/Player/Player.h"
+#include"../../Object/Player/Arm/LeftArm.h"
+#include"../../Object/Player/Arm/RightArm.h"
+
 #include"../../Object/Boss/Boss.h"
 #include"../../Object/Grid/Grid.h"
 
@@ -49,10 +52,16 @@ void GameScene::Load(void)
 	player_ = new Player();
 	player_->Load();
 
-	//boss_ = new Boss();
-	//boss_->Load();
+	boss_ = new Boss();
+	boss_->Load();
 
 	grid_ = new Grid();
+
+	collision_->AddEnemy(boss_);
+
+	//collision_->AddObject(player_);
+ 	collision_->AddObject(player_->GetLeftArm());
+	collision_->AddObject(player_->GetRightArm());
 
 	Camera::CreateInstance();
 }
@@ -60,7 +69,7 @@ void GameScene::Load(void)
 void GameScene::Init(void)
 {
 	player_->Init();
-	//boss_->Init();
+	boss_->Init();
 	grid_->Init();
 
 	SetMouseDispFlag(false);
@@ -110,7 +119,7 @@ void GameScene::Update(void)
 
 	Camera::GetInstance().Update();
 	player_->Update();
-	//boss_->Update();
+	boss_->Update();
 	grid_->Update();
 
 	static int prev = 0;
@@ -125,10 +134,11 @@ void GameScene::Update(void)
 		scene.PushScene(SCENE_ID::PAUSE);
 	}
 
-#pragma endregion
-
 	// “–‚½‚è”»’è
 	collision_->Check();
+
+#pragma endregion
+
 }
 
 
@@ -143,19 +153,19 @@ void GameScene::Draw(void)
 #pragma region •`‰æˆ—
 	Camera::GetInstance().Apply();
 
+	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
+
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
 	player_->Draw();
-	//boss_->Draw();
+	boss_->Draw();
 	grid_->Draw();
 
 	SetFontSize(32);
 	DrawString(0, 0, "ƒQ[ƒ€", 0xffffff);
 	SetFontSize(16);
-
-	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
 
 #pragma endregion
 
@@ -181,12 +191,12 @@ void GameScene::Release(void)
 		player_ = nullptr;
 	}
 
-	/*if (boss_)
+	if (boss_)
 	{
 		boss_->Release();
 		delete boss_;
 		boss_ = nullptr;
-	}*/
+	}
 
 	DeleteGraph(mainScreen_);
 	Camera::DeleteInstance();

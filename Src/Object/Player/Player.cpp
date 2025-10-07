@@ -5,6 +5,10 @@
 #include "../../Manager/Input/InputManager.h"   
 #include "../../Manager/Sound/SoundManager.h"
 
+#include "../Boss/Boss.h"
+#include "Arm/LeftArm.h"
+#include "Arm/RightArm.h"
+
 
 Player::Player()
 {
@@ -18,26 +22,45 @@ void Player::Load(void)
 {
    std::string path = "Data/Model/Player/";
 
-    // モデルのロード
-    unit_.model_ = MV1LoadModel((path + "Player2.mv1").c_str());
+   // モデルのロード
+   unit_.model_ = MV1LoadModel((path + "Player2.mv1").c_str());
 
-    // アニメーションクラス
-    animation_ = new AnimationController(unit_.model_);
+#pragma region クラスの定義
+
+   // アニメーションクラス
+   animation_ = new AnimationController(unit_.model_);
+
+   // 左腕
+   lArm_ = new LeftArm(unit_.model_);
+   lArm_->Load();
+
+   // 右腕
+   rArm_ = new RightArm(unit_.model_);
+   rArm_->Load();
+
+#pragma endregion
 
     // アニメーションのロード
-    animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, (path + "Animation/Idle.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, (path + "Animation/Idle1.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::RUN), 50.0f, (path + "Animation/Run.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::Roll), 100.0f, (path + "Animation/Evasion.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::ATTACK1), 100.0f, (path + "Animation/Punching.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::ATTACK2), 100.0f, (path + "Animation/Punching2.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::ATTACK3), 100.0f, (path + "Animation/Swiping.mv1").c_str());
+    animation_->Add((int)(ANIM_TYPE::ATTACK3), 130.0f, (path + "Animation/Swiping.mv1").c_str());
 
-    SoundManager::GetIns().Load(SOUND::PLAYER_ATTACK);
+    SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
+    SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
     move_ = VGet(0.0f, 0.0f, 0.0f);
 }
 
 void Player::Init(void)
 {
+    unit_.para_.colliShape = CollisionShape::CAPSULE;
+    unit_.para_.colliType = CollisionType::ALLY;
+
+    unit_.para_.capsuleHalfLen = 200;
+    unit_.para_.radius = 300;
+
     // 変数の初期化
     unit_.isAlive_ = true;
 	unit_.pos_ = DEFAULT_POS;
@@ -69,6 +92,10 @@ void Player::Init(void)
     
     state_ = STATE::IDLE;
     conbo_ = CONBO::CONBO1;
+
+    // 腕の初期化
+    lArm_->Init();
+    rArm_->Init();
 }
 
 void Player::Update(void)
@@ -102,17 +129,27 @@ void Player::Update(void)
 
     // アニメーション処理
     animation_->Update();
+
+    // 腕の更新処理
+    lArm_->Update();
+    rArm_->Update();
 }
 
 void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
-    //for(int i = 0;)
-
+    // 行列の設定
     MV1SetMatrix(unit_.model_, MatrixSet());
 
+    // モデルの描画
     MV1DrawModel(unit_.model_);
+
+
+    // 腕に関する描画処理
+    lArm_->Draw();
+    rArm_->Draw();
+
 
 #ifdef _DEBUG
     DebugDraw();
@@ -130,9 +167,25 @@ void Player::Release(void)
         animation_ = nullptr;
     }
 
+    // 左腕
+    if (lArm_)
+    {
+        lArm_->Release();
+        delete lArm_;
+        lArm_ = nullptr;
+    }
+
+    if (rArm_)
+    {
+        rArm_->Release();
+        delete rArm_;
+        rArm_ = nullptr;
+    }
+
     // モデルの解放
     MV1DeleteModel(unit_.model_);
 
+    // サウンドの開放
     for (int i = 0; i < (int)SOUND::MAX; i++) {
         SoundManager::GetIns().Delete((SOUND)i);
     }
@@ -141,6 +194,12 @@ void Player::Release(void)
 //当たり判定
 void Player::OnCollision(UnitBase* other)
 {
+    if (dynamic_cast<Boss*>(other))
+    {
+        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        return;
+    }
 }
 
 // 筋肉処理
@@ -148,27 +207,31 @@ void Player::Muscle(void)
 {
     static int cnt = 0;
 
-    if (state_ != STATE::ATTACK)cnt = 0;
-    if (isUpMuscle_) {
+    BoneScaleChange(LeftArm::LEFT_ARM_INDEX, DOWN_MUSCLE);
+    BoneScaleChange(RightArm::RIGHT_ARM_INDEX, DOWN_MUSCLE);
+
+#ifdef _DEBUG
+    if (CheckHitKey(KEY_INPUT_0))
+    {
+        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+    }
+#endif // _DEBUG
+
+    if (state_ != STATE::ATTACK)
+    {
+        cnt = 0;
+        isUpMuscle_ = false;
+        return;
+    }
+
+    if (isUpMuscle_)
+    {
         cnt++;
-        if (cnt < 10) {
-            switch (conbo_)
-            {
-            case Player::CONBO::CONBO1:
-                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO1);
-                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO1);
-                break;
-            case Player::CONBO::CONBO2:
-                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO2);
-                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO2);
-                break;
-            case Player::CONBO::CONBO3:
-                BoneScaleChange(LEFT_ARM, UP_MUSCLE_CONBO3);
-                BoneScaleChange(RIGHT_ARM, UP_MUSCLE_CONBO3);
-                break;
-            default:
-                break;
-            }
+        if (cnt <= 10)
+        {
+            BoneScaleChange(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
+            BoneScaleChange(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
         }
         else
         {
@@ -176,17 +239,6 @@ void Player::Muscle(void)
             isUpMuscle_ = false;
         }
     }
-
-#ifdef _DEBUG
-    if (CheckHitKey(KEY_INPUT_0))
-    {
-        BoneScaleChange(LEFT_ARM, { -1.0f,-1.0f,-1.0f });
-        BoneScaleChange(RIGHT_ARM, { -1.0f,-1.0f,-1.0f });
-    }
-#endif // _DEBUG
-
-    BoneScaleChange(RIGHT_ARM, DOWN_MUSCLE);
-    BoneScaleChange(LEFT_ARM, DOWN_MUSCLE);
 }
 
 // どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
@@ -316,7 +368,7 @@ void Player::Attack(void)
     // 攻撃判定管理
     DoAttack();
 
-    if (animation_->IsPassedRatio(anim, 0.1f) && !animation_->IsPassedRatio(anim, 0.4f))
+    if (animation_->IsPassedRatio(anim, 0.1f) && !animation_->IsPassedRatio(anim, 0.5f))
     {
         VECTOR forward = VGet(
             sinf(unit_.angle_.y),
@@ -325,22 +377,10 @@ void Player::Attack(void)
         );
 
         float dashPower = 0.0f;
-        switch (conbo_)
-        {
-        case CONBO::CONBO1: 
-            dashPower = ATTACK_MOVE;
-            break;
-        case CONBO::CONBO2:
-            dashPower = ATTACK_MOVE;
-            break;
-        case CONBO::CONBO3:
-            dashPower = ATTACK_MOVE;
-            break;
-        }
+
+        dashPower = CONBO_MOVE_SPEED[(int)conbo_];
 
         unit_.pos_ = VAdd(unit_.pos_, VScale(forward, dashPower));
-
-
     }
 
     // アニメーションが終了したらリセット
@@ -446,11 +486,13 @@ void Player::DoAttack(void)
     {
         conbo_ = CONBO::CONBO1;
         state_ = STATE::ATTACK;
-        isAttacked_ = true;
 
+        isAttacked_ = true;
         isUpMuscle_ = true;
-        sound.Stop(SOUND::PLAYER_ATTACK);
-        sound.Play(SOUND::PLAYER_ATTACK,false,255,false,true);
+
+        sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
+        sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
+  
         return;
     }
 
@@ -465,12 +507,15 @@ void Player::DoAttack(void)
             state_ = STATE::ATTACK;
             isUpMuscle_ = true;
 
-            if (conbo_ == CONBO::CONBO3) {
-
+            sound.Stop(SOUND::PLAYER_BIG_ATTACK);
+            sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
+            if ((int)conbo_ >= (int)CONBO::MAX - 1)
+            {
+                sound.Play(SOUND::PLAYER_BIG_ATTACK, false, 255, false, true);
             }
-            else {
-                sound.Stop(SOUND::PLAYER_ATTACK);
-                sound.Play(SOUND::PLAYER_ATTACK, false, 255, false, true);
+            else 
+            {
+                sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
             }
         }
     }
@@ -598,4 +643,3 @@ MATRIX Player::MatrixSet(void)
 
     return mat;
 }
-

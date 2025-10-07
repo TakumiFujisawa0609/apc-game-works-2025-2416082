@@ -10,16 +10,21 @@ public:
 	Collision();
 	~Collision();
 
-	void AddObject(UnitBase* obj) { objects_.push_back(obj); }
+	void AddObject(UnitBase* obj) { player.push_back(obj); }
 	void AddObject(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddObject(o); } }
+
 	void AddStage(UnitBase* obj) { stageObject_.push_back(obj); }
 	void AddStage(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddStage(o); } }
+
+	void AddEnemy(UnitBase* obj) { enemy.push_back(obj); }
+	void AddEnemy(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddEnemy(o); } }
 	void Check();
-	void Clear() { objects_.clear(); stageObject_.clear(); }
+	void Clear() { player.clear(); stageObject_.clear(); }
 
 private:
-	std::vector<UnitBase*> objects_;
+	std::vector<UnitBase*> player;
 	std::vector<UnitBase*> stageObject_;
+	std::vector<UnitBase*> enemy;
 
 	// è’ìÀä÷êîêUÇËï™ÇØ
 	bool IsHit(const Base& a, const Base& b);

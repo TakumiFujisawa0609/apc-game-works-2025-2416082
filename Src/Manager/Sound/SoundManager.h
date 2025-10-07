@@ -17,7 +17,9 @@ public:
 	{
 		NON=-1,
 
-		PLAYER_ATTACK,
+		PLAYER_BIG_ATTACK,
+		PLAYER_SMALL_ATTACK,
+		HIT,
 
 		MAX,
 	};
