@@ -42,9 +42,15 @@ public:
 
 		MAX,
 	};
+
 #pragma region 定数定義
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
-	static constexpr float RADIUS_SIZE = 100.0f;				//プレイヤーの半径（仮）
+
+	static constexpr float CAPSULE_HALF_LENGTH = 200;
+
+	static constexpr VECTOR CENTER_DIFF = { 0.0f, CAPSULE_HALF_LENGTH, 0.0f };
+
+	static constexpr float RADIUS_SIZE = 60.0f;				//プレイヤーの半径（仮）
 
 	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
 
@@ -91,15 +97,15 @@ public:
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR GetAngle(void) { return unit_.angle_; }
 
-	LeftArm* GetLeftArm(void) { return lArm_; }
-	RightArm* GetRightArm(void) { return rArm_; }
+	LeftArm* GetLeftArm(void) { return leftArm_; }
+	RightArm* GetRightArm(void) { return rightArm_; }
 
 private:
 
 	AnimationController* animation_;
 
-	LeftArm* lArm_;
-	RightArm* rArm_;;
+	LeftArm* leftArm_;
+	RightArm* rightArm_;;
 	
 	void DebugDraw(void);
 	MATRIX MatrixSet(void);

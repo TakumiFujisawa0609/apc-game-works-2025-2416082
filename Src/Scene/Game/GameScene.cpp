@@ -59,7 +59,7 @@ void GameScene::Load(void)
 
 	collision_->AddEnemy(boss_);
 
-	//collision_->AddObject(player_);
+	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
 	collision_->AddObject(player_->GetRightArm());
 
@@ -153,7 +153,7 @@ void GameScene::Draw(void)
 #pragma region ï`âÊèàóù
 	Camera::GetInstance().Apply();
 
-	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
+	//DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
 
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;

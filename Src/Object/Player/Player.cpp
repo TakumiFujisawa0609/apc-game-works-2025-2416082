@@ -6,6 +6,7 @@
 #include "../../Manager/Sound/SoundManager.h"
 
 #include "../Boss/Boss.h"
+
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
 
@@ -20,6 +21,7 @@ Player::~Player()
 
 void Player::Load(void)
 {
+   // パスの省略
    std::string path = "Data/Model/Player/";
 
    // モデルのロード
@@ -31,12 +33,12 @@ void Player::Load(void)
    animation_ = new AnimationController(unit_.model_);
 
    // 左腕
-   lArm_ = new LeftArm(unit_.model_);
-   lArm_->Load();
+   leftArm_ = new LeftArm(unit_.model_);
+   leftArm_->Load();
 
    // 右腕
-   rArm_ = new RightArm(unit_.model_);
-   rArm_->Load();
+   rightArm_ = new RightArm(unit_.model_);
+   rightArm_->Load();
 
 #pragma endregion
 
@@ -48,9 +50,9 @@ void Player::Load(void)
     animation_->Add((int)(ANIM_TYPE::ATTACK2), 100.0f, (path + "Animation/Punching2.mv1").c_str());
     animation_->Add((int)(ANIM_TYPE::ATTACK3), 130.0f, (path + "Animation/Swiping.mv1").c_str());
 
+    // 音声のロード
     SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
     SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
-    move_ = VGet(0.0f, 0.0f, 0.0f);
 }
 
 void Player::Init(void)
@@ -58,22 +60,32 @@ void Player::Init(void)
     unit_.para_.colliShape = CollisionShape::CAPSULE;
     unit_.para_.colliType = CollisionType::ALLY;
 
-    unit_.para_.capsuleHalfLen = 200;
-    unit_.para_.radius = 300;
+    // 当たり判定するための変数
+    unit_.para_.capsuleHalfLen = CAPSULE_HALF_LENGTH; // カプセルの円から円までの長さの半分
+    unit_.para_.radius = RADIUS_SIZE;                 // 半径の長さ
 
     // 変数の初期化
-    unit_.isAlive_ = true;
-	unit_.pos_ = DEFAULT_POS;
-    unit_.angle_ = Utility::VECTOR_ZERO;
+    unit_.isAlive_ = true;                  // プレイヤーの生存フラグ
+	unit_.pos_ = DEFAULT_POS;               // プレイヤーの座標
+    unit_.angle_ = Utility::VECTOR_ZERO;    // プレイヤーの向き・アングル
 
+    // カメラの注視点をずらす
     currentHeight = Camera::CAMERA_PLAYER_POS;
+
+    //カメラ座標
     cameraPos_ = Utility::VECTOR_ZERO;
 
+    // 一度回避を行ったとき、次の回避までのクールタイム用
     nextRollCounter_ = 0;
-
+    
+    // プレイヤーモデルのボーンの名前を
+    // 羅列させるためのデバッグ用変数
     frameScrollIndex_ = 0;
 
+    // 三段攻撃のカウンタ変数
     attacConboCnt_ = 0;
+
+    move_ = Utility::VECTOR_ZERO;
 
     // 攻撃処理の初期化
     isAttacked_ = false;
@@ -94,12 +106,19 @@ void Player::Init(void)
     conbo_ = CONBO::CONBO1;
 
     // 腕の初期化
-    lArm_->Init();
-    rArm_->Init();
+    leftArm_->Init();
+    rightArm_->Init();
 }
 
 void Player::Update(void)
 {
+    auto& input = InputManager::GetInstance();
+
+    if (input.IsTrgDown(KEY_INPUT_P)) {
+        leftArm_->SetAttackTime(60);
+        rightArm_->SetAttackTime(60);
+    }
+
     // ローリング制御
     if (nextRollCounter_ <= 0)
     {
@@ -131,8 +150,9 @@ void Player::Update(void)
     animation_->Update();
 
     // 腕の更新処理
-    lArm_->Update();
-    rArm_->Update();
+    leftArm_->Update();
+    rightArm_->Update();
+
 }
 
 void Player::Draw(void)
@@ -145,10 +165,9 @@ void Player::Draw(void)
     // モデルの描画
     MV1DrawModel(unit_.model_);
 
-
     // 腕に関する描画処理
-    lArm_->Draw();
-    rArm_->Draw();
+    leftArm_->Draw();
+    rightArm_->Draw();
 
 
 #ifdef _DEBUG
@@ -168,18 +187,19 @@ void Player::Release(void)
     }
 
     // 左腕
-    if (lArm_)
+    if (leftArm_)
     {
-        lArm_->Release();
-        delete lArm_;
-        lArm_ = nullptr;
+        leftArm_->Release();
+        delete leftArm_;
+        leftArm_ = nullptr;
     }
 
-    if (rArm_)
+    // 右腕
+    if (rightArm_)
     {
-        rArm_->Release();
-        delete rArm_;
-        rArm_ = nullptr;
+        rightArm_->Release();
+        delete rightArm_;
+        rightArm_ = nullptr;
     }
 
     // モデルの解放
@@ -194,10 +214,14 @@ void Player::Release(void)
 //当たり判定
 void Player::OnCollision(UnitBase* other)
 {
+    if (unit_.inviciCounter_ > 0) { return; }
+
     if (dynamic_cast<Boss*>(other))
     {
-        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
-        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
+        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
+
+        unit_.inviciCounter_ = 30;
         return;
     }
 }
@@ -335,10 +359,10 @@ void Player::Attack(void)
 
     move_ = Utility::VECTOR_ZERO;
 
-    if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, { 0.0f, 0.0f,  1.0f }); }
-    if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, { 0.0f, 0.0f, -1.0f }); }
-    if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f, 0.0f }); }
-    if (CheckHitKey(KEY_INPUT_D)) { move_ = VAdd(move_, { 1.0f, 0.0f, 0.0f }); }
+    if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, {  0.0f, 0.0f,  1.0f }); }
+    if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, {  0.0f, 0.0f, -1.0f }); }
+    if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f,  0.0f }); }
+    if (CheckHitKey(KEY_INPUT_D)) { move_ = VAdd(move_, {  1.0f, 0.0f,  0.0f }); }
 
     if (move_.x != 0.0f || move_.z != 0.0f)
     {
@@ -350,20 +374,24 @@ void Player::Attack(void)
         unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.5f);
     }
 
-    int anim = 0;
+    int anim = (int)conbo_;
     switch (conbo_)
     {
     case CONBO::CONBO1: 
         anim = (int)ANIM_TYPE::ATTACK1;
+        leftArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO2: 
         anim = (int)ANIM_TYPE::ATTACK2; 
+        rightArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO3:
         anim = (int)ANIM_TYPE::ATTACK3; 
+        leftArm_->SetAttackTime(10);
         break;
     }
     animation_->Play(anim, false);
+
 
     // 攻撃判定管理
     DoAttack();
@@ -509,12 +537,11 @@ void Player::DoAttack(void)
 
             sound.Stop(SOUND::PLAYER_BIG_ATTACK);
             sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
-            if ((int)conbo_ >= (int)CONBO::MAX - 1)
-            {
+
+            if ((int)conbo_ >= (int)CONBO::MAX - 1) {
                 sound.Play(SOUND::PLAYER_BIG_ATTACK, false, 255, false, true);
             }
-            else 
-            {
+            else {
                 sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
             }
         }
@@ -551,6 +578,7 @@ void Player::CameraPosUpdate(void)
 
 void Player::DebugDraw(void)
 {
+    auto& input = InputManager::GetInstance();
     //デバック用Draw
 
     switch (state_)
@@ -581,24 +609,22 @@ void Player::DebugDraw(void)
 
     int frameNum = MV1GetFrameNum(unit_.model_);
 
-    static int prevUp = 0, prevDown = 0;
-    int nowUp = CheckHitKey(KEY_INPUT_UP);
-    int nowDown = CheckHitKey(KEY_INPUT_DOWN);
 
-    if (nowUp == 1 && prevUp == 0)
+    if (input.IsTrgDown(KEY_INPUT_UP))
     {
         frameScrollIndex_--;
         if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
     }
 
-    if (nowDown == 1 && prevDown == 0)
+    if (input.IsTrgDown(KEY_INPUT_DOWN))
     {
         frameScrollIndex_++;
         if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
     }
 
-    prevUp = nowUp;
-    prevDown = nowDown;
+    VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
+    VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
+    DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
 
     // ===== 画面に描画 =====
     int y = 200;
@@ -614,6 +640,7 @@ void Player::DebugDraw(void)
             "Frame %d : %s", idx, name ? name : "(null)");
         y += 16;
     }
+
 }
 
 MATRIX Player::MatrixSet(void)
@@ -624,6 +651,7 @@ MATRIX Player::MatrixSet(void)
     mat = MMult(mat, MGetRotY(unit_.angle_.y));
     mat = MMult(mat, MGetRotZ(unit_.angle_.z));
 
+    // モデルの反転を修正
     MATRIX localMat = MGetIdent();
     localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
     localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));

@@ -1,7 +1,10 @@
 #include "Boss.h"
 #include "../../Utility/Utility.h"
 
+#include "../../Application/Application.h"
+
 #include "../Player/Arm/LeftArm.h"
+#include "../Player/Arm/RightArm.h"
 
 Boss::Boss()
 {
@@ -13,6 +16,7 @@ Boss::~Boss()
 
 void Boss::Load(void)
 {
+	unit_.model_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 }
 
 void Boss::Init(void)
@@ -42,18 +46,29 @@ void Boss::Draw(void)
 	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
 	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
+
+	MV1SetPosition(unit_.model_, unit_.pos_);
+	MV1DrawModel(unit_.model_);
+	for (int i = 0; i < unit_.hp_; i++) {
+		DrawBox(50 + (i * 10), Application::SCREEN_SIZE_Y - 100, 70 + (i * 10), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
+	}
 }
 
 void Boss::Release(void)
 {
+	MV1DeleteModel(unit_.model_);
 }
 
 void Boss::OnCollision(UnitBase* other)
 {
-	if (dynamic_cast<LeftArm*>(other))
+	if (unit_.inviciCounter_ > 0) { return; }
+	
+	if (dynamic_cast<LeftArm*>(other) ||
+		dynamic_cast<RightArm*>(other))
 	{
 		unit_.hp_ -= 10;
 		unit_.inviciCounter_ = 30;
 		return;
 	}
+
 }
