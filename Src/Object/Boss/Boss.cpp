@@ -3,6 +3,8 @@
 
 #include "../../Application/Application.h"
 
+#include "../../Scene/SceneManager/SceneManager.h"
+
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
 
@@ -37,6 +39,13 @@ void Boss::Init(void)
 
 void Boss::Update(void)
 {
+	auto& scene = SceneManager::GetInstance();
+	if (unit_.hp_ < 0) {
+		unit_.hp_ = 0;
+		unit_.isAlive_ = false;
+
+		scene.ChangeScene(SceneManager::SCENE_ID::TITLE);
+	}
 	Invi();
 }
 
@@ -50,6 +59,8 @@ void Boss::Draw(void)
 
 	MV1SetPosition(unit_.model_, unit_.pos_);
 	MV1DrawModel(unit_.model_);
+
+
 	for (int i = 0; i < unit_.hp_; i++) {
 		DrawBox(50 + (i * 10), Application::SCREEN_SIZE_Y - 100, 70 + (i * 10), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
 	}
@@ -68,7 +79,7 @@ void Boss::OnCollision(UnitBase* other)
 		dynamic_cast<RightArm*>(other))
 	{
 		unit_.hp_ -= 10;
-		unit_.inviciCounter_ = 30;
+		unit_.inviciCounter_ = INVI_TIME;
 		return;
 	}
 

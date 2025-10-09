@@ -35,11 +35,12 @@ void Player::Load(void)
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
    leftArm_->Load();
-   leftArm_->SetKinniku([this](int index, VECTOR scale) {this->BoneScaleChange(index, scale); });
+   leftArm_->SetAddBoneScaleFunc([this](VECTOR scale) {this->AddArmScale(scale); });
 
    // 右腕
    rightArm_ = new RightArm(unit_.model_);
    rightArm_->Load();
+   rightArm_->SetAddBoneScaleFunc([this](VECTOR scale) {this->AddArmScale(scale); });
 
 #pragma endregion
 
@@ -220,14 +221,12 @@ void Player::OnCollision(UnitBase* other)
     if (dynamic_cast<Boss*>(other))
     {
         if (state_ == STATE::ROLL) {
-            BoneScaleChange(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[2]);
-            BoneScaleChange(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[2]);
+            AddArmScale(UP_MUSCLE[2]);
             return;
         }
-        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
-        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
+        //AddArmScale({ -0.2f,-0.2f,-0.2f });
 
-        unit_.inviciCounter_ = 30;
+        unit_.inviciCounter_ = INVI_TIME;
         return;
     }
 }
@@ -237,14 +236,14 @@ void Player::Muscle(void)
 {
     static int cnt = 0;
 
-    BoneScaleChange(LeftArm::LEFT_ARM_INDEX, DOWN_MUSCLE);
-    BoneScaleChange(RightArm::RIGHT_ARM_INDEX, DOWN_MUSCLE);
+    AddBoneScale(LeftArm::LEFT_ARM_INDEX, DOWN_MUSCLE);
+    AddBoneScale(RightArm::RIGHT_ARM_INDEX, DOWN_MUSCLE);
 
 #ifdef _DEBUG
     if (CheckHitKey(KEY_INPUT_0))
     {
-        BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
-        BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        AddBoneScale(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        AddBoneScale(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
     }
 #endif // _DEBUG
 
@@ -260,8 +259,8 @@ void Player::Muscle(void)
         cnt++;
         if (cnt <= 10)
         {
-            BoneScaleChange(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
-            BoneScaleChange(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
+            AddBoneScale(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
+            AddBoneScale(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
         }
         else
         {
@@ -272,22 +271,18 @@ void Player::Muscle(void)
 }
 
 // どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
-void Player::BoneScaleChange(int index, VECTOR scale)
+void Player::AddBoneScale(int index, VECTOR scale)
 {
     MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
 
     // 行列からスケール成分を抽出
-    VECTOR currentScale;
-    currentScale.x = VSize(VGet(mat.m[0][0], mat.m[0][1], mat.m[0][2]));
-    currentScale.y = VSize(VGet(mat.m[1][0], mat.m[1][1], mat.m[1][2]));
-    currentScale.z = VSize(VGet(mat.m[2][0], mat.m[2][1], mat.m[2][2]));
+    float currentScale[3];
+    for (int i = 0; i < 3; i++) {
+        currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
+    }
 
     // スケール加算
-    VECTOR newScale = {
-        currentScale.x + scale.x,
-        currentScale.y + scale.y,
-        currentScale.z + scale.z
-    };
+    VECTOR newScale = VAdd(scale,{ currentScale[0], currentScale[1], currentScale[2] });
 
     // 最大値の制限
     if (newScale.x > MAX_MUSCLE.x) newScale.x = MAX_MUSCLE.x;
@@ -313,6 +308,12 @@ void Player::BoneScaleChange(int index, VECTOR scale)
 
     // 適用
     MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
+}
+
+void Player::AddArmScale(VECTOR scale)
+{
+    AddBoneScale(LeftArm::LEFT_ARM_INDEX, scale);
+    AddBoneScale(RightArm::RIGHT_ARM_INDEX, scale);
 }
 
 

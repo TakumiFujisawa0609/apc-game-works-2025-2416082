@@ -91,11 +91,10 @@ public:
 
 	void OnCollision(UnitBase* other) override;
 
-
 	void CameraPosUpdate(void);
 
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
-	const VECTOR GetAngle(void) { return unit_.angle_; }
+	const VECTOR &GetAngle(void) { return unit_.angle_; }
 
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
@@ -143,7 +142,8 @@ private:
 
 #pragma region 筋肉関係
 	void Muscle(void);
-	void BoneScaleChange(int index, VECTOR scale);
+	void AddBoneScale(int index, VECTOR scale);
+	void AddArmScale(VECTOR scale);
 #pragma endregion
 
 #pragma region ステート管理関係

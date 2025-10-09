@@ -68,6 +68,7 @@ void RightArm::OnCollision(UnitBase* other)
 	if (dynamic_cast<Boss*>(other))
 	{
 		sound.Play(SOUND::HIT);
+		addArmScale_(BONE_UP);
 		return;
 	}
 }

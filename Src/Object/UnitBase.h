@@ -51,6 +51,9 @@ public:
 	virtual void OnCollision(UnitBase* other) = 0;
 
 protected:
+
+	static constexpr int INVI_TIME = 30;
+
 	Base unit_;
 
 	// 無敵処理(派生先の更新処理で呼び出す用)

@@ -69,7 +69,7 @@ void LeftArm::OnCollision(UnitBase* other)
 	if (dynamic_cast<Boss*>(other))
 	{
 		sound.Play(SOUND::HIT);
-		boneScaleChange_(LEFT_ARM_INDEX, { 10.0f, 10.0f, 10.0f });
+		addArmScale_(BONE_UP);
 		return;
 	}
 }
