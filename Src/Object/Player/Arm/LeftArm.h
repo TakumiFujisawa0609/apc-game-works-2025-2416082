@@ -1,6 +1,8 @@
 #pragma once
 #include "../../UnitBase.h"
 
+#include <functional>
+
 class LeftArm : public UnitBase
 {
 public:
@@ -19,7 +21,11 @@ public:
 	void OnCollision(UnitBase* other)override;
 
 	void SetAttackTime(int collTime);
+
+	void SetKinniku(std::function<void(int index, VECTOR scale)> func) { boneScaleChange_ = std::move(func); }
 private:
 
 	int cnt_;
+
+	std::function<void(int index, VECTOR scale)> boneScaleChange_;
 };

@@ -7,6 +7,15 @@ public:
 
 	static constexpr int HP_MAX = 100;
 
+	enum  ATTACK
+	{
+		NON,
+
+
+
+		MAX
+	};
+
 	Boss();
 	~Boss() override;
 
@@ -20,5 +29,6 @@ public:
 
 
 private:
+
 	int color1;
 };

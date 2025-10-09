@@ -35,6 +35,7 @@ void Player::Load(void)
    // ¶˜r
    leftArm_ = new LeftArm(unit_.model_);
    leftArm_->Load();
+   leftArm_->SetKinniku([this](int index, VECTOR scale) {this->BoneScaleChange(index, scale); });
 
    // ‰E˜r
    rightArm_ = new RightArm(unit_.model_);
@@ -218,6 +219,11 @@ void Player::OnCollision(UnitBase* other)
 
     if (dynamic_cast<Boss*>(other))
     {
+        if (state_ == STATE::ROLL) {
+            BoneScaleChange(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[2]);
+            BoneScaleChange(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[2]);
+            return;
+        }
         BoneScaleChange(LeftArm::LEFT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
         BoneScaleChange(RightArm::RIGHT_ARM_INDEX, { -0.2f,-0.2f,-0.2f });
 

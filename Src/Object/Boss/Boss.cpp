@@ -43,6 +43,7 @@ void Boss::Update(void)
 void Boss::Draw(void)
 {
 	if (!unit_.isAlive_)return;
+
 	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
 	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
