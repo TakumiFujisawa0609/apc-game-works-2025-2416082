@@ -10,6 +10,8 @@ public:
 	static constexpr int RIGHT_ARM_INDEX = 35;
 	static constexpr int RIGHT_HAND_INDEX = 38;
 
+	static constexpr float RADIUS = 30;
+
 	static constexpr VECTOR BONE_UP = { 0.01f, 0.01f, 0.01 };
 
 	RightArm(int modelId);
@@ -25,7 +27,7 @@ public:
 
 	void SetAttackTime(int collTime);
 
-	void SetAddBoneScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
+	void SetAddArmScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
 private:
 
 	int cnt_;

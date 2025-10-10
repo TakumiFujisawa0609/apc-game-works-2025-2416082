@@ -19,7 +19,7 @@ public:
 	void AddEnemy(UnitBase* obj) { enemy.push_back(obj); }
 	void AddEnemy(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddEnemy(o); } }
 	void Check();
-	void Clear() { player.clear(); stageObject_.clear(); }
+	void Clear() { player.clear(); stageObject_.clear(); enemy.clear(); }
 
 private:
 	std::vector<UnitBase*> player;

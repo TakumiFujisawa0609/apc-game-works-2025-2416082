@@ -44,9 +44,10 @@ public:
 	};
 
 #pragma region 定数定義
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -100.0f }; //初期座標
 
-	static constexpr float CAPSULE_HALF_LENGTH = 200;
+	static constexpr float CAPSULE_HALF_LENGTH = 100;
+
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -100.0f }; //初期座標
 
 	static constexpr VECTOR CENTER_DIFF = { 0.0f, CAPSULE_HALF_LENGTH, 0.0f };
 
@@ -107,7 +108,7 @@ private:
 	RightArm* rightArm_;;
 	
 	void DebugDraw(void);
-	MATRIX MatrixSet(void);
+	void DrawPlayer(void);
 
 #pragma region 列挙型定義
 	// ステート管理用

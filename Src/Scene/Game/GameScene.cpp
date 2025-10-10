@@ -4,6 +4,7 @@
 #include<cmath>
 
 #include"../../Manager/Camera/Camera.h"
+#include"../../Manager/Input/InputManager.h"
 
 #include"../../Application/Application.h"
 #include"../../scene/SceneManager/SceneManager.h"
@@ -18,6 +19,7 @@
 #include"../../Object/Grid/Grid.h"
 
 #include"../Title/TitleScene.h"
+#include"../../Scene/PauseScene/PauseScene.h"
 
 int GameScene::hitStop_ = 0;
 
@@ -122,16 +124,11 @@ void GameScene::Update(void)
 	boss_->Update();
 	grid_->Update();
 
-	static int prev = 0;
-	static int now = 0;
-
-	prev = now;
-	now = CheckHitKey(KEY_INPUT_ESCAPE);
-
-	if (now == 1 && prev == 0)
+	auto& input = InputManager::GetInstance();
+	auto& scene = SceneManager::GetInstance();
+	if (input.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
-		auto& scene = SceneManager::GetInstance();
-		scene.PushScene(SCENE_ID::PAUSE);
+		scene.PushScene(std::make_shared<PauseScene>());
 	}
 
 	// “–‚½‚è”»’è
@@ -139,6 +136,9 @@ void GameScene::Update(void)
 
 #pragma endregion
 
+	if (!boss_->GetUnit().isAlive_) {
+		scene.ChangeScene(SCENE_ID::TITLE);
+	}
 }
 
 
@@ -198,8 +198,15 @@ void GameScene::Release(void)
 		boss_ = nullptr;
 	}
 
+	if (grid_)
+	{
+		grid_->Release();
+		delete grid_;
+		grid_ = nullptr;
+	}
+
 	DeleteGraph(mainScreen_);
-	Camera::DeleteInstance();
+ 	Camera::DeleteInstance();
 }
 
 void GameScene::Shake(ShakeKinds kinds, ShakeSize size, int time)

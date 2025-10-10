@@ -17,7 +17,6 @@ public:
 
 		TITLE,
 		GAME,
-		PAUSE,
 
 		MAX
 	};

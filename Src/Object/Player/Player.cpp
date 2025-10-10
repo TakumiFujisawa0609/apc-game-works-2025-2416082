@@ -35,12 +35,12 @@ void Player::Load(void)
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
    leftArm_->Load();
-   leftArm_->SetAddBoneScaleFunc([this](VECTOR scale) {this->AddArmScale(scale); });
+   leftArm_->SetAddArmScaleFunc([this](VECTOR scale) { this->AddArmScale(scale); });
 
    // 右腕
    rightArm_ = new RightArm(unit_.model_);
    rightArm_->Load();
-   rightArm_->SetAddBoneScaleFunc([this](VECTOR scale) {this->AddArmScale(scale); });
+   rightArm_->SetAddArmScaleFunc([this](VECTOR scale) { this->AddArmScale(scale); });
 
 #pragma endregion
 
@@ -121,6 +121,10 @@ void Player::Update(void)
         rightArm_->SetAttackTime(60);
     }
 
+    if (state_ != STATE::ATTACK) {
+        conbo_ = CONBO::CONBO1;
+    }
+
     // ローリング制御
     if (nextRollCounter_ <= 0)
     {
@@ -161,11 +165,9 @@ void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
-    // 行列の設定
-    MV1SetMatrix(unit_.model_, MatrixSet());
 
-    // モデルの描画
-    MV1DrawModel(unit_.model_);
+    DrawPlayer();
+
 
     // 腕に関する描画処理
     leftArm_->Draw();
@@ -236,14 +238,12 @@ void Player::Muscle(void)
 {
     static int cnt = 0;
 
-    AddBoneScale(LeftArm::LEFT_ARM_INDEX, DOWN_MUSCLE);
-    AddBoneScale(RightArm::RIGHT_ARM_INDEX, DOWN_MUSCLE);
+    AddArmScale(DOWN_MUSCLE);
 
 #ifdef _DEBUG
     if (CheckHitKey(KEY_INPUT_0))
     {
-        AddBoneScale(LeftArm::LEFT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
-        AddBoneScale(RightArm::RIGHT_ARM_INDEX, { -1.0f,-1.0f,-1.0f });
+        AddArmScale({ -1.0f,-1.0f,-1.0f });
     }
 #endif // _DEBUG
 
@@ -259,8 +259,7 @@ void Player::Muscle(void)
         cnt++;
         if (cnt <= 10)
         {
-            AddBoneScale(LeftArm::LEFT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
-            AddBoneScale(RightArm::RIGHT_ARM_INDEX, UP_MUSCLE[(int)conbo_]);
+            AddArmScale(UP_MUSCLE[(int)conbo_]);
         }
         else
         {
@@ -397,8 +396,8 @@ void Player::Attack(void)
         leftArm_->SetAttackTime(10);
         break;
     }
-    animation_->Play(anim, false);
 
+    animation_->Play(anim, false);
 
     // 攻撃判定管理
     DoAttack();
@@ -629,8 +628,8 @@ void Player::DebugDraw(void)
         if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
     }
 
-    VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
-    VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen / 2,0.0f });
+    VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
+    VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
 
     // ===== 画面に描画 =====
@@ -650,10 +649,13 @@ void Player::DebugDraw(void)
 
 }
 
-MATRIX Player::MatrixSet(void)
+void Player::DrawPlayer(void)
 {
+    VECTOR ofset = { 0.0f, -unit_.para_.capsuleHalfLen ,0.0f };
+
     // 回転行列の作成　
     MATRIX mat = MGetIdent();
+
     mat = MMult(mat, MGetRotX(unit_.angle_.x));
     mat = MMult(mat, MGetRotY(unit_.angle_.y));
     mat = MMult(mat, MGetRotZ(unit_.angle_.z));
@@ -666,15 +668,19 @@ MATRIX Player::MatrixSet(void)
 
     mat = MMult(localMat, mat);
 
-    // スケール行列
-    MATRIX matScale = MGetScale(unit_.scale_);
-
     // スケールを先に適用
-    mat = MMult(matScale, mat);
+    mat = MMult(MGetScale(unit_.scale_), mat);
 
-    mat.m[3][0] = unit_.pos_.x;
-    mat.m[3][1] = unit_.pos_.y;
-    mat.m[3][2] = unit_.pos_.z;
+    VECTOR worldPos = VTransform(ofset, mat);
 
-    return mat;
+    mat.m[3][0] = unit_.pos_.x + worldPos.x;
+    mat.m[3][1] = unit_.pos_.y + worldPos.y;
+    mat.m[3][2] = unit_.pos_.z + worldPos.z;
+
+    // 行列の設定
+    MV1SetMatrix(unit_.model_, mat);
+
+    // モデルの描画
+    MV1DrawModel(unit_.model_);
+
 }

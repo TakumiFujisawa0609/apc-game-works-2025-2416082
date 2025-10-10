@@ -144,6 +144,7 @@
     <ClCompile Include="Src\Manager\Loading\Loading.cpp" />
     <ClCompile Include="Src\Manager\Sound\SoundManager.cpp" />
     <ClCompile Include="Src\Object\Boss\Boss.cpp" />
+    <ClCompile Include="Src\Object\Boss\Hand\BossRightHand.cpp" />
     <ClCompile Include="Src\Object\Grid\Grid.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\LeftArm.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\RightArm.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="Src\Manager\Loading\Loading.h" />
     <ClInclude Include="Src\Manager\Sound\SoundManager.h" />
     <ClInclude Include="Src\Object\Boss\Boss.h" />
+    <ClInclude Include="Src\Object\Boss\Hand\BossRightHand.h" />
     <ClInclude Include="Src\Object\Grid\Grid.h" />
     <ClInclude Include="Src\Object\Player\Arm\LeftArm.h" />
     <ClInclude Include="Src\Object\Player\Arm\RightArm.h" />

@@ -41,6 +41,18 @@ void LeftArm::Update(void)
 			cnt_ = 0;
 		}
 	}
+
+	// --- スケール連動処理 ---
+	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, LEFT_ARM_INDEX);
+
+	// スケール抽出（各軸ベクトルの長さを取る）
+	float scale[3];
+	for (int i = 0; i < 3; i++) {
+		scale[i] = sqrtf(mat.m[i][0] * mat.m[i][0] + mat.m[i][1] * mat.m[i][1] + mat.m[i][2] * mat.m[i][2]);
+	}
+
+	// 腕の大きさに応じて当たり判定を大きくする
+	unit_.para_.radius = RADIUS * ((scale[0] + scale[1] + scale[2]) / 3.0f);
 }
 
 void LeftArm::Draw(void)
@@ -68,6 +80,7 @@ void LeftArm::OnCollision(UnitBase* other)
 	auto& sound = SoundManager::GetIns();
 	if (dynamic_cast<Boss*>(other))
 	{
+		sound.Stop(SOUND::HIT);
 		sound.Play(SOUND::HIT);
 		addArmScale_(BONE_UP);
 		return;

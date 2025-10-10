@@ -28,6 +28,7 @@ void Application::Init(void)
 	SetWindowText("");
 
 	// ウィンドウ関連
+	SetWindowText("脳筋の拳_田中大樹_2416082");
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);	// サイズ変更
 	ChangeWindowMode(true);	// false = フルスクリーン
 
