@@ -52,7 +52,7 @@ public:
 
 protected:
 
-	static constexpr int INVI_TIME = 30;
+	static constexpr int INVI_TIME = 60;
 
 	Base unit_;
 

@@ -1,9 +1,10 @@
 #include "Player.h"
 
 #include "../../Manager/Animation/AnimationController.h"
-#include "../../Manager/Camera/Camera.h"
 #include "../../Manager/Input/InputManager.h"   
 #include "../../Manager/Sound/SoundManager.h"
+
+#include "../Camera/Camera.h"
 
 #include "../Boss/Boss.h"
 
@@ -165,14 +166,11 @@ void Player::Draw(void)
 {
 	if (!unit_.isAlive_)return;
 
-
     DrawPlayer();
-
 
     // 腕に関する描画処理
     leftArm_->Draw();
     rightArm_->Draw();
-
 
 #ifdef _DEBUG
     DebugDraw();
@@ -267,6 +265,53 @@ void Player::Muscle(void)
             isUpMuscle_ = false;
         }
     }
+}
+
+void Player::MuscleDraw(void)
+{
+    // ===== 筋肉ゲージ（外装強化）=====
+    int mx = 50, my = 50;               // 表示位置
+    int width = 600, height = 50;       // サイズ
+    int filled = (int)(width * muscleRatio_);
+
+    // ▼ 背面の影（奥行き）
+    DrawBox(mx - 3, my - 3, mx + width + 3, my + height + 3, GetColor(30, 0, 0), true);
+
+    // ▼ 外枠（太め・メタル調）
+    for (int i = 0; i < 3; i++) {
+        DrawBox(mx - i, my - i, mx + width + i, my + height + i, GetColor(150 + i * 30, 30 + i * 10, 30 + i * 10), false);
+    }
+
+    // ▼ ゲージ背景（深赤）
+    DrawBox(mx, my, mx + width, my + height, GetColor(60, 0, 0), true);
+
+    // ▼ 筋繊維ライン
+    float t = (float)GetNowCount() / 100.0f;
+    for (int i = 0; i < height; i += 4)
+    {
+        int strength = (int)(128 + 127 * sin(i * 0.5f + t));
+        DrawLine(mx, my + i, mx + filled, my + i, GetColor(180 + strength / 4, 30, 30));
+    }
+
+    // ▼ 赤→黄グラデーション
+    for (int x = 0; x < filled; x++)
+    {
+        float f = (float)x / filled;
+        int r = 255;
+        int g = (int)(f * 180);
+        int b = 0;
+        DrawLine(mx + x, my, mx + x, my + height, GetColor(r, g, b));
+    }
+
+    // ▼ 上部ハイライト
+    DrawLine(mx, my + 2, mx + filled, my + 2, GetColor(255, 180, 180));
+
+    // ▼ 下部に影（立体感）
+    DrawLine(mx, my + height - 1, mx + width, my + height - 1, GetColor(40, 0, 0));
+
+    // ▼ 外光オーラ（力の気配）
+    int auraColor = GetColor(255, 80, 80);
+    DrawBox(mx - 5, my - 5, mx + filled + 5, my + height + 5, auraColor, false);
 }
 
 // どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
@@ -385,15 +430,15 @@ void Player::Attack(void)
     {
     case CONBO::CONBO1: 
         anim = (int)ANIM_TYPE::ATTACK1;
-        leftArm_->SetAttackTime(10);
+        leftArm_->SetAttackTime(5);
         break;
     case CONBO::CONBO2: 
         anim = (int)ANIM_TYPE::ATTACK2; 
-        rightArm_->SetAttackTime(10);
+        rightArm_->SetAttackTime(5);
         break;
     case CONBO::CONBO3:
         anim = (int)ANIM_TYPE::ATTACK3; 
-        leftArm_->SetAttackTime(10);
+        leftArm_->SetAttackTime(5);
         break;
     }
 
@@ -402,9 +447,9 @@ void Player::Attack(void)
     // 攻撃判定管理
     DoAttack();
 
-    if (animation_->IsPassedRatio(anim, 0.1f) && !animation_->IsPassedRatio(anim, 0.5f))
+    if (animation_->IsPassedRatio(anim, 0.1f) && !animation_->IsPassedRatio(anim, 0.7f))
     {
-        VECTOR forward = VGet(
+         VECTOR forward = VGet(
             sinf(unit_.angle_.y),
             0.0f,
             cosf(unit_.angle_.y)
@@ -603,18 +648,11 @@ void Player::DebugDraw(void)
         break;
     }
 
-    // ===== 筋肉ゲージ描画 =====
-    int mx = 50, my = 50; // 表示位置
-    int width = 200, height = 20; // ゲージのサイズ
-    int filled = (int)(width * muscleRatio_);
+    MuscleDraw();
 
-    // 外枠
-    DrawBox(mx, my, mx + width, my + height, GetColor(255, 255, 255), false);
-    // 中身（割合に応じて伸ばす）
-    DrawBox(mx, my, mx + filled, my + height, GetColor(255, 0, 0), true);
+
 
     int frameNum = MV1GetFrameNum(unit_.model_);
-
 
     if (input.IsTrgDown(KEY_INPUT_UP))
     {
@@ -680,7 +718,19 @@ void Player::DrawPlayer(void)
     // 行列の設定
     MV1SetMatrix(unit_.model_, mat);
 
-    // モデルの描画
-    MV1DrawModel(unit_.model_);
+    if (unit_.inviciCounter_ > 0)
+    {
+        float t = sinf(GetNowCount() * 0.03f);
+        float intensity = (t > 0.0f) ? 1.0f : 0.1f;  
 
+        MV1SetDifColorScale(unit_.model_, { 1.0f, intensity * 0.5f, intensity * 0.5f, 1.0f });
+    }
+    else
+    {
+        MV1SetDifColorScale(unit_.model_, { 1.0f, 1.0f, 1.0f, 1.0f });
+    }
+
+    // モデル描画
+    MV1DrawModel(unit_.model_);
 }
+

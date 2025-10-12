@@ -34,9 +34,14 @@ public:
 
 	void OnCollision(UnitBase* other) override;
 
+	BossRightHand* GetRightHand(void) { return rHand_; }
+
+	void SetTarget(VECTOR target) { target_ = target; }
 
 private:
 	BossRightHand* rHand_;
+
+	VECTOR target_;
 
 	int color1;
 };

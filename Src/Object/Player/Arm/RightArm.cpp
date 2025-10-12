@@ -2,6 +2,8 @@
 
 #include "../../Boss/Boss.h"
 
+#include "../../../Scene/Game/GameScene.h"
+
 #include "../../../Manager/Sound/SoundManager.h"
 #include "LeftArm.h"
 
@@ -35,8 +37,7 @@ void RightArm::Update(void)
 	if (cnt_ > 0) {
 		cnt_--;
 		unit_.isAlive_ = true;
-
-		if (cnt_ < 0) {
+		if (cnt_ <= 0) {
 			unit_.isAlive_ = false;
 			cnt_ = 0;
 		}
@@ -76,11 +77,12 @@ void RightArm::Release(void)
 
 void RightArm::OnCollision(UnitBase* other)
 {
+	if (!unit_.isAlive_) { return; }
 	auto& sound = SoundManager::GetIns();
 	if (dynamic_cast<Boss*>(other))
 	{
-		sound.Stop(SOUND::HIT);
-		sound.Play(SOUND::HIT);
+		//sound.Play(SOUND::HIT,true);
+		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 5);
 		addArmScale_(BONE_UP);
 		return;
 	}

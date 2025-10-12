@@ -3,6 +3,8 @@
 
 #include "../../Boss/Boss.h"
 
+#include "../../../Scene/Game/GameScene.h"
+
 #include "../../../Manager/Sound/SoundManager.h"
 
 LeftArm::LeftArm(int modelId)
@@ -77,11 +79,11 @@ void LeftArm::Release(void)
 
 void LeftArm::OnCollision(UnitBase* other)
 {
+	if (!unit_.isAlive_) { return; }
 	auto& sound = SoundManager::GetIns();
 	if (dynamic_cast<Boss*>(other))
 	{
-		sound.Stop(SOUND::HIT);
-		sound.Play(SOUND::HIT);
+		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 5);
 		addArmScale_(BONE_UP);
 		return;
 	}

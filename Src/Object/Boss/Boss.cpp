@@ -1,4 +1,5 @@
 #include "Boss.h"
+
 #include "../../Utility/Utility.h"
 
 #include "../../Application/Application.h"
@@ -42,6 +43,7 @@ void Boss::Init(void)
 	color1 = 0xfff000;
 
 	rHand_->Init();
+
 }
 
 void Boss::Update(void)
@@ -51,6 +53,8 @@ void Boss::Update(void)
 		unit_.hp_ = 0;
 		unit_.isAlive_ = false;
 	}
+
+	unit_.angle_.y += Utility::Deg2RadF(1.0f);
 
 	rHand_->Update();
 
@@ -80,21 +84,20 @@ void Boss::Draw(void)
 	MV1SetMatrix(unit_.model_, mat);
 	MV1DrawModel(unit_.model_);
 
+	//ƒ{ƒX‚Ì‰EŽè‚Ì•`‰æ
 	rHand_->SetBaseMat(mat);
+	rHand_->Draw();
 
+#ifdef _DEBUG
 	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
 
-
-#ifdef _DEBUG
 	for (int i = 0; i < unit_.hp_; i++) {
 		DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
 	}
 	DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
 #endif // _DEBUG
-
-	rHand_->Draw();
 }
 
 void Boss::Release(void)

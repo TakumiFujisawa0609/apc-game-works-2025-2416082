@@ -3,7 +3,6 @@
 #include<DxLib.h>
 #include<cmath>
 
-#include"../../Manager/Camera/Camera.h"
 #include"../../Manager/Input/InputManager.h"
 
 #include"../../Application/Application.h"
@@ -11,11 +10,14 @@
 
 #include"../../Utility/Utility.h"
 
+#include"../../Object/Camera/Camera.h"
 #include"../../Object/Player/Player.h"
 #include"../../Object/Player/Arm/LeftArm.h"
 #include"../../Object/Player/Arm/RightArm.h"
 
 #include"../../Object/Boss/Boss.h"
+#include"../../Object/Boss/Hand/BossRightHand.h"
+
 #include"../../Object/Grid/Grid.h"
 
 #include"../Title/TitleScene.h"
@@ -60,6 +62,7 @@ void GameScene::Load(void)
 	grid_ = new Grid();
 
 	collision_->AddEnemy(boss_);
+	collision_->AddEnemy(boss_->GetRightHand());
 
 	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
@@ -129,6 +132,9 @@ void GameScene::Update(void)
 	if (input.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		scene.PushScene(std::make_shared<PauseScene>());
+		if (input.IsTrgDown(KEY_INPUT_SPACE)) {
+			scene.PopScene();
+		}
 	}
 
 	// “–‚½‚è”»’è
@@ -137,7 +143,7 @@ void GameScene::Update(void)
 #pragma endregion
 
 	if (!boss_->GetUnit().isAlive_) {
-		scene.ChangeScene(SCENE_ID::TITLE);
+		scene.PushScene(SCENE_ID::TITLE);
 	}
 }
 

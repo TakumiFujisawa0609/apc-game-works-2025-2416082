@@ -45,10 +45,10 @@ void Camera::Apply()
     SetUseLighting(FALSE);
 
     // è„ãÛÇÕñæÇÈÇ¢ê¬ÅAínïΩê¸ÇÕíWÇ¢ê¬
-    int topColor = GetColor(100, 180, 255);
-    int bottomColor = GetColor(180, 220, 255);
+    //int topColor = GetColor(100, 180, 255);
+    //int bottomColor = GetColor(180, 220, 255);
 
-    DrawSphere3D(camPos_, 10000.0f, 32, topColor, bottomColor, TRUE);
+    //DrawSphere3D(camPos_, 10000.0f, 32, topColor, bottomColor, TRUE);
 
     SetUseLighting(TRUE);
 }

@@ -143,6 +143,7 @@ private:
 
 #pragma region ‹Ø“÷ŠÖŒW
 	void Muscle(void);
+	void MuscleDraw(void);
 	void AddBoneScale(int index, VECTOR scale);
 	void AddArmScale(VECTOR scale);
 #pragma endregion
