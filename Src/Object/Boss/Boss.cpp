@@ -31,12 +31,13 @@ void Boss::Init(void)
 {
 	unit_.para_.colliShape = CollisionShape::CAPSULE;
 
-	unit_.para_.radius = RADIUS;
-	unit_.para_.capsuleHalfLen = HALF_LEN;
+	unit_.para_.radius = RADIUS * 2;
+	unit_.para_.capsuleHalfLen = HALF_LEN * 2;
 	unit_.pos_ = DEFAULT_POS;
 
 	unit_.hp_ = HP_MAX;
 	unit_.scale_ = SCALE;
+	unit_.angle_ = LOCAL_ANGLE;
 
 	unit_.isAlive_ = true;
 
@@ -49,21 +50,33 @@ void Boss::Init(void)
 void Boss::Update(void)
 {
 	auto& scene = SceneManager::GetInstance();
-	if (unit_.hp_ < 0) {
+	if (unit_.hp_ <= 0) {
 		unit_.hp_ = 0;
 		unit_.isAlive_ = false;
 	}
 
-	unit_.angle_.y += Utility::Deg2RadF(1.0f);
+	// target_ ‚Ì•ûŒü‚ÉŒü‚­
+	VECTOR dir = VSub(target_, unit_.pos_);
+	float targetAngleY = atan2f(dir.x, dir.z);
+
+	float rotationSpeed = Utility::Deg2RadF(1.0f);
+	float deltaAngle = targetAngleY - unit_.angle_.y;
+	while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
+	while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
+
+	if (fabsf(deltaAngle) < rotationSpeed)
+		unit_.angle_.y = targetAngleY;
+	else
+		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
 
 	rHand_->Update();
-
 	Invi();
 }
 
 void Boss::Draw(void)
 {
 	if (!unit_.isAlive_)return;
+
 
 	VECTOR offset = { 0.0f, -150.0f, 0.0f };
 
@@ -72,6 +85,13 @@ void Boss::Draw(void)
 	mat = MMult(mat, MGetRotX(unit_.angle_.x));
 	mat = MMult(mat, MGetRotY(unit_.angle_.y));
 	mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+
+	MATRIX localMat = MGetIdent();
+	localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+	localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+	localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+
+	mat = MMult(localMat, mat);
 
 	mat = MMult(MGetScale(unit_.scale_), mat);
 
@@ -119,8 +139,21 @@ void Boss::OnCollision(UnitBase* other)
 	if (dynamic_cast<LeftArm*>(other) ||
 		dynamic_cast<RightArm*>(other))
 	{
-		unit_.hp_ -= 10;
-		unit_.inviciCounter_ = INVI_TIME;
+		if (playerMuscleRatio_ > 0.0f) {
+			if (playerMuscleRatio_ > 0.4f) {
+				if (playerMuscleRatio_ > 0.7f) {
+					unit_.hp_ -= 25;
+					unit_.inviciCounter_ = INVI_TIME;
+					return;
+				}
+				unit_.hp_ -= 15;
+				unit_.inviciCounter_ = INVI_TIME;
+				return;
+			}
+			unit_.hp_ -= 10;
+			unit_.inviciCounter_ = INVI_TIME;
+			return;
+		}
 		return;
 	}
 

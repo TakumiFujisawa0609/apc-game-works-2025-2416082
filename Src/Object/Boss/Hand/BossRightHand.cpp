@@ -30,12 +30,6 @@ void BossRightHand::Init(void)
 
 void BossRightHand::Update(void)
 {
-	if (unit_.inviciCounter_ > 0) {
-		unit_.isAlive_ = false;
-	}
-	else {
-		unit_.isAlive_ = true;
-	}
 	Invi();
 }
 

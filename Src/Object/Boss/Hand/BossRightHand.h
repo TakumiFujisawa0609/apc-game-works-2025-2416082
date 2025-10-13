@@ -5,7 +5,7 @@ class BossRightHand : public UnitBase
 {
 public:
 	static constexpr VECTOR SCALE = { 1.0f,1.0f,1.0f };
-	static constexpr VECTOR LOCAL_POS = { 200.0f, 100.0f, -100.0f };
+	static constexpr VECTOR LOCAL_POS = { 400.0f, 100.0f, -100.0f };
 
 	BossRightHand();
 	~BossRightHand() override;

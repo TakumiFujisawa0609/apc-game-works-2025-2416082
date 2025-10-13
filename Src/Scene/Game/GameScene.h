@@ -77,7 +77,7 @@ private:
 	Vector2I ShakePoint(void);
 	//---------------------------------
 #pragma endregion
-
+	int sousaImg_;
 };
 
 using ShakeKinds = GameScene::ShakeKinds;

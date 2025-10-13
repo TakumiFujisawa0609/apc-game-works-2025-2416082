@@ -49,6 +49,8 @@ public:
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -100.0f }; //初期座標
 
+	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };	//モデルの向き修正用
+
 	static constexpr VECTOR CENTER_DIFF = { 0.0f, CAPSULE_HALF_LENGTH, 0.0f };
 
 	static constexpr float RADIUS_SIZE = 60.0f;				//プレイヤーの半径（仮）
@@ -76,7 +78,7 @@ public:
 		{ 0.03f, 0.03f, 0.03f }
 	}; 
 
-	static constexpr VECTOR DOWN_MUSCLE = { -0.0005f,-0.0005f,-0.0005f };
+	static constexpr VECTOR DOWN_MUSCLE = { -0.001f,-0.001f,-0.001f };
 #pragma endregion
 
 
@@ -90,12 +92,16 @@ public:
 	void Draw(void) override;
 	void Release(void) override;
 
+	void UIDraw(void);
+
 	void OnCollision(UnitBase* other) override;
 
 	void CameraPosUpdate(void);
 
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR &GetAngle(void) { return unit_.angle_; }
+
+	const float GetMuscleRatio();
 
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
@@ -109,6 +115,8 @@ private:
 	
 	void DebugDraw(void);
 	void DrawPlayer(void);
+
+	void HpDraw(void);
 
 #pragma region 列挙型定義
 	// ステート管理用
@@ -139,6 +147,8 @@ private:
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
 
+	//float muscleRatio_;
+
 #pragma endregion
 
 #pragma region 筋肉関係
@@ -162,7 +172,6 @@ private:
 
 #pragma region 状態遷移関係
 
-	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
 
 	// 状態遷移用の関数
 	void StateManager(void);
@@ -176,4 +185,9 @@ private:
 	// デバッグ用変数
 	int frameScrollIndex_;
 	float muscleRatio_;
+
+	void DrawRingHPGauge(int cx, int cy, int outerR, int innerR, float ratio, int color);
+
+	void DrawMuscleHPGauge(int cx, int cy, int outerR, int innerR, float ratio);
+	
 };

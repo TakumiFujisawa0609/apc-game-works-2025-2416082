@@ -6,13 +6,15 @@ class BossRightHand;
 class Boss : public UnitBase
 {
 public:
+	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
+
 	static constexpr float RADIUS = 200.0f;
-	static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };
+	static constexpr VECTOR SCALE = { 4.0f,4.0f,4.0f };
 	static constexpr float HALF_LEN = 300.0f;
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 300.0f, 200.0f };
 
-	static constexpr int HP_MAX = 300;
+	static constexpr int HP_MAX = 100;
 
 	enum  ATTACK
 	{
@@ -37,11 +39,13 @@ public:
 	BossRightHand* GetRightHand(void) { return rHand_; }
 
 	void SetTarget(VECTOR target) { target_ = target; }
+	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
 
 private:
 	BossRightHand* rHand_;
 
 	VECTOR target_;
+	float playerMuscleRatio_;
 
 	int color1;
 };

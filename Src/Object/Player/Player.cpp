@@ -1,4 +1,7 @@
 #include "Player.h"
+#include <cmath>
+
+#include "../../Application/Application.h"
 
 #include "../../Manager/Animation/AnimationController.h"
 #include "../../Manager/Input/InputManager.h"   
@@ -7,7 +10,7 @@
 #include "../Camera/Camera.h"
 
 #include "../Boss/Boss.h"
-
+#include "../Boss/Hand/BossRightHand.h"
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
 
@@ -63,14 +66,16 @@ void Player::Init(void)
     unit_.para_.colliShape = CollisionShape::CAPSULE;
     unit_.para_.colliType = CollisionType::ALLY;
 
-    // 当たり判定するための変数
+    // プレイヤーのパラメータの初期化
     unit_.para_.capsuleHalfLen = CAPSULE_HALF_LENGTH; // カプセルの円から円までの長さの半分
     unit_.para_.radius = RADIUS_SIZE;                 // 半径の長さ
+    unit_.hp_ = 100;
 
-    // 変数の初期化
     unit_.isAlive_ = true;                  // プレイヤーの生存フラグ
 	unit_.pos_ = DEFAULT_POS;               // プレイヤーの座標
     unit_.angle_ = Utility::VECTOR_ZERO;    // プレイヤーの向き・アングル
+    unit_.para_.speed = MOUSE_MOVED;
+
 
     // カメラの注視点をずらす
     currentHeight = Camera::CAMERA_PLAYER_POS;
@@ -136,6 +141,11 @@ void Player::Update(void)
         nextRollCounter_--;
     }
 
+    if (unit_.hp_ <= 0) {
+        unit_.hp_ = 0;
+        unit_.isAlive_ = false;
+    }
+
     //マッスル関係の処理用関数
     Muscle();
 
@@ -171,10 +181,6 @@ void Player::Draw(void)
     // 腕に関する描画処理
     leftArm_->Draw();
     rightArm_->Draw();
-
-#ifdef _DEBUG
-    DebugDraw();
-#endif 
 }
 
 // 解放処理
@@ -213,6 +219,17 @@ void Player::Release(void)
     }
 }
 
+void Player::UIDraw(void)
+{
+    HpDraw();
+
+    MuscleDraw();
+#ifdef _DEBUG
+    DebugDraw();
+#endif 
+    DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio());
+}
+
 //当たり判定
 void Player::OnCollision(UnitBase* other)
 {
@@ -220,14 +237,18 @@ void Player::OnCollision(UnitBase* other)
 
     if (dynamic_cast<Boss*>(other))
     {
+        return;
+    }
+
+    if (dynamic_cast<BossRightHand*>(other))
+    {
         if (state_ == STATE::ROLL) {
-            AddArmScale(UP_MUSCLE[2]);
+            AddArmScale(UP_MUSCLE[1]);
             return;
         }
-        //AddArmScale({ -0.2f,-0.2f,-0.2f });
-
+        AddArmScale({ -0.3f, -0.3f, -0.3f });
+        unit_.hp_ -= 10;
         unit_.inviciCounter_ = INVI_TIME;
-        return;
     }
 }
 
@@ -265,53 +286,14 @@ void Player::Muscle(void)
             isUpMuscle_ = false;
         }
     }
+
+
 }
 
 void Player::MuscleDraw(void)
 {
-    // ===== 筋肉ゲージ（外装強化）=====
-    int mx = 50, my = 50;               // 表示位置
-    int width = 600, height = 50;       // サイズ
-    int filled = (int)(width * muscleRatio_);
-
-    // ▼ 背面の影（奥行き）
-    DrawBox(mx - 3, my - 3, mx + width + 3, my + height + 3, GetColor(30, 0, 0), true);
-
-    // ▼ 外枠（太め・メタル調）
-    for (int i = 0; i < 3; i++) {
-        DrawBox(mx - i, my - i, mx + width + i, my + height + i, GetColor(150 + i * 30, 30 + i * 10, 30 + i * 10), false);
-    }
-
-    // ▼ ゲージ背景（深赤）
-    DrawBox(mx, my, mx + width, my + height, GetColor(60, 0, 0), true);
-
-    // ▼ 筋繊維ライン
-    float t = (float)GetNowCount() / 100.0f;
-    for (int i = 0; i < height; i += 4)
-    {
-        int strength = (int)(128 + 127 * sin(i * 0.5f + t));
-        DrawLine(mx, my + i, mx + filled, my + i, GetColor(180 + strength / 4, 30, 30));
-    }
-
-    // ▼ 赤→黄グラデーション
-    for (int x = 0; x < filled; x++)
-    {
-        float f = (float)x / filled;
-        int r = 255;
-        int g = (int)(f * 180);
-        int b = 0;
-        DrawLine(mx + x, my, mx + x, my + height, GetColor(r, g, b));
-    }
-
-    // ▼ 上部ハイライト
-    DrawLine(mx, my + 2, mx + filled, my + 2, GetColor(255, 180, 180));
-
-    // ▼ 下部に影（立体感）
-    DrawLine(mx, my + height - 1, mx + width, my + height - 1, GetColor(40, 0, 0));
-
-    // ▼ 外光オーラ（力の気配）
-    int auraColor = GetColor(255, 80, 80);
-    DrawBox(mx - 5, my - 5, mx + filled + 5, my + height + 5, auraColor, false);
+    DrawCircle(100, 100, 80, 0xaaaaaa, true);
+    DrawMuscleHPGauge(100,100, 80, 50,GetMuscleRatio());
 }
 
 // どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
@@ -388,9 +370,19 @@ void Player::Move(void)
         // カメラ基準の方向をワールド基準に変換
         VECTOR worldMove = VTransform(move_, mat);
 
+        //筋肉量によって移動速度を変更
+        if (GetMuscleRatio() < 0.7f)
+        {
+            unit_.para_.speed = MOVE_SPEED;
+        }
+        else if (GetMuscleRatio() > 0.7f)
+        {
+            unit_.para_.speed = MOVE_SPEED / 2;
+        }
+
         // 正規化＋スケーリング
         worldMove = VNorm(worldMove);
-        worldMove = VScale(worldMove, MOVE_SPEED);
+        worldMove = VScale(worldMove, unit_.para_.speed);
 
         unit_.pos_ = VAdd(unit_.pos_, worldMove);
 
@@ -612,6 +604,165 @@ void Player::DoRoll(void)
 
 }
 
+void Player::DrawRingHPGauge(int cx, int cy, int outerR, int innerR, float ratio, int color)
+{
+    float ratioC = Utility::Clamp(ratio, 0.0f, 1.0f);
+    int time = GetNowCount();
+
+    // --- 筋肉の鼓動パルス（少しだけ伸縮）---
+    float pulse = 0.03f * sinf(time * 0.03f);
+    float effectiveRatio = Utility::Clamp(ratioC + pulse, 0.0f, 1.0f);
+
+    // --- 太さ計算 ---
+    float baseThickness = (float)(outerR - innerR);
+
+    // --- 色変化（緑→黄→赤） ---
+    int r, g, b;
+    if (effectiveRatio < 0.5f) {
+        float t = effectiveRatio / 0.5f;
+        r = (int)(0 + 255 * t);
+        g = 255;
+        b = 0;
+    }
+    else {
+        float t = (effectiveRatio - 0.5f) / 0.5f;
+        r = 255;
+        g = (int)(255 - 255 * t);
+        b = 0;
+    }
+    int ringColor = GetColor(r, g, b);
+
+    // --- リング角度（時計回り） ---
+    float endAngle = 360.0f * ratioC;
+
+    // --- MAX時の特別演出 ---
+    if (ratioC >= 0.999f) {
+        float glow = 3.0f * sinf(time * 0.2f) + 5.0f;
+        ringColor = GetColor(255, 200, 150);
+        int auraColor = GetColor(255, 255, 200);
+        DrawCircleAA(cx, cy, outerR + glow * 0.5f, 64, auraColor, FALSE, 4.0f);
+    }
+
+    // --- リング描画 ---
+    const int div = 128;
+    for (int i = 0; i < div; i++) {
+        float angle1 = DX_PI_F * 2.0f * i / div;
+        float angle2 = DX_PI_F * 2.0f * (i + 1) / div;
+        if ((360.0f * i / div) > endAngle) break;
+
+        float inner = (float)innerR;
+        float outer = (float)outerR;
+
+        VECTOR p1 = { cx + cosf(angle1) * inner, cy + sinf(angle1) * inner };
+        VECTOR p2 = { cx + cosf(angle1) * outer, cy + sinf(angle1) * outer };
+        VECTOR p3 = { cx + cosf(angle2) * inner, cy + sinf(angle2) * inner };
+        VECTOR p4 = { cx + cosf(angle2) * outer, cy + sinf(angle2) * outer };
+
+        DrawTriangleAA(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, ringColor, TRUE);
+        DrawTriangleAA(p3.x, p3.y, p2.x, p2.y, p4.x, p4.y, ringColor, TRUE);
+    }
+
+    // --- 中央にパーセント表示 ---
+    char str[16];
+    sprintf_s(str, "%3d%%", (int)(ratioC * 100));
+    int fontSize = 32 + (int)(8 * pulse);
+    int font = CreateFontToHandle("Impact", fontSize, 4);
+    int textColor = (ratioC >= 0.999f) ? GetColor(255, 240, 200) : GetColor(230, 255, 230);
+    int strW = GetDrawStringWidthToHandle(str, strlen(str), font);
+    DrawStringToHandle(cx - strW / 2, cy - fontSize / 2, str, textColor, font);
+    DeleteFontToHandle(font);
+}
+
+void Player::DrawMuscleHPGauge(int cx, int cy, int outerR, int innerR, float ratio)
+{
+    // --- clamp ---
+    float ratioC = Utility::Clamp(ratio, 0.0f, 1.0f);
+
+    // --- 時間依存 ---
+    int time = GetNowCount();
+
+    // --- 筋肉の鼓動パルス ---
+    float pulse = 0.05f * sinf(time * 0.02f);
+    float effectiveRatio = Utility::Clamp(ratioC + pulse, 0.0f, 1.0f);
+
+    // --- 太さ ---
+    float baseThickness = 10.0f + 20.0f * effectiveRatio;
+
+    // --- 中心半径（outerとinnerの中間）---
+    float radius = (outerR + innerR) * 0.5f;
+
+    // ratio: 0.0f～1.0f（筋肉量やHP割合）
+    float ratioClamped = Utility::Clamp(effectiveRatio, 0.0f, 1.0f);
+
+    int r, g, b;
+
+    // 0.0～0.5：緑→黄
+    if (ratioClamped < 0.5f) {
+        float t = ratioClamped / 0.5f; // 0→1
+        r = (int)(0 + (255 - 0) * t);   // R: 0→255
+        g = (int)(255 + (255 - 255) * t);   // G: 255→255
+        b = 0;                              // B: 0固定
+    }
+    // 0.5～1.0：黄→赤
+    else {
+        float t = (ratioClamped - 0.5f) / 0.5f; // 0→1
+        r = 255;
+        g = (int)(255 - 255 * t);  // G: 255→0
+        b = 0;
+    }
+
+    int ringColor = GetColor(r, g, b);
+
+    // --- リング角度（時計回り） ---
+    float endAngle = 360.0f * ratioC;
+
+    // --- MAX時の演出 ---
+    if (ratioC >= 0.999f)
+    {
+        // 輝き + 拡大パルス
+        float glow = 5.0f * sinf(time * 0.1f) + 5.0f;
+        baseThickness += glow;
+        ringColor = GetColor(255, 255, 180);
+
+        // 外周の発光
+        int auraColor = GetColor(255, 255, 200);
+        DrawCircleAA(cx, cy, radius + baseThickness * 0.7f + glow * 0.2f,
+            64, auraColor, FALSE, 3.0f);
+    }
+
+    // --- リング描画（円弧） ---
+    const int div = 64;
+    for (int i = 0; i < div; i++)
+    {
+        float a1 = DX_PI_F * 2.0f * i / div;
+        float a2 = DX_PI_F * 2.0f * (i + 1) / div;
+
+        if ((360.0f * i / div) > endAngle) break;
+
+        float inner = radius - baseThickness * 0.5f;
+        float outer = radius + baseThickness * 0.5f;
+
+        VECTOR p1 = { cx + cosf(a1) * inner, cy + sinf(a1) * inner };
+        VECTOR p2 = { cx + cosf(a1) * outer, cy + sinf(a1) * outer };
+        VECTOR p3 = { cx + cosf(a2) * inner, cy + sinf(a2) * inner };
+        VECTOR p4 = { cx + cosf(a2) * outer, cy + sinf(a2) * outer };
+
+        DrawTriangleAA(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, ringColor, TRUE);
+        DrawTriangleAA(p3.x, p3.y, p2.x, p2.y, p4.x, p4.y, ringColor, TRUE);
+    }
+
+    // --- パーセント表示 ---
+    char str[16];
+    sprintf_s(str, sizeof(str), "%3d%%", (int)(ratio * 100));
+    int fontSize = 32 + (int)(10 * pulse);
+    int font = CreateFontToHandle("Impact", fontSize, 3);
+    int textColor = (ratio >= 1.0f) ? GetColor(255, 255, 180) : GetColor(230, 255, 230);
+    int strW = GetDrawStringWidthToHandle(str, strlen(str), font);
+    DrawStringToHandle(cx - strW / 2, cy - fontSize / 2, str, textColor, font);
+
+    DeleteFontToHandle(font);
+}
+
 // カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
 {
@@ -625,6 +776,27 @@ void Player::CameraPosUpdate(void)
     currentHeight += (targetHeight - currentHeight) * 0.2f;
 
     cameraPos_.y = unit_.pos_.y + currentHeight;
+}
+
+const float Player::GetMuscleRatio()
+{
+    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, LeftArm::LEFT_ARM_INDEX);
+
+    // スケール抽出
+    float scale[3];
+    for (int i = 0; i < 3; i++) {
+        scale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
+    }
+
+    // 軸ごとにratio化
+    float scaleRatio[3];
+    scaleRatio[0] = Utility::Clamp((scale[0] - MIN_MUSCLE.x) / (MAX_MUSCLE.x - MIN_MUSCLE.x), 0.0f, 1.0f);
+    scaleRatio[1] = Utility::Clamp((scale[1] - MIN_MUSCLE.y) / (MAX_MUSCLE.y - MIN_MUSCLE.y), 0.0f, 1.0f);
+    scaleRatio[2] = Utility::Clamp((scale[2] - MIN_MUSCLE.z) / (MAX_MUSCLE.z - MIN_MUSCLE.z), 0.0f, 1.0f);
+
+    float muscleRatio = (scaleRatio[0] + scaleRatio[1] + scaleRatio[2]) / 3.0f;
+
+    return muscleRatio;
 }
 
 void Player::DebugDraw(void)
@@ -647,10 +819,6 @@ void Player::DebugDraw(void)
         DrawString(0, 100, "Roll", 0xffffff);
         break;
     }
-
-    MuscleDraw();
-
-
 
     int frameNum = MV1GetFrameNum(unit_.model_);
 
@@ -721,7 +889,7 @@ void Player::DrawPlayer(void)
     if (unit_.inviciCounter_ > 0)
     {
         float t = sinf(GetNowCount() * 0.03f);
-        float intensity = (t > 0.0f) ? 1.0f : 0.1f;  
+        float intensity = (t > 0.0f) ? 1.0f : 0.1f;
 
         MV1SetDifColorScale(unit_.model_, { 1.0f, intensity * 0.5f, intensity * 0.5f, 1.0f });
     }
@@ -732,5 +900,53 @@ void Player::DrawPlayer(void)
 
     // モデル描画
     MV1DrawModel(unit_.model_);
+}
+
+void Player::HpDraw(void)
+{
+    float ratio = unit_.hp_ / 100.0f; // 100 が最大HPの場合
+    // ===== 筋肉ゲージ（外装強化）=====
+    int mx = 200, my = 100;               // 表示位置
+    int width = 600, height = 50;       // サイズ
+    int filled = (int)(width * ratio);
+
+    // ▼ 背面の影（奥行き）
+    DrawBox(mx - 3, my - 3, mx + width + 3, my + height + 3, GetColor(30, 0, 0), true);
+
+    // ▼ 外枠（太め・メタル調）
+    for (int i = 0; i < 3; i++) {
+        DrawBox(mx - i, my - i, mx + width + i, my + height + i, GetColor(150 + i * 30, 30 + i * 10, 30 + i * 10), false);
+    }
+
+    // ▼ ゲージ背景（深赤）
+    DrawBox(mx, my, mx + width, my + height, GetColor(60, 0, 0), true);
+
+    // ▼ 筋繊維ライン
+    float t = (float)GetNowCount() / 100.0f;
+    for (int i = 0; i < height; i += 4)
+    {
+        int strength = (int)(128 + 127 * sin(i * 0.5f + t));
+        DrawLine(mx, my + i, mx + filled, my + i, GetColor(180 + strength / 4, 30, 30));
+    }
+
+    // ▼ 赤→黄グラデーション
+    for (int x = 0; x < filled; x++)
+    {
+        float f = (float)x / filled;
+        int r = 0;
+        int g = 255;
+        int b = (int)(f * 180);
+        DrawLine(mx + x, my, mx + x, my + height, GetColor(r, g, b));
+    }
+
+    // ▼ 上部ハイライト
+    DrawLine(mx, my + 2, mx + filled, my + 2, GetColor(255, 180, 180));
+
+    // ▼ 下部に影（立体感）
+    DrawLine(mx, my + height - 1, mx + width, my + height - 1, GetColor(40, 0, 0));
+
+    // ▼ 外光オーラ（力の気配）
+    int auraColor = GetColor(255, 80, 80);
+    DrawBox(mx - 5, my - 5, mx + filled + 5, my + height + 5, auraColor, false);
 }
 

@@ -39,6 +39,7 @@ GameScene::GameScene() :
 	boss_(nullptr),
 	grid_(nullptr)
 {
+
 }
 
 GameScene::~GameScene()
@@ -125,6 +126,8 @@ void GameScene::Update(void)
 	Camera::GetInstance().Update();
 	player_->Update();
 	boss_->Update();
+	boss_->SetMuscleRatio(player_->GetMuscleRatio());
+	boss_->SetTarget(player_->GetUnit().pos_);
 	grid_->Update();
 
 	auto& input = InputManager::GetInstance();
@@ -132,9 +135,9 @@ void GameScene::Update(void)
 	if (input.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		scene.PushScene(std::make_shared<PauseScene>());
-		if (input.IsTrgDown(KEY_INPUT_SPACE)) {
-			scene.PopScene();
-		}
+		//if (input.IsTrgDown(KEY_INPUT_SPACE)) {
+		//	scene.PopScene();
+		//}
 	}
 
 	// 当たり判定
@@ -143,7 +146,13 @@ void GameScene::Update(void)
 #pragma endregion
 
 	if (!boss_->GetUnit().isAlive_) {
-		scene.PushScene(SCENE_ID::TITLE);
+		scene.ChangeScene(SCENE_ID::TITLE);
+		return;
+	}
+
+	if (!player_->GetUnit().isAlive_) {
+		scene.ChangeScene(SCENE_ID::OVER);
+		return;
 	}
 }
 
@@ -151,7 +160,6 @@ void GameScene::Update(void)
 
 void GameScene::Draw(void)
 {
-
 	// 画面演出のために描画先を自前で用意したスクリーンに設定
 	SetDrawScreen(mainScreen_);
 	ClearDrawScreen();
@@ -172,6 +180,9 @@ void GameScene::Draw(void)
 	SetFontSize(32);
 	DrawString(0, 0, "ゲーム", 0xffffff);
 	SetFontSize(16);
+
+	//UIなどの描画
+	player_->UIDraw();
 
 #pragma endregion
 
