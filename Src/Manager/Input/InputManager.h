@@ -42,8 +42,10 @@ public:
 		RIGHT,
 		TOP,
 		DOWN,
-		R_TRIGGER,
-		L_TRIGGER,
+		R_TRIGGER1,
+		L_TRIGGER1,
+		R_TRIGGER2,
+		L_TRIGGER2,
 		MAX
 	};
 

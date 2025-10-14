@@ -40,4 +40,5 @@ private:
 	const VECTOR LOCAL_POS = { 0.0f, 300.0f, -500.0f };
 
 	void MouseMoveCamera(void);
+	void PadMoveCamera();
 };

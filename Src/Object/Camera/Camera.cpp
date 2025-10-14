@@ -20,6 +20,7 @@ void Camera::Update()
 {
     auto& input = InputManager::GetInstance();
     MouseMoveCamera();
+    PadMoveCamera();
 
     if (input.IsNew(KEY_INPUT_RIGHT)) angle_.y += 5;
     if (input.IsNew(KEY_INPUT_LEFT))  angle_.y -= 5;
@@ -74,7 +75,7 @@ void Camera::MouseMoveCamera(void)
         return;
     }
 
-    const float sens = 0.2f; // ä¥ìxí≤êÆ
+    const float sens = 0.1f; // ä¥ìxí≤êÆ
     angle_.y += deltaX * sens;
     angle_.x += deltaY * sens;
 
@@ -84,3 +85,21 @@ void Camera::MouseMoveCamera(void)
     if (angle_.x < -limit) angle_.x = -limit;
 }
 
+void Camera::PadMoveCamera()
+{
+    int lx = 0, ly = 0;
+    GetJoypadAnalogInputRight(&lx, &ly, DX_INPUT_PAD1);
+
+    const float sens = 0.05f;
+    const int deadZone = 200;
+
+    if (abs(lx) > deadZone)
+        angle_.y += lx * sens * 0.1f;
+
+    if (abs(ly) > deadZone)
+        angle_.x += ly * sens * 0.1f;
+
+    // è„â∫êßå¿
+    if (angle_.x > 89.0f) angle_.x = 89.0f;
+    if (angle_.x < -89.0f) angle_.x = -89.0f;
+}

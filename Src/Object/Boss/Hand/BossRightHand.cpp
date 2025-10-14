@@ -23,6 +23,7 @@ void BossRightHand::Init(void)
     unit_.angle_ = { 0.0f, Utility::Deg2RadF(90.0f), 0.0f };
 
     unit_.para_.radius = 200.0f;
+    //unit_.para_.size = { 200,500,200 };
     unit_.scale_ = SCALE;
 
 	unit_.isAlive_ = true;

@@ -5,21 +5,21 @@
 
 void PauseScene::Update()
 {
-    if (CheckHitKey(KEY_INPUT_UP) || CheckHitKey(KEY_INPUT_W) && next_ != NEXT::GAME) {
-        next_ = NEXT::GAME;
+    if (CheckHitKey(KEY_INPUT_UP) || CheckHitKey(KEY_INPUT_W) && next_ != NEXT_SCENE::GAME) {
+        next_ = NEXT_SCENE::GAME;
     }
-    if (CheckHitKey(KEY_INPUT_DOWN) || CheckHitKey(KEY_INPUT_S) && next_ != NEXT::END) {
-        next_ = NEXT::END;
+    if (CheckHitKey(KEY_INPUT_DOWN) || CheckHitKey(KEY_INPUT_S) && next_ != NEXT_SCENE::END) {
+        next_ = NEXT_SCENE::END;
     }
 
     if (CheckHitKey(KEY_INPUT_SPACE) || CheckHitKey(KEY_INPUT_RETURN))
     {
         switch (next_)
         {
-        case PauseScene::NEXT::END:
+        case PauseScene::NEXT_SCENE::END:
             Application::GetInstance().GameEnd();
             break;
-        case PauseScene::NEXT::GAME:
+        case PauseScene::NEXT_SCENE::GAME:
             auto& scene = SceneManager::GetInstance();
             scene.PopScene();
             break;
@@ -44,10 +44,10 @@ void PauseScene::Draw()
     int cy = Application::SCREEN_SIZE_Y / 2;
 
     // Continue
-    DrawString(cx, cy, "Continue", next_ == NEXT::GAME ? GetColor(255, 255, 0) : GetColor(200, 200, 200));
+    DrawString(cx, cy, "Continue", next_ == NEXT_SCENE::GAME ? GetColor(255, 255, 0) : GetColor(200, 200, 200));
 
     // End Game
-    DrawString(cx, cy + 60, "End Game", next_ == NEXT::END ? GetColor(255, 255, 0) : GetColor(200, 200, 200));
+    DrawString(cx, cy + 60, "End Game", next_ == NEXT_SCENE::END ? GetColor(255, 255, 0) : GetColor(200, 200, 200));
 
     SetFontSize(16);
 }

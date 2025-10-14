@@ -16,11 +16,11 @@ public:
 
 private:
 
-    enum class NEXT
+    enum class NEXT_SCENE
     {
         END,
         GAME,
     };
 
-    NEXT next_ = NEXT::GAME;
+    NEXT_SCENE next_ = NEXT_SCENE::GAME;
 };

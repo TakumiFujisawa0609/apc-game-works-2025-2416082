@@ -13,13 +13,14 @@ class Player : public UnitBase
 {
 public:
 
-		// プレイヤーのステート管理
+	// プレイヤーのステート管理
 	enum class STATE
 	{
 		IDLE,
 		MOVE,
 		ATTACK,
-		ROLL
+		ROLL,
+		DEATH,
 	};
 
 	// アニメーション管理用
@@ -30,7 +31,8 @@ public:
 		ATTACK1,
 		ATTACK2,
 		ATTACK3,
-		Roll
+		ROLL,
+		DEATH,
 	};
 
 	// コンボ管理用
@@ -45,22 +47,35 @@ public:
 
 #pragma region 定数定義
 
-	static constexpr float CAPSULE_HALF_LENGTH = 100;
+	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -100.0f }; //初期座標
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -100.0f };	//初期座標
 
-	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };	//モデルの向き修正用
+	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };			//モデルの向き修正用
 
 	static constexpr VECTOR CENTER_DIFF = { 0.0f, CAPSULE_HALF_LENGTH, 0.0f };
 
 	static constexpr float RADIUS_SIZE = 60.0f;				//プレイヤーの半径（仮）
 
-	static constexpr float MOVE_SPEED = 16.0f;	// 移動速度
+	static constexpr float MOVE_SPEED = 16.0f;				// 移動速度
 
 	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
-	static constexpr int ROLLING_TIME = 30;		// 回避時間
-	static constexpr int NEXT_ROLL_TIME = 60;	// 回避行動のクールタイム
+	static constexpr int ROLLING_TIME = 30;					// 回避時間
+	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
+	//UIに関する定数------------------------------------------
+	static constexpr float PULSE_SPEED = 0.02f;
+	static constexpr float PULSE_AMPLITUDE = 0.05f;
+	static constexpr int SEGMENTS = 128;
+	static constexpr int GAUGE_SEGMENTS = 64;
+	static constexpr float MAX_RATIO_THRESHOLD = 0.999f;
+	static constexpr int FONT_BASE_SIZE = 32;
+	static constexpr float PULSE_TEXT_SCALE = 10.0f;
+	static constexpr float MAX_GLOW_AMPLITUDE = 5.0f;
+	static constexpr float MAX_GLOW_SPEED = 0.05f;
+	//--------------------------------------------------------
+
+	// コンボの段階に応じて攻撃したときの移動量
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
 	{
 		20.0f,
@@ -68,9 +83,10 @@ public:
 		30.0f
 	};
 
-	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };
-	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };
+	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };	// 筋肉のスケールの最大値
+	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
+	// 攻撃時に筋肉を増やすときのコンボ段階に応じたスケールの増量
 	static constexpr VECTOR UP_MUSCLE[(int)CONBO::MAX] =
 	{
 		{ 0.01f, 0.01f, 0.01f },
@@ -78,7 +94,7 @@ public:
 		{ 0.03f, 0.03f, 0.03f }
 	}; 
 
-	static constexpr VECTOR DOWN_MUSCLE = { -0.001f,-0.001f,-0.001f };
+	static constexpr VECTOR DOWN_MUSCLE = { -0.001f,-0.001f,-0.001f };	//常時筋肉が減るため、減らし続ける用の値
 #pragma endregion
 
 
@@ -86,17 +102,17 @@ public:
 	Player();
 	~Player() override;
 
-	void Load(void) override;
-	void Init(void) override;
-	void Update(void) override;
-	void Draw(void) override;
-	void Release(void) override;
+	void Load(void) override;		// 最初に呼び出す関数
+	void Init(void) override;		// 初期化処理
+	void Update(void) override;		// 更新処理
+	void Draw(void) override;		// 描画処理
+	void Release(void) override;	// 解放処理
 
-	void UIDraw(void);
+	void UIDraw(void);				// UI描画
 
-	void OnCollision(UnitBase* other) override;
+	void OnCollision(UnitBase* other) override;		// 当たり判定処理
 
-	void CameraPosUpdate(void);
+	void CameraPosUpdate(void);						// カメラ座標に関する処理
 
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR &GetAngle(void) { return unit_.angle_; }
@@ -167,6 +183,7 @@ private:
 	void Move(void);
 	void Attack(void);
 	void Roll(void);
+	void Death(void);
 #pragma endregion
 
 
@@ -186,8 +203,17 @@ private:
 	int frameScrollIndex_;
 	float muscleRatio_;
 
-	void DrawRingHPGauge(int cx, int cy, int outerR, int innerR, float ratio, int color);
+#pragma region UI関係
+	//void DrawRingGauge(int cx, int cy, int outerR, int innerR, float ratio, int color);
 
-	void DrawMuscleHPGauge(int cx, int cy, int outerR, int innerR, float ratio);
+	int CalcGaugeColor(float ratio) const;
+	float CalcEffectRatio(float ratio, int time) const;
+	void DrawGaugeBack(int centerX, int centerY, float radius)const;
+	void DrawGaugeRing(int centerX, int centerY, int innerR, int outerR, float ratio, int color) const;
+	void DrawGaugeFrame(int centerX, int centerY, int innerR, int outerR) const;
+	void DrawGlowEffect(int cx, int cy, float radius, float& ringThickness) const;
+	void DrawGaugeText(int cx, int cy, float ratio, float pulse) const;
+	void DrawMuscleGauge(int cx, int cy, int outerR, int innerR, float ratio);
+#pragma endregion
 	
 };

@@ -3,6 +3,9 @@
 
 #include "../../Common/Vector2.h"
 
+#define XINPUT_GAMEPAD_LEFT_SHOULDER  0x0100  // LB
+#define XINPUT_GAMEPAD_RIGHT_SHOULDER 0x0200  // RB
+
 InputManager* InputManager::instance_ = nullptr;
 
 void InputManager::CreateInstance(void)
@@ -265,7 +268,6 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		break;
 	case InputManager::JOYPAD_TYPE::XBOX_ONE:
 	{
-
 		auto d = GetJPadDInputState(no);
 		auto x = GetJPadXInputState(no);
 
@@ -276,31 +278,35 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		//   A
 
 		idx = static_cast<int>(JOYPAD_BTN::TOP);
-		ret.ButtonsNew[idx] = d.Buttons[3];// Y
+		ret.ButtonsNew[idx] = d.Buttons[3]; // Y
 
 		idx = static_cast<int>(JOYPAD_BTN::LEFT);
-		ret.ButtonsNew[idx] = d.Buttons[2];// X
+		ret.ButtonsNew[idx] = d.Buttons[2]; // X
 
 		idx = static_cast<int>(JOYPAD_BTN::RIGHT);
-		ret.ButtonsNew[idx] = d.Buttons[1];// B
+		ret.ButtonsNew[idx] = d.Buttons[1]; // B
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
-		ret.ButtonsNew[idx] = d.Buttons[0];// A
+		ret.ButtonsNew[idx] = d.Buttons[0]; // A
 
-		idx = static_cast<int>(JOYPAD_BTN::R_TRIGGER);
-		ret.ButtonsNew[idx] = x.RightTrigger;// R_TRIGGER
+		// --- トリガー（アナログ値） ---
+		idx = static_cast<int>(JOYPAD_BTN::R_TRIGGER1);
+		ret.ButtonsNew[idx] = x.RightTrigger; // RT
+		idx = static_cast<int>(JOYPAD_BTN::L_TRIGGER1);
+		ret.ButtonsNew[idx] = x.LeftTrigger;  // LT
 
-		idx = static_cast<int>(JOYPAD_BTN::L_TRIGGER);
-		ret.ButtonsNew[idx] = x.LeftTrigger; // L_TRIGGER
+		// --- RB / LB（バンパー：デジタル押下） ---
+		idx = static_cast<int>(JOYPAD_BTN::R_TRIGGER2); // RB
+		ret.ButtonsNew[idx] = x.Buttons[9]; // RB（XInputのボタン5）
 
-		// 左スティック
+		idx = static_cast<int>(JOYPAD_BTN::L_TRIGGER2); // LB
+		ret.ButtonsNew[idx] = x.Buttons[8]; // LB（XInputのボタン4）
+
+		// --- スティック ---
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
-		
-		// 右スティック
 		ret.AKeyRX = d.Rx;
 		ret.AKeyRY = d.Ry;
-
 	}
 		break;
 	case InputManager::JOYPAD_TYPE::DUAL_SHOCK_4:
