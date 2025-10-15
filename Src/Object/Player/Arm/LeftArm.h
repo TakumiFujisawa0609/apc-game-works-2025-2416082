@@ -27,9 +27,13 @@ public:
 	void SetAttackTime(int collTime);
 
 	void SetAddArmScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
+
+	const MATRIX GetMatrix(void) { return mat_; };
 private:
 
 	int cnt_;
 
 	std::function<void(VECTOR scale)> addArmScale_;
+
+	MATRIX mat_;
 };

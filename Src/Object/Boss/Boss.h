@@ -1,6 +1,8 @@
 #pragma once
 #include "../UnitBase.h"
 
+#include <Vector>
+
 class BossRightHand;
 
 class Boss : public UnitBase
@@ -16,11 +18,22 @@ public:
 
 	static constexpr int HP_MAX = 300;
 
+	static constexpr int INVI_TIME = 30;
+
 
 	struct DamageText {
-		VECTOR pos;      // 表示位置
-		int value;       // ダメージ量
-		int life;        // 表示時間（フレーム数）
+		VECTOR pos_;      // 表示位置
+		int damage_;       // ダメージ量
+		int drawTime_;        // 表示時間（フレーム数）
+	};
+
+	enum STATE
+	{
+		NONE,
+		IDLE,
+		ATTACK,
+		DAMAGE,
+		DEATH,
 	};
 
 	enum  ATTACK
@@ -58,5 +71,5 @@ private:
 
 	int color1;
 
-	std::vector<DamageText> damageTexts_;  // ←ここです
+	std::vector<DamageText> damageTexts_;
 };

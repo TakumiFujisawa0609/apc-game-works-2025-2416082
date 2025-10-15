@@ -5,6 +5,7 @@
 #include "../../Application/Application.h"
 
 #include "../../Scene/SceneManager/SceneManager.h"
+#include "../../Scene/Game/GameScene.h"
 
 #include "../../Manager/Sound/SoundManager.h"
 
@@ -78,9 +79,9 @@ void Boss::Update(void)
 
 	// ダメージテキストの更新
 	for (auto it = damageTexts_.begin(); it != damageTexts_.end(); ) {
-		it->pos.y += 1.0f;  // 上に浮かせる
-		it->life--;
-		if (it->life <= 0) {
+		it->pos_.y += 1.0f;  // 上に浮かせる
+		it->drawTime_--;
+		if (it->drawTime_ <= 0) {
 			it = damageTexts_.erase(it);
 		}
 		else {
@@ -132,25 +133,7 @@ void Boss::Draw(void)
 	rHand_->SetBaseMat(mat);
 	rHand_->Draw();
 
-#ifdef _DEBUG
-	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
-	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
-	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
 
-	for (int i = 0; i < unit_.hp_; i++) {
-		DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
-	}
-	DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
-
-	// ダメージテキスト描画
-	for (auto& dt : damageTexts_) {
-		DrawFormatString((int)dt.pos.x + 64 + Application::SCREEN_SIZE_X / 2, (int)dt.pos.y + 64 - 16, 0xffff00, "damage");
-		SetFontSize(64);
-		DrawFormatString((int)dt.pos.x + Application::SCREEN_SIZE_X / 2, (int)dt.pos.y, 0xffff00, "%d", dt.value);
-		SetFontSize(16);
-	}
-
-#endif // _DEBUG
 }
 
 void Boss::Release(void)
@@ -174,7 +157,30 @@ void Boss::Release(void)
 
 void Boss::UIDraw(void)
 {
+#ifdef _DEBUG
 
+	// 真ん中の座標から半分の大きさ分、減産と加算
+	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
+	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
+
+	//当たり判定の範囲を可視化
+	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
+
+	// HPのデバッグ表示
+	for (int i = 0; i < unit_.hp_; i++) {
+		DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
+	}
+	DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
+
+	// ダメージテキスト描画
+	for (auto& dt : damageTexts_) {
+		DrawFormatString((int)dt.pos_.x + 64 + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y + 64 - 16, 0xffff00, "damage");
+		SetFontSize(64);
+		DrawFormatString((int)dt.pos_.x + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y, 0xffff00, "%d", dt.damage_);
+		SetFontSize(16);
+	}
+
+#endif // _DEBUG
 }
 
 void Boss::OnCollision(UnitBase* other)
@@ -192,13 +198,15 @@ void Boss::OnCollision(UnitBase* other)
 
 			unit_.hp_ -= damage;
 			unit_.inviciCounter_ = INVI_TIME;
+			GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 15);
+			GameScene::HitStop(5);
 
 			// ダメージテキスト生成
 			DamageText dt;
-			dt.pos = unit_.pos_;      // ボスの頭上に表示
-			dt.pos.y += 200.0f;
-			dt.value = damage;
-			dt.life = 60;             // 1秒表示（60フレーム想定）
+			dt.pos_ = unit_.pos_;      // ボスの頭上に表示
+			dt.pos_.y += 200.0f;
+			dt.damage_ = damage;
+			dt.drawTime_ = 60;             // 1秒表示（60フレーム想定）
 			damageTexts_.push_back(dt);
 		}
 		return;

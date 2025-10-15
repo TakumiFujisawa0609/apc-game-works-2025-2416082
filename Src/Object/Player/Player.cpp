@@ -30,7 +30,7 @@ void Player::Load(void)
    std::string path = "Data/Model/Player/";
 
    // モデルのロード
-   unit_.model_ = MV1LoadModel((path + "Player2.mv1").c_str());
+   unit_.model_ = MV1LoadModel((path + "Player.mv1").c_str());
 
 #pragma region クラスの定義
 
@@ -189,6 +189,7 @@ void Player::Draw(void)
     // 腕に関する描画処理
     leftArm_->Draw();
     rightArm_->Draw();
+
 }
 
 // 解放処理
@@ -268,14 +269,18 @@ void Player::Muscle(void)
 {
     //static int cnt = 0;
 
-    AddArmScale(DOWN_MUSCLE);
+    //AddArmScale(DOWN_MUSCLE);
 
 #ifdef _DEBUG
     if (CheckHitKey(KEY_INPUT_0))
     {
         AddArmScale({ -1.0f,-1.0f,-1.0f });
     }
+    if (CheckHitKey(KEY_INPUT_O)) {
+        AddArmScale(UP_MUSCLE[2]);
+    }
 #endif // _DEBUG
+
 
     //if (state_ != STATE::ATTACK)
     //{
@@ -348,6 +353,16 @@ void Player::AddBoneScale(int index, VECTOR scale)
 void Player::AddArmScale(VECTOR scale)
 {
     AddBoneScale(LeftArm::LEFT_ARM_INDEX, scale);
+
+    //// 行列からスケール成分を抽出
+    //float currentScale[3];
+    //for (int i = 0; i < 3; i++) {
+    //    currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
+    //}
+
+    //// スケール加算
+    //VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
+
     AddBoneScale(RightArm::RIGHT_ARM_INDEX, scale);
 }
 
@@ -1015,6 +1030,25 @@ void Player::DrawPlayer(void)
     // 行列の設定
     MV1SetMatrix(unit_.model_, mat);
 
+    int matNum = MV1GetMaterialNum(modelHandle);
+    for (int i = 0; i < matNum; i++)
+    {
+        MATERIALPARAM mat;
+        MV1GetMaterialParam(modelHandle, i, &mat);
+
+        // --- Diffuse（基本色）を1.5倍して上限を1.0にクランプ ---
+        mat.Diffuse.r = min(mat.Diffuse.r * 1.5f, 1.0f);
+        mat.Diffuse.g = min(mat.Diffuse.g * 1.5f, 1.0f);
+        mat.Diffuse.b = min(mat.Diffuse.b * 1.5f, 1.0f);
+
+        // --- Ambient（環境光）も上げると暗部が持ち上がる ---
+        mat.Ambient.r = min(mat.Ambient.r * 1.5f, 1.0f);
+        mat.Ambient.g = min(mat.Ambient.g * 1.5f, 1.0f);
+        mat.Ambient.b = min(mat.Ambient.b * 1.5f, 1.0f);
+
+        MV1SetMaterialParam(&mat);
+    }
+
     if (unit_.inviciCounter_ > 0)
     {
         float t = sinf(GetNowCount() * 0.03f);
@@ -1078,4 +1112,5 @@ void Player::HpDraw(void)
     int auraColor = GetColor(255, 80, 80);
     DrawBox(startPosX - 5, startPosY - 5, startPosX + filled + 5, startPosY + height + 5, auraColor, false);
 }
+
 

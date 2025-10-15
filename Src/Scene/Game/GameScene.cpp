@@ -174,6 +174,7 @@ void GameScene::Draw(void)
 	int y = app::SCREEN_SIZE_Y / 2;
 
 	player_->Draw();
+
 	boss_->Draw();
 	grid_->Draw();
 
@@ -183,6 +184,7 @@ void GameScene::Draw(void)
 
 	//UI‚È‚Ç‚Ì•`‰æ
 	player_->UIDraw();
+	boss_->UIDraw();
 
 #pragma endregion
 

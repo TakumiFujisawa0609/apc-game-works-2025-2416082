@@ -78,9 +78,9 @@ public:
 	// コンボの段階に応じて攻撃したときの移動量
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
 	{
-		20.0f,
-		25.0f,
-		30.0f
+		5.0f,
+		10.0f,
+		5.0f
 	};
 
 	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };	// 筋肉のスケールの最大値
@@ -215,5 +215,5 @@ private:
 	void DrawGaugeText(int cx, int cy, float ratio, float pulse) const;
 	void DrawMuscleGauge(int cx, int cy, int outerR, int innerR, float ratio);
 #pragma endregion
-	
 };
+

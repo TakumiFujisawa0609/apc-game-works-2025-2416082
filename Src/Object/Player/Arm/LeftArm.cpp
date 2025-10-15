@@ -20,6 +20,9 @@ void LeftArm::Load(void)
 {
 	auto& sound = SoundManager::GetIns();
 	sound.Load(SOUND::HIT);
+
+	mat_ = MV1GetFrameLocalMatrix(unit_.model_, LEFT_ARM_INDEX);
+
 }
 
 void LeftArm::Init(void)
@@ -27,7 +30,7 @@ void LeftArm::Init(void)
 	unit_.para_.colliShape = CollisionShape::SPHERE;
 	unit_.para_.colliType = CollisionType::ALLY;
 
-	unit_.para_.radius = 30;
+	unit_.para_.radius = RADIUS;
 
 	unit_.isAlive_ = false;
 }
@@ -44,13 +47,10 @@ void LeftArm::Update(void)
 		}
 	}
 
-	// --- スケール連動処理 ---
-	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, LEFT_ARM_INDEX);
-
 	// スケール抽出（各軸ベクトルの長さを取る）
 	float scale[3];
 	for (int i = 0; i < 3; i++) {
-		scale[i] = sqrtf(mat.m[i][0] * mat.m[i][0] + mat.m[i][1] * mat.m[i][1] + mat.m[i][2] * mat.m[i][2]);
+		scale[i] = sqrtf(mat_.m[i][0] * mat_.m[i][0] + mat_.m[i][1] * mat_.m[i][1] + mat_.m[i][2] * mat_.m[i][2]);
 	}
 
 	// 腕の大きさに応じて当たり判定を大きくする
@@ -61,10 +61,10 @@ void LeftArm::Draw(void)
 {
 	if (!unit_.isAlive_) { return; }
 
-	MATRIX mat = MV1GetFrameLocalWorldMatrix(unit_.model_, LEFT_HAND_INDEX);
+	mat_ = MV1GetFrameLocalWorldMatrix(unit_.model_, LEFT_HAND_INDEX);
 
 	// 行列から位置（座標）を取り出す
-	unit_.pos_ = VGet(mat.m[3][0], mat.m[3][1], mat.m[3][2]);
+	unit_.pos_ = VGet(mat_.m[3][0], mat_.m[3][1], mat_.m[3][2]);
 
 	DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xfff000, 0xfff000, false);
 }
@@ -83,7 +83,6 @@ void LeftArm::OnCollision(UnitBase* other)
 	auto& sound = SoundManager::GetIns();
 	if (dynamic_cast<Boss*>(other))
 	{
-		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 5);
 		addArmScale_(BONE_UP);
 		return;
 	}

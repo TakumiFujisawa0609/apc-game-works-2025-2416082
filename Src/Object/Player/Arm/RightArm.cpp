@@ -2,8 +2,6 @@
 
 #include "../../Boss/Boss.h"
 
-#include "../../../Scene/Game/GameScene.h"
-
 #include "../../../Manager/Sound/SoundManager.h"
 #include "LeftArm.h"
 
@@ -81,8 +79,6 @@ void RightArm::OnCollision(UnitBase* other)
 	auto& sound = SoundManager::GetIns();
 	if (dynamic_cast<Boss*>(other))
 	{
-		//sound.Play(SOUND::HIT,true);
-		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 5);
 		addArmScale_(BONE_UP);
 		return;
 	}
