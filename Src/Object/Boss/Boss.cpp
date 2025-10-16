@@ -22,7 +22,7 @@ Boss::~Boss()
 {
 }
 
-void Boss::Load(void)
+void Boss::SubLoad(void)
 {
 	rHand_ = new BossRightHand();
 	rHand_->Load();
@@ -32,7 +32,7 @@ void Boss::Load(void)
 	SoundManager::GetIns().Load(SOUND::HIT);
 }
 
-void Boss::Init(void)
+void Boss::SubInit(void)
 {
 	unit_.para_.colliShape = CollisionShape::CAPSULE;
 
@@ -52,7 +52,7 @@ void Boss::Init(void)
 
 }
 
-void Boss::Update(void)
+void Boss::SubUpdate(void)
 {
 	auto& scene = SceneManager::GetInstance();
 	if (unit_.hp_ <= 0) {
@@ -60,19 +60,19 @@ void Boss::Update(void)
 		unit_.isAlive_ = false;
 	}
 
-	// target_ ‚Ì•ûŒü‚ÉŒü‚­
-	VECTOR dir = VSub(target_, unit_.pos_);
-	float targetAngleY = atan2f(dir.x, dir.z);
+	//// target_ ‚Ì•ûŒü‚ÉŒü‚­
+	//VECTOR dir = VSub(target_, unit_.pos_);
+	//float targetAngleY = atan2f(dir.x, dir.z);
 
-	float rotationSpeed = Utility::Deg2RadF(1.0f);
-	float deltaAngle = targetAngleY - unit_.angle_.y;
-	while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
-	while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
+	//float rotationSpeed = Utility::Deg2RadF(1.0f);
+	//float deltaAngle = targetAngleY - unit_.angle_.y;
+	//while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
+	//while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
 
-	if (fabsf(deltaAngle) < rotationSpeed)
-		unit_.angle_.y = targetAngleY;
-	else
-		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
+	//if (fabsf(deltaAngle) < rotationSpeed)
+	//	unit_.angle_.y = targetAngleY;
+	//else
+	//	unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
 
 	rHand_->Update();
 	Invi();
@@ -88,9 +88,17 @@ void Boss::Update(void)
 			++it;
 		}
 	}
+
+#ifdef _DEBUG
+	//if (CheckHitKey(KEY_INPUT_UP)) { unit_.pos_.z += 5; }
+	//if (CheckHitKey(KEY_INPUT_DOWN)) { unit_.pos_.z -= 5; }
+	//if (CheckHitKey(KEY_INPUT_RIGHT)) { unit_.pos_.x += 5; }
+	//if (CheckHitKey(KEY_INPUT_LEFT)) { unit_.pos_.x -= 5; }
+#endif // _DEBUG
+
 }
 
-void Boss::Draw(void)
+void Boss::SubDraw(void)
 {
 	if (!unit_.isAlive_)return;
 
@@ -136,7 +144,7 @@ void Boss::Draw(void)
 
 }
 
-void Boss::Release(void)
+void Boss::SubRelease(void)
 {
 	//ƒ‚ƒfƒ‹‚Ì‰ð•ú
 	MV1DeleteModel(unit_.model_);
@@ -190,7 +198,6 @@ void Boss::OnCollision(UnitBase* other)
 	int damage = 0;
 	if (dynamic_cast<LeftArm*>(other) || dynamic_cast<RightArm*>(other)) {
 		SoundManager::GetIns().Play(SOUND::HIT, true);
-
 		if (playerMuscleRatio_ > 0.0f) {
 			if (playerMuscleRatio_ > 0.6f) damage = 25;
 			else if (playerMuscleRatio_ > 0.4f) damage = 15;

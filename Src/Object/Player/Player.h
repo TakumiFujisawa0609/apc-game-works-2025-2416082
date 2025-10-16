@@ -1,7 +1,7 @@
 #pragma once
 #include "../UnitBase.h"
 
-#include <map>
+#include <vector>
 #include <DxLib.h>
 
 class AnimationController;
@@ -21,6 +21,8 @@ public:
 		ATTACK,
 		ROLL,
 		DEATH,
+
+		MAX
 	};
 
 	// アニメーション管理用
@@ -63,17 +65,7 @@ public:
 	static constexpr int ROLLING_TIME = 30;					// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
-	//UIに関する定数------------------------------------------
-	static constexpr float PULSE_SPEED = 0.02f;
-	static constexpr float PULSE_AMPLITUDE = 0.05f;
-	static constexpr int SEGMENTS = 128;
-	static constexpr int GAUGE_SEGMENTS = 64;
-	static constexpr float MAX_RATIO_THRESHOLD = 0.999f;
-	static constexpr int FONT_BASE_SIZE = 32;
-	static constexpr float PULSE_TEXT_SCALE = 10.0f;
-	static constexpr float MAX_GLOW_AMPLITUDE = 5.0f;
-	static constexpr float MAX_GLOW_SPEED = 0.05f;
-	//--------------------------------------------------------
+
 
 	// コンボの段階に応じて攻撃したときの移動量
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
@@ -83,8 +75,7 @@ public:
 		5.0f
 	};
 
-	static constexpr VECTOR MAX_MUSCLE = { 4.0f,4.0f,4.0f };	// 筋肉のスケールの最大値
-	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
+
 
 	// 攻撃時に筋肉を増やすときのコンボ段階に応じたスケールの増量
 	static constexpr VECTOR UP_MUSCLE[(int)CONBO::MAX] =
@@ -102,11 +93,11 @@ public:
 	Player();
 	~Player() override;
 
-	void Load(void) override;		// 最初に呼び出す関数
-	void Init(void) override;		// 初期化処理
-	void Update(void) override;		// 更新処理
-	void Draw(void) override;		// 描画処理
-	void Release(void) override;	// 解放処理
+	void SubLoad(void) override;		// 最初に呼び出す関数
+	void SubInit(void) override;		// 初期化処理
+	void SubUpdate(void) override;		// 更新処理
+	void SubDraw(void) override;		// 描画処理
+	void SubRelease(void) override;	// 解放処理
 
 	void UIDraw(void);				// UI描画
 
@@ -116,8 +107,9 @@ public:
 
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR &GetAngle(void) { return unit_.angle_; }
-
 	const float GetMuscleRatio();
+	const STATE GetState(void) { return state_; }
+
 
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
@@ -130,8 +122,7 @@ private:
 	RightArm* rightArm_;;
 	
 	void DebugDraw(void);
-	void DrawPlayer(void);
-
+	void SetMatrix(void);
 	void HpDraw(void);
 
 #pragma region 列挙型定義
@@ -169,15 +160,11 @@ private:
 
 #pragma region 筋肉関係
 	void Muscle(void);
-	void MuscleDraw(void);
-	void AddBoneScale(int index, VECTOR scale);
-	void AddArmScale(VECTOR scale);
+	//void AddBoneScale(int index, VECTOR scale);
 #pragma endregion
 
 #pragma region ステート管理関係
-	// 関数ポインタ
-	using StateFunc = void(Player::*)();
-	std::map<STATE, StateFunc> stateFuncs_;
+
 
 	void Idle(void);
 	void Move(void);
@@ -199,21 +186,19 @@ private:
 
 #pragma endregion
 
-	// デバッグ用変数
-	int frameScrollIndex_;
-	float muscleRatio_;
+
 
 #pragma region UI関係
 	//void DrawRingGauge(int cx, int cy, int outerR, int innerR, float ratio, int color);
 
-	int CalcGaugeColor(float ratio) const;
-	float CalcEffectRatio(float ratio, int time) const;
-	void DrawGaugeBack(int centerX, int centerY, float radius)const;
-	void DrawGaugeRing(int centerX, int centerY, int innerR, int outerR, float ratio, int color) const;
-	void DrawGaugeFrame(int centerX, int centerY, int innerR, int outerR) const;
-	void DrawGlowEffect(int cx, int cy, float radius, float& ringThickness) const;
-	void DrawGaugeText(int cx, int cy, float ratio, float pulse) const;
-	void DrawMuscleGauge(int cx, int cy, int outerR, int innerR, float ratio);
+	//int CalcGaugeColor(float ratio) const;
+	//float CalcEffectRatio(float ratio, int time) const;
+	//void DrawGaugeBack(int centerX, int centerY, float radius)const;
+	//void DrawGaugeRing(int centerX, int centerY, int innerR, int outerR, float ratio, int color) const;
+	//void DrawGaugeFrame(int centerX, int centerY, int innerR, int outerR) const;
+	//void DrawGlowEffect(int cx, int cy, float radius, float& ringThickness) const;
+	//void DrawGaugeText(int cx, int cy, float ratio, float pulse) const;
+	//void DrawMuscleGauge(int cx, int cy, int outerR, int innerR, float ratio);
 #pragma endregion
 };
 

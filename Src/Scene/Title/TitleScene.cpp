@@ -20,9 +20,14 @@ TitleScene::~TitleScene()
 void TitleScene::Load(void)
 {
 	image_ = LoadGraph("Data/Image/î]ãÿÇÃåù_ÉçÉS.png");
+
+	model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");
 }
 void TitleScene::Init(void)
 {
+	pos_ = Utility::VECTOR_ZERO;
+	angle_ = Utility::VECTOR_ZERO; 
+	scale_ = { 1.0f,1.0f,1.0f };
 }
 void TitleScene::Update(void)
 {
@@ -55,6 +60,32 @@ void TitleScene::Draw(void)
 		image_,
 		true
 		);
+
+	MATRIX mat = MGetIdent();
+
+	mat = MMult(mat, MGetRotX(angle_.x));
+	mat = MMult(mat, MGetRotX(angle_.y));
+	mat = MMult(mat, MGetRotZ(angle_.z));
+
+	MATRIX localMat;
+
+	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
+
+	localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+	localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+	localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+
+	mat = MMult(mat, localMat);
+
+	mat = MMult(MGetScale(scale_), mat);
+
+	mat.m[3][0] = pos_.x;
+	mat.m[3][1] = pos_.y;
+	mat.m[3][2] = pos_.z;
+
+	MV1SetMatrix(model_, mat);
+
+	MV1DrawModel(model_);
 
 	SetFontSize(32);
 	DrawString(0, 0, "É^ÉCÉgÉã", 0xffffff);

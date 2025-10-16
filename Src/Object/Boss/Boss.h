@@ -48,11 +48,11 @@ public:
 	Boss();
 	~Boss() override;
 
-	void Load(void) override;
-	void Init(void) override;
-	void Update(void) override;
-	void Draw(void) override;
-	void Release(void) override;
+	void SubLoad(void) override;
+	void SubInit(void) override;
+	void SubUpdate(void) override;
+	void SubDraw(void) override;
+	void SubRelease(void) override;
 
 	void UIDraw(void);
 

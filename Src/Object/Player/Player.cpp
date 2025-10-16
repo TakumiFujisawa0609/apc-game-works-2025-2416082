@@ -11,6 +11,7 @@
 
 #include "../Boss/Boss.h"
 #include "../Boss/Hand/BossRightHand.h"
+
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
 
@@ -24,28 +25,26 @@ Player::~Player()
 {
 }
 
-void Player::Load(void)
+void Player::SubLoad(void)
 {
    // パスの省略
    std::string path = "Data/Model/Player/";
 
    // モデルのロード
-   unit_.model_ = MV1LoadModel((path + "Player.mv1").c_str());
+   unit_.model_ = MV1LoadModel((path + "Player1.mv1").c_str());
 
 #pragma region クラスの定義
 
    // アニメーションクラス
-   animation_ = new AnimationController(unit_.model_);
+    animation_ = new AnimationController(unit_.model_);
 
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
    leftArm_->Load();
-   leftArm_->SetAddArmScaleFunc([this](VECTOR scale) { this->AddArmScale(scale); });
 
    // 右腕
    rightArm_ = new RightArm(unit_.model_);
    rightArm_->Load();
-   rightArm_->SetAddArmScaleFunc([this](VECTOR scale) { this->AddArmScale(scale); });
 
 #pragma endregion
 
@@ -63,7 +62,7 @@ void Player::Load(void)
     SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
 }
 
-void Player::Init(void)
+void Player::SubInit(void)
 {
     unit_.para_.colliShape = CollisionShape::CAPSULE;
     unit_.para_.colliType = CollisionType::ALLY;
@@ -87,14 +86,11 @@ void Player::Init(void)
 
     // 一度回避を行ったとき、次の回避までのクールタイム用
     nextRollCounter_ = 0;
-    
-    // プレイヤーモデルのボーンの名前を
-    // 羅列させるためのデバッグ用変数
-    frameScrollIndex_ = 0;
 
     // 三段攻撃のカウンタ変数
     attacConboCnt_ = 0;
 
+    // 向き
     move_ = Utility::VECTOR_ZERO;
 
     // 攻撃処理の初期化
@@ -104,15 +100,12 @@ void Player::Init(void)
     isUpMuscle_ = false;
 
     // 関数ポインタに登録
-    stateFuncs_ =
-    {
-        { STATE::IDLE,      &Player::Idle   },
-        { STATE::MOVE,      &Player::Move   },
-        { STATE::ATTACK,    &Player::Attack },
-        { STATE::ROLL,      &Player::Roll   },
-        { STATE::DEATH,     &Player::Death  },
-    };
-    
+    StateAdd((int)STATE::IDLE,      [this]() { Idle();      });
+    StateAdd((int)STATE::ATTACK,    [this]() { Attack();    });
+    StateAdd((int)STATE::MOVE,      [this]() { Move();      });
+    StateAdd((int)STATE::ROLL,      [this]() { Roll();      });
+    StateAdd((int)STATE::DEATH,     [this]() { Death();     });
+
     state_ = STATE::IDLE;
     conbo_ = CONBO::CONBO1;
 
@@ -121,7 +114,7 @@ void Player::Init(void)
     rightArm_->Init();
 }
 
-void Player::Update(void)
+void Player::SubUpdate(void)
 {
     auto& input = InputManager::GetInstance();
 
@@ -148,19 +141,22 @@ void Player::Update(void)
         isAttacked_ = false;
     }
 
+    //HPがなくなったら死亡処理に移行
     if (unit_.hp_ <= 0) {
         unit_.hp_ = 0;
         state_ = STATE::DEATH;
     }
 
-    //マッスル関係の処理用関数
-    Muscle();
-
     // 関数ポインタでそれぞれのステートの
     // アップデート関数を呼び出している
-    auto Func = stateFuncs_.find(state_);
-    (this->*(Func->second))();
+    int key = static_cast<int>(state_);
+    auto it = stateFuncs_.find(key);
 
+    // 安全確認
+    if (it != stateFuncs_.end() && it->second) {        
+        it->second();
+    }
+     
     //状態遷移用関数
     StateManager();
 
@@ -179,12 +175,12 @@ void Player::Update(void)
 
 }
 
-void Player::Draw(void)
+void Player::SubDraw(void)
 {
 	if (!unit_.isAlive_)return;
 
     // プレイヤーの描画
-    DrawPlayer();
+    SetMatrix();
 
     // 腕に関する描画処理
     leftArm_->Draw();
@@ -193,7 +189,7 @@ void Player::Draw(void)
 }
 
 // 解放処理
-void Player::Release(void)
+void Player::SubRelease(void)
 {
     //アニメーション
     if (animation_)
@@ -232,11 +228,12 @@ void Player::UIDraw(void)
 {
     //HP描画
     HpDraw();
+    rightArm_->UIDraw();
 
-    // 筋肉関係のUI描画
-    MuscleDraw();
 #ifdef _DEBUG
     DebugDraw();
+
+    // 現在の筋肉の割合（ratio）
     DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio());
 #endif 
 }
@@ -254,31 +251,27 @@ void Player::OnCollision(UnitBase* other)
 
     if (dynamic_cast<BossRightHand*>(other))
     {
-        if (state_ == STATE::ROLL) {
-            AddArmScale(UP_MUSCLE[1]);
-            return;
-        }
-        AddArmScale({ -0.3f, -0.3f, -0.3f });
+
         unit_.hp_ -= 10;
         unit_.inviciCounter_ = INVI_TIME;
     }
 }
 
 // 筋肉処理
-void Player::Muscle(void)
-{
+//void Player::Muscle(void)
+//{
     //static int cnt = 0;
 
     //AddArmScale(DOWN_MUSCLE);
 
 #ifdef _DEBUG
-    if (CheckHitKey(KEY_INPUT_0))
-    {
-        AddArmScale({ -1.0f,-1.0f,-1.0f });
-    }
-    if (CheckHitKey(KEY_INPUT_O)) {
-        AddArmScale(UP_MUSCLE[2]);
-    }
+    //if (CheckHitKey(KEY_INPUT_0))
+    //{
+    //    AddArmScale({ -1.0f,-1.0f,-1.0f });
+    //}
+    //if (CheckHitKey(KEY_INPUT_O)) {
+    //    AddArmScale(UP_MUSCLE[2]);
+    //}
 #endif // _DEBUG
 
 
@@ -302,70 +295,7 @@ void Player::Muscle(void)
     //        isUpMuscle_ = false;
     //    }
     //}
-}
-
-void Player::MuscleDraw(void)
-{
-    DrawCircle(100, 100, 80, 0xaaaaaa, true);
-    DrawMuscleGauge(100,100, 80, 50,GetMuscleRatio());
-}
-
-// どこのボーンかを見て、そのボーンのスケールに引数のscaleを加算する
-void Player::AddBoneScale(int index, VECTOR scale)
-{
-    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
-
-    // 行列からスケール成分を抽出
-    float currentScale[3];
-    for (int i = 0; i < 3; i++) {
-        currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-    }
-
-    // スケール加算
-    VECTOR newScale = VAdd(scale,{ currentScale[0], currentScale[1], currentScale[2] });
-
-    // 最大値の制限
-    if (newScale.x > MAX_MUSCLE.x) newScale.x = MAX_MUSCLE.x;
-    if (newScale.y > MAX_MUSCLE.y) newScale.y = MAX_MUSCLE.y;
-    if (newScale.z > MAX_MUSCLE.z) newScale.z = MAX_MUSCLE.z;
-
-    // 最低値の制限
-    if (newScale.x < MIN_MUSCLE.x) newScale.x = MIN_MUSCLE.x;
-    if (newScale.y < MIN_MUSCLE.y) newScale.y = MIN_MUSCLE.y;
-    if (newScale.z < MIN_MUSCLE.z) newScale.z = MIN_MUSCLE.z;
-
-#ifdef _DEBUG
-    // 筋肉量を確認する用の処理(デバッグ用)
-    float avgScale = (newScale.x + newScale.y + newScale.z) / 3.0f;
-    float avgMin = (MIN_MUSCLE.x + MIN_MUSCLE.y + MIN_MUSCLE.z) / 3.0f;
-    float avgMax = (MAX_MUSCLE.x + MAX_MUSCLE.y + MAX_MUSCLE.z) / 3.0f;
-
-    muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin);
-#endif // _DEBUG
-
-    // スケール行列を作成
-    MATRIX scaleMat = MGetScale(newScale);
-
-    // 適用
-    MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
-}
-
-void Player::AddArmScale(VECTOR scale)
-{
-    AddBoneScale(LeftArm::LEFT_ARM_INDEX, scale);
-
-    //// 行列からスケール成分を抽出
-    //float currentScale[3];
-    //for (int i = 0; i < 3; i++) {
-    //    currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-    //}
-
-    //// スケール加算
-    //VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
-
-    AddBoneScale(RightArm::RIGHT_ARM_INDEX, scale);
-}
-
+//}
 
 // 何もしていない
 void Player::Idle(void)
@@ -389,7 +319,7 @@ void Player::Move(void)
     XINPUT_STATE padState{};
     if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
     {
-        const float deadZone = 8000.0f;   // 中心の遊び
+        const float deadZone = 8000.0f;   // デッドゾーン
         const float maxValue = 32767.0f;  // 最大スティック値
 
         int joyX = padState.ThumbLX;
@@ -440,7 +370,7 @@ void Player::Attack(void)
     XINPUT_STATE padState{};
     if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
     {
-        const float deadZone = 8000.0f;   // 中心の遊び
+        const float deadZone = 8000.0f;   // デッドゾーン
         const float maxValue = 32767.0f;  // 最大スティック値
 
         int joyX = padState.ThumbLX;
@@ -466,6 +396,7 @@ void Player::Attack(void)
     }
 
     int anim = (int)conbo_;
+
     switch (conbo_)
     {
     case CONBO::CONBO1: 
@@ -786,125 +717,6 @@ void Player::DoRoll(void)
 //    DeleteFontToHandle(font);
 //}
 
-int Player::CalcGaugeColor(float ratio) const
-{
-    int rCol, gCol, bCol;
-    if (ratio < 0.5f) {
-        float t = ratio / 0.5f;
-        rCol = static_cast<int>(255 * t);
-        gCol = 255;
-        bCol = 0;
-    }
-    else {
-        float t = (ratio - 0.5f) / 0.5f;
-        rCol = 255;
-        gCol = static_cast<int>(255 * (1.0f - t));
-        bCol = 0;
-    }
-    return GetColor(rCol, gCol, bCol);
-}
-
-// =====================================================
-// 前処理（パルス補正）
-float Player::CalcEffectRatio(float ratio, int time) const
-{
-    float clamped = Utility::Clamp(ratio, 0.0f, 1.0f);
-    float pulse = PULSE_AMPLITUDE * sinf(time * PULSE_SPEED);
-    return Utility::Clamp(clamped + pulse, 0.0f, 1.0f);
-}
-
-// 背景描画
-void Player::DrawGaugeBack(int cx, int cy, float radius) const
-{
-    DrawCircleAA(cx, cy, radius, GAUGE_SEGMENTS, GetColor(40, 0, 0), TRUE);
-}
-
-// ゲージ描画（円弧）
-void Player::DrawGaugeRing(int cx, int cy, int innerR, int outerR, float ratio, int color) const
-{
-    float endAngle = DX_PI_F * 2.0f * ratio;
-
-    for (int i = 0; i < GAUGE_SEGMENTS; i++)
-    {
-        float a1 = DX_PI_F * 2.0f * i / GAUGE_SEGMENTS;
-        float a2 = DX_PI_F * 2.0f * (i + 1) / GAUGE_SEGMENTS;
-        if (a1 > endAngle) break;
-
-        VECTOR p1 = { cx + cosf(a1) * innerR, cy + sinf(a1) * innerR };
-        VECTOR p2 = { cx + cosf(a1) * outerR, cy + sinf(a1) * outerR };
-        VECTOR p3 = { cx + cosf(a2) * innerR, cy + sinf(a2) * innerR };
-        VECTOR p4 = { cx + cosf(a2) * outerR, cy + sinf(a2) * outerR };
-
-        DrawTriangleAA(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, color, TRUE);
-        DrawTriangleAA(p3.x, p3.y, p2.x, p2.y, p4.x, p4.y, color, TRUE);
-    }
-}
-
-// 外枠
-void Player::DrawGaugeFrame(int cx, int cy, int innerR, int outerR) const
-{
-    for (int i = 0; i < 3; i++)
-    {
-        int frameColor = GetColor(120 + i * 40, 100 + i * 30, 100 + i * 30);
-        DrawCircleAA(cx, cy, outerR + i, GAUGE_SEGMENTS, frameColor, FALSE, 2.0f);
-        DrawCircleAA(cx, cy, innerR - i, GAUGE_SEGMENTS, frameColor, FALSE, 2.0f);
-    }
-}
-
-// 最大値演出
-void Player::DrawGlowEffect(int cx, int cy, float radius, float& ringThickness) const
-{
-    int time = GetNowCount();
-    float glow = MAX_GLOW_AMPLITUDE * sinf(time * MAX_GLOW_SPEED) + MAX_GLOW_AMPLITUDE;
-    ringThickness += glow * 0.3f;
-
-    int auraColor = GetColor(255, 255, 200);
-    DrawCircleAA(cx, cy, radius + ringThickness * 0.8f, GAUGE_SEGMENTS, auraColor, FALSE, 3.0f);
-}
-
-// パーセント表示
-void Player::DrawGaugeText(int cx, int cy, float ratio, float pulse) const
-{
-    char str[16];
-    sprintf_s(str, sizeof(str), "%3d%%", static_cast<int>(ratio * 100));
-
-    int fontSize = FONT_BASE_SIZE + static_cast<int>(PULSE_TEXT_SCALE * pulse);
-    int font = CreateFontToHandle("Impact", fontSize, 3);
-
-    int textColor = (ratio >= 1.0f)
-        ? GetColor(255, 255, 180)
-        : GetColor(230, 255, 230);
-
-    int strW = GetDrawStringWidthToHandle(str, strlen(str), font);
-    DrawStringToHandle(cx - strW / 2, cy - fontSize / 2, str, textColor, font);
-    DeleteFontToHandle(font);
-}
-
-// メイン描画関数
-void Player::DrawMuscleGauge(int cx, int cy, int outerR, int innerR, float ratio)
-{
-    int time = GetNowCount();
-    float clampedRatio = Utility::Clamp(ratio, 0.0f, 1.0f);
-    float effectiveRatio = CalcEffectRatio(clampedRatio, time);
-
-    float ringThickness = static_cast<float>(outerR - innerR);
-    float radius = (outerR + innerR) * 0.5f;
-
-    int ringColor = CalcGaugeColor(effectiveRatio);
-
-    DrawGaugeBack(cx, cy, radius);
-
-    if (clampedRatio >= MAX_RATIO_THRESHOLD)
-    {
-        DrawGlowEffect(cx, cy, radius, ringThickness);
-        ringColor = GetColor(255, 255, 180);
-    }
-
-    DrawGaugeRing(cx, cy, innerR, outerR, clampedRatio, ringColor);
-    DrawGaugeFrame(cx, cy, innerR, outerR);
-    DrawGaugeText(cx, cy, clampedRatio, PULSE_AMPLITUDE * sinf(time * PULSE_SPEED));
-}
-
  //カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
 {
@@ -923,23 +735,24 @@ void Player::CameraPosUpdate(void)
 
 const float Player::GetMuscleRatio()
 {
-    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, LeftArm::LEFT_ARM_INDEX);
+    // 左右腕のローカル行列取得
+    MATRIX leftMat = MV1GetFrameLocalMatrix(unit_.model_, ArmBase::LEFT_ARM_INDEX);
+    MATRIX rightMat = MV1GetFrameLocalMatrix(unit_.model_, ArmBase::RIGHT_ARM_INDEX);
 
-    // スケール抽出
-    float scale[3];
-    for (int i = 0; i < 3; i++) {
-        scale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-    }
+    // 太さ方向(Y軸)のスケールのみ抽出
+    float leftScale = VSize({ leftMat.m[1][0], leftMat.m[1][1], leftMat.m[1][2] });
+    float rightScale = VSize({ rightMat.m[1][0], rightMat.m[1][1], rightMat.m[1][2] });
 
-    // 軸ごとにratio化
-    float scaleRatio[3];
-    scaleRatio[0] = Utility::Clamp((scale[0] - MIN_MUSCLE.x) / (MAX_MUSCLE.x - MIN_MUSCLE.x), 0.0f, 1.0f);
-    scaleRatio[1] = Utility::Clamp((scale[1] - MIN_MUSCLE.y) / (MAX_MUSCLE.y - MIN_MUSCLE.y), 0.0f, 1.0f);
-    scaleRatio[2] = Utility::Clamp((scale[2] - MIN_MUSCLE.z) / (MAX_MUSCLE.z - MIN_MUSCLE.z), 0.0f, 1.0f);
+    // 右腕と左腕の平均値の取得
+    float avgScale = (leftScale + rightScale) * 0.5f;
 
-    float muscleRatio = (scaleRatio[0] + scaleRatio[1] + scaleRatio[2]) / 3.0f;
+    // ratio計算
+    float ret = Utility::Clamp(
+        (avgScale - ArmBase::MIN_ARM_MUSCLE.y) /
+        (ArmBase::MAX_ARM_MUSCLE.x - ArmBase::MIN_ARM_MUSCLE.x),
+        0.0f, 1.0f);
 
-    return muscleRatio;
+    return ret;
 }
 
 void Player::DebugDraw(void)
@@ -963,43 +776,12 @@ void Player::DebugDraw(void)
         break;
     }
 
-    int frameNum = MV1GetFrameNum(unit_.model_);
-
-    if (input.IsTrgDown(KEY_INPUT_UP))
-    {
-        frameScrollIndex_--;
-        if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
-    }
-
-    if (input.IsTrgDown(KEY_INPUT_DOWN))
-    {
-        frameScrollIndex_++;
-        if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
-    }
-
     VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
-
-    // ===== 画面に描画 =====
-    int y = 200;
-    const int maxLines = 20; // 一度に表示する行数
-
-    for (int i = 0; i < maxLines; i++)
-    {
-        int idx = frameScrollIndex_ + i;
-        if (idx >= frameNum) break;
-
-        const char* name = MV1GetFrameName(unit_.model_, idx);
-        DrawFormatString(0, y, GetColor(255, 255, 255),
-            "Frame %d : %s", idx, name ? name : "(null)");
-        y += 16;
-    }
-
-
 }
 
-void Player::DrawPlayer(void)
+void Player::SetMatrix(void)
 {
     VECTOR ofset = { 0.0f, -unit_.para_.capsuleHalfLen ,0.0f };
 
@@ -1029,40 +811,6 @@ void Player::DrawPlayer(void)
 
     // 行列の設定
     MV1SetMatrix(unit_.model_, mat);
-
-    int matNum = MV1GetMaterialNum(modelHandle);
-    for (int i = 0; i < matNum; i++)
-    {
-        MATERIALPARAM mat;
-        MV1GetMaterialParam(modelHandle, i, &mat);
-
-        // --- Diffuse（基本色）を1.5倍して上限を1.0にクランプ ---
-        mat.Diffuse.r = min(mat.Diffuse.r * 1.5f, 1.0f);
-        mat.Diffuse.g = min(mat.Diffuse.g * 1.5f, 1.0f);
-        mat.Diffuse.b = min(mat.Diffuse.b * 1.5f, 1.0f);
-
-        // --- Ambient（環境光）も上げると暗部が持ち上がる ---
-        mat.Ambient.r = min(mat.Ambient.r * 1.5f, 1.0f);
-        mat.Ambient.g = min(mat.Ambient.g * 1.5f, 1.0f);
-        mat.Ambient.b = min(mat.Ambient.b * 1.5f, 1.0f);
-
-        MV1SetMaterialParam(&mat);
-    }
-
-    if (unit_.inviciCounter_ > 0)
-    {
-        float t = sinf(GetNowCount() * 0.03f);
-        float intensity = (t > 0.0f) ? 1.0f : 0.1f;
-
-        MV1SetDifColorScale(unit_.model_, { 1.0f, intensity * 0.5f, intensity * 0.5f, 1.0f });
-    }
-    else
-    {
-        MV1SetDifColorScale(unit_.model_, { 1.0f, 1.0f, 1.0f, 1.0f });
-    }
-
-    // モデル描画
-    MV1DrawModel(unit_.model_);
 }
 
 void Player::HpDraw(void)

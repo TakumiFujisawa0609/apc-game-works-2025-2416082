@@ -10,12 +10,12 @@ BossRightHand::~BossRightHand()
 {
 }
 
-void BossRightHand::Load(void)
+void BossRightHand::SubLoad(void)
 {
 	unit_.model_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 }
 
-void BossRightHand::Init(void)
+void BossRightHand::SubInit(void)
 {
 	unit_.para_.colliShape = CollisionShape::SPHERE;
 	unit_.para_.colliType = CollisionType::ENEMY;
@@ -29,12 +29,12 @@ void BossRightHand::Init(void)
 	unit_.isAlive_ = true;
 }
 
-void BossRightHand::Update(void)
+void BossRightHand::SubUpdate(void)
 {
 	Invi();
 }
 
-void BossRightHand::Draw(void)
+void BossRightHand::SubDraw(void)
 {
     if (!unit_.isAlive_) return;
 
@@ -67,7 +67,7 @@ void BossRightHand::Draw(void)
 #endif
 }
 
-void BossRightHand::Release(void)
+void BossRightHand::SubRelease(void)
 {
     MV1DeleteModel(unit_.model_);
 }
@@ -75,7 +75,6 @@ void BossRightHand::Release(void)
 void BossRightHand::OnCollision(UnitBase* other)
 {
 	if (dynamic_cast<Player*>(other)) {
-		unit_.inviciCounter_ = 60;
 	}
 }
 

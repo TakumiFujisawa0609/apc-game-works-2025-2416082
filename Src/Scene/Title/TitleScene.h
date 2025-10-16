@@ -4,6 +4,7 @@
 class TitleScene : public SceneBase
 {
 public:
+
 	TitleScene();
 	~TitleScene()override;
 
@@ -19,7 +20,12 @@ public:
 	void Release(void)override;
 
 private:
-	
+
 	int image_;
 
+	int model_;
+
+	VECTOR pos_;
+	VECTOR scale_;
+	VECTOR angle_;
 };

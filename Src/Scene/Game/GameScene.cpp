@@ -132,8 +132,7 @@ void GameScene::Update(void)
 
 	auto& input = InputManager::GetInstance();
 	auto& scene = SceneManager::GetInstance();
-	if (input.IsTrgDown(KEY_INPUT_ESCAPE))
-	{
+	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
 		scene.PushScene(std::make_shared<PauseScene>());
 		//if (input.IsTrgDown(KEY_INPUT_SPACE)) {
 		//	scene.PopScene();
@@ -167,7 +166,7 @@ void GameScene::Draw(void)
 #pragma region •`‰æˆ—
 	Camera::GetInstance().Apply();
 
-	//DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
+	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
 
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;
@@ -210,15 +209,13 @@ void GameScene::Release(void)
 		player_ = nullptr;
 	}
 
-	if (boss_)
-	{
+	if (boss_) {
 		boss_->Release();
 		delete boss_;
 		boss_ = nullptr;
 	}
 
-	if (grid_)
-	{
+	if (grid_) {
 		grid_->Release();
 		delete grid_;
 		grid_ = nullptr;

@@ -1,39 +1,29 @@
 #pragma once
-#include "../../UnitBase.h"
+#include "Base/ArmBase.h"
 
 #include <functional>
 
-class LeftArm : public UnitBase
+class LeftArm : public ArmBase
 {
 public:
-	static constexpr int LEFT_ARM_INDEX = 11;   // ç∂òr
-	static constexpr int LEFT_HAND_INDEX = 13;   // ç∂òr
 
-	static constexpr float RADIUS = 30;
-
-	static constexpr VECTOR BONE_UP = { 0.01f, 0.01f, 0.01 };
 
 	LeftArm(int modelId);
 	~LeftArm()override;
 
-	void Load(void)override;
-	void Init(void)override;
-	void Update(void)override;
-	void Draw(void)override;
-	void Release(void)override;
+	void SubLoad(void)override;
+	void SubInit(void)override;
+	void SubUpdate(void)override;
+	void SubDraw(void)override;
+	void SubRelease(void)override;
 
-	void OnCollision(UnitBase* other)override;
 
 	void SetAttackTime(int collTime);
 
-	void SetAddArmScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
+	//void SetAddArmScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
 
-	const MATRIX GetMatrix(void) { return mat_; };
 private:
 
-	int cnt_;
 
-	std::function<void(VECTOR scale)> addArmScale_;
-
-	MATRIX mat_;
+	//std::function<void(VECTOR scale)> addArmScale_;
 };

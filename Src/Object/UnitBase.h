@@ -1,7 +1,9 @@
 #pragma once
 
 #include <DxLib.h>
-#include<vector>
+
+#include<functional>
+#include<unordered_map>
 
 #include"../Utility/Utility.h"
 
@@ -41,16 +43,32 @@ public:
 	UnitBase();
 	virtual ~UnitBase() = 0;
 
-	virtual void Load(void) = 0;
-	virtual void Init(void) = 0;
-	virtual void Update(void) = 0;
-	virtual void Draw(void) = 0;
-	virtual void Release(void) = 0;
+	void Load(void);
+	void Init(void);
+	void Update(void);
+	void Draw(void);
+	void Release(void);
 
 	const Base& GetUnit(void) const { return unit_; }
 	virtual void OnCollision(UnitBase* other) = 0;
 
 protected:
+	virtual void SubLoad(void) = 0;
+	virtual void SubInit(void) = 0;
+	virtual void SubUpdate(void) = 0;
+	virtual void SubDraw(void) = 0;
+	virtual void SubRelease(void) = 0;
+
+
+
+	// 関数ポインタ
+	using StateFunc = std::function<void()>;
+	std::unordered_map<int, StateFunc> stateFuncs_;
+
+	// 子クラスで定義した関数を関数ポインタに登録
+	void StateAdd(int state, StateFunc func);
+
+	void ChangeState(int state);
 
 	static constexpr int INVI_TIME = 40;
 
