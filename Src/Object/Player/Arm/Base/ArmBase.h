@@ -2,6 +2,8 @@
 
 #include "../../../UnitBase.h"
 
+class FlashEffectManager;
+
 class ArmBase : public UnitBase
 {
 public:
@@ -36,13 +38,19 @@ public:
 
 	void UIDraw(void);
 
+	// 呼び出して時間を設定した瞬間から、攻撃判定が出てくる
+	void SetAttackTime(int collTime);
 
 protected:
-	
+	FlashEffectManager* flash_;
+
 	int *state_;
+
+	bool isHit_;
 
 	// デバッグ用変数
 	int frameScrollIndex_;
 	float muscleRatio_;
 	int cnt_;
+
 };

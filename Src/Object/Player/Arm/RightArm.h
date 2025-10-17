@@ -20,8 +20,6 @@ public:
 	void SubDraw(void)override;
 	void SubRelease(void)override;
 
-	void SetAttackTime(int collTime);
-
 private:
 
 };

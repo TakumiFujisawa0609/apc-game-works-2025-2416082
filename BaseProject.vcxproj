@@ -137,6 +137,7 @@
     <ClCompile Include="Src\Common\Vector2.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Manager\Animation\AnimationController.cpp" />
+    <ClCompile Include="Src\Manager\FlashEffectManager\FlashEffectManager.cpp" />
     <ClCompile Include="Src\Object\Camera\Camera.cpp" />
     <ClCompile Include="Src\Manager\Collision\Collision.cpp" />
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="Src\Application\Application.h" />
     <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\Manager\Animation\AnimationController.h" />
+    <ClInclude Include="Src\Manager\FlashEffectManager\FlashEffectManager.h" />
     <ClInclude Include="Src\Object\Camera\Camera.h" />
     <ClInclude Include="Src\Manager\Collision\Collision.h" />
     <ClInclude Include="Src\Manager\FPS\FPS.h" />

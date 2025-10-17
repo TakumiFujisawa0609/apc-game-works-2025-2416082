@@ -38,6 +38,7 @@ void Player::SubLoad(void)
    // アニメーションクラス
     animation_ = new AnimationController(unit_.model_);
 
+
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
    leftArm_->Load();
@@ -168,7 +169,6 @@ void Player::SubUpdate(void)
 
     // アニメーション処理
     animation_->Update();
-
     // 腕の更新処理
     leftArm_->Update();
     rightArm_->Update();
@@ -224,6 +224,28 @@ void Player::SubRelease(void)
     }
 }
 
+
+//当たり判定
+void Player::OnCollision(UnitBase* other)
+{
+    if (unit_.inviciCounter_ > 0) { return; }
+
+
+
+    if (dynamic_cast<Boss*>(other))
+    {
+   
+        return;
+    }
+
+    if (dynamic_cast<BossRightHand*>(other))
+    {
+
+        unit_.hp_ -= 10;
+        unit_.inviciCounter_ = INVI_TIME;
+    }
+}
+
 void Player::UIDraw(void)
 {
     //HP描画
@@ -236,25 +258,6 @@ void Player::UIDraw(void)
     // 現在の筋肉の割合（ratio）
     DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio());
 #endif 
-}
-
-//当たり判定
-void Player::OnCollision(UnitBase* other)
-{
-    if (unit_.inviciCounter_ > 0) { return; }
-
-    if (dynamic_cast<Boss*>(other))
-    {
-
-        return;
-    }
-
-    if (dynamic_cast<BossRightHand*>(other))
-    {
-
-        unit_.hp_ -= 10;
-        unit_.inviciCounter_ = INVI_TIME;
-    }
 }
 
 // 筋肉処理

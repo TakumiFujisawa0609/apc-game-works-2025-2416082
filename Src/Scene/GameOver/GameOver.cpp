@@ -27,21 +27,11 @@ void GameOver::Update(void)
 {
 	auto& input = InputManager::GetInstance();
 
-	static char key[256];
-	static char prevKey[256];
-
-	// 前フレームの状態を保存
-	memcpy(prevKey, key, 256);
-
-	// 現在のキー状態を取得
-	GetHitKeyStateAll(key);
 
 	// どれかのキーが「押された瞬間」なら遷移
-	for (int i = 0; i < 256; i++) {
-		if (key[i] != 0 && prevKey[i] == 0 || input.IsTrgMouseLeft() || input.IsTrgMouseRight()) {
+		if (input.IsTrgDown(KEY_INPUT_SPACE)) {
 			SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
-			break; // 1つでも押されたらOK
-		}
+			return;
 	}
 }
 void GameOver::Draw(void)

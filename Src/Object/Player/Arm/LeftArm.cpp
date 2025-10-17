@@ -61,9 +61,4 @@ void LeftArm::SubRelease(void)
 	ArmBase::SubRelease();
 }
 
-// ŒÄ‚Ño‚µ‚ÄŠÔ‚ğİ’è‚µ‚½uŠÔ‚©‚çAUŒ‚”»’è‚ªo‚Ä‚­‚é
-void LeftArm::SetAttackTime(int collTime)
-{
-	cnt_ = collTime;
-}
 

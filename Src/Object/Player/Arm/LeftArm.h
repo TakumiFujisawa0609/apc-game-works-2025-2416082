@@ -18,12 +18,6 @@ public:
 	void SubRelease(void)override;
 
 
-	void SetAttackTime(int collTime);
-
-	//void SetAddArmScaleFunc(std::function<void(VECTOR scale)> func) { addArmScale_ = std::move(func); }
 
 private:
-
-
-	//std::function<void(VECTOR scale)> addArmScale_;
 };

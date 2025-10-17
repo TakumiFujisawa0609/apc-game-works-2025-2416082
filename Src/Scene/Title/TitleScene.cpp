@@ -1,15 +1,18 @@
 #include"TitleScene.h"
 
-#include<DxLib.h>
-
 #include"../../Application/Application.h"
 
 #include"../SceneManager/SceneManager.h"
+
 #include"../../Manager/Input/InputManager.h"
+#include "../../Manager/Animation/AnimationController.h"
+
 #include"../../Utility/Utility.h"
 
-
-TitleScene::TitleScene()
+TitleScene::TitleScene():
+	pos(),
+	scale(),
+	angle()
 {
 }
 
@@ -22,33 +25,29 @@ void TitleScene::Load(void)
 	image_ = LoadGraph("Data/Image/脳筋の拳_ロゴ.png");
 
 	model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");
+
+	animation_ = new AnimationController(model_);
+	animation_->Add((int)(ANIM_TYPE::IDLE), 120, "Data/Model/Player/Animation/Idle.mv1");
 }
 void TitleScene::Init(void)
 {
-	pos_ = Utility::VECTOR_ZERO;
-	angle_ = Utility::VECTOR_ZERO; 
-	scale_ = { 1.0f,1.0f,1.0f };
+	pos = { 1000.0f,0.0f,0.0f, };
+	angle = Utility::VECTOR_ZERO; 
+	scale = { 1.0f,1.0f,1.0f };
+
+	animation_->Play((int)ANIM_TYPE::IDLE, true);
 }
 void TitleScene::Update(void)
 {
 	auto& input = InputManager::GetInstance();
 
-	static char key[256];
-	static char prevKey[256];
-
-	// 前フレームの状態を保存
-	memcpy(prevKey, key, 256);
-
-	// 現在のキー状態を取得
-	GetHitKeyStateAll(key);
-
 	// どれかのキーが「押された瞬間」なら遷移
-	for (int i = 0; i < 256; i++) {
-		if (key[i] != 0 && prevKey[i] == 0 || input.IsTrgMouseLeft() || input.IsTrgMouseRight()) {
-			SceneManager::GetInstance().ChangeScene(SCENE_ID::GAME);
-			break; // 1つでも押されたらOK
-		}
+	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
+		SceneManager::GetInstance().ChangeScene(SCENE_ID::GAME);
+		return;
 	}
+
+	animation_->Update();
 }
 void TitleScene::Draw(void)
 {
@@ -63,13 +62,12 @@ void TitleScene::Draw(void)
 
 	MATRIX mat = MGetIdent();
 
-	mat = MMult(mat, MGetRotX(angle_.x));
-	mat = MMult(mat, MGetRotX(angle_.y));
-	mat = MMult(mat, MGetRotZ(angle_.z));
-
-	MATRIX localMat;
+	mat = MMult(mat, MGetRotX(angle.x));
+	mat = MMult(mat, MGetRotX(angle.y));
+	mat = MMult(mat, MGetRotZ(angle.z));
 
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
+	MATRIX localMat = MGetIdent();
 
 	localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
 	localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
@@ -77,11 +75,11 @@ void TitleScene::Draw(void)
 
 	mat = MMult(mat, localMat);
 
-	mat = MMult(MGetScale(scale_), mat);
+	mat = MMult(MGetScale(scale), mat);
 
-	mat.m[3][0] = pos_.x;
-	mat.m[3][1] = pos_.y;
-	mat.m[3][2] = pos_.z;
+	mat.m[3][0] = pos.x;
+	mat.m[3][1] = pos.y;
+	mat.m[3][2] = pos.z;
 
 	MV1SetMatrix(model_, mat);
 
@@ -94,4 +92,11 @@ void TitleScene::Draw(void)
 void TitleScene::Release(void)
 {
 	DeleteGraph(image_);
+	MV1DeleteModel(model_);
+
+	if (animation_) {
+		animation_->Release();
+		delete animation_;
+		animation_ = nullptr;
+	}
 }

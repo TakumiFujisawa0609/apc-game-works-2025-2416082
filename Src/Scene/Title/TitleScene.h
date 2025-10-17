@@ -1,9 +1,19 @@
 #pragma once
 #include"../SceneBase.h"
+#include<DxLib.h>
+
+class AnimationController;
+
 
 class TitleScene : public SceneBase
 {
 public:
+	enum  class ANIM_TYPE
+	{
+		IDLE,
+
+		MAX
+	};
 
 	TitleScene();
 	~TitleScene()override;
@@ -20,12 +30,13 @@ public:
 	void Release(void)override;
 
 private:
+	AnimationController* animation_;
 
 	int image_;
 
 	int model_;
 
-	VECTOR pos_;
-	VECTOR scale_;
-	VECTOR angle_;
+	VECTOR pos;
+	VECTOR scale;
+	VECTOR angle;
 };
