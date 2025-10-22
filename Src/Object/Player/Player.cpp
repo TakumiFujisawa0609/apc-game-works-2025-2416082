@@ -256,51 +256,11 @@ void Player::UIDraw(void)
     DebugDraw();
 
     // 現在の筋肉の割合（ratio）
-    DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio());
+    DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
 #endif 
 }
 
-// 筋肉処理
-//void Player::Muscle(void)
-//{
-    //static int cnt = 0;
-
-    //AddArmScale(DOWN_MUSCLE);
-
-#ifdef _DEBUG
-    //if (CheckHitKey(KEY_INPUT_0))
-    //{
-    //    AddArmScale({ -1.0f,-1.0f,-1.0f });
-    //}
-    //if (CheckHitKey(KEY_INPUT_O)) {
-    //    AddArmScale(UP_MUSCLE[2]);
-    //}
-#endif // _DEBUG
-
-
-    //if (state_ != STATE::ATTACK)
-    //{
-    //    cnt = 0;
-    //    isUpMuscle_ = false;
-    //    return;
-    //}
-
-    //if (isUpMuscle_)
-    //{
-    //    cnt++;
-    //    if (cnt <= 10)
-    //    {
-    //        AddArmScale(UP_MUSCLE[(int)conbo_]);
-    //    }
-    //    else
-    //    {
-    //        cnt = 0;
-    //        isUpMuscle_ = false;
-    //    }
-    //}
-//}
-
-// 何もしていない
+// 立ち止まっているときの処理
 void Player::Idle(void)
 {
     animation_->Play((int)ANIM_TYPE::IDLE, true);
@@ -344,7 +304,7 @@ void Player::Move(void)
         VECTOR worldMove = VTransform(VNorm(move_), mat);
 
         // 移動速度（筋肉量で変動）
-        unit_.para_.speed = (GetMuscleRatio() < 0.7f) ? MOVE_SPEED : MOVE_SPEED / 2;
+        unit_.para_.speed = (GetMuscleRatio(LeftArm::LEFT_ARM_INDEX) < 0.7f) ? MOVE_SPEED : MOVE_SPEED / 2;
 
         worldMove = VScale(worldMove, unit_.para_.speed);
         unit_.pos_ = VAdd(unit_.pos_, worldMove);
@@ -736,22 +696,17 @@ void Player::CameraPosUpdate(void)
     cameraPos_.y = unit_.pos_.y + currentHeight;
 }
 
-const float Player::GetMuscleRatio()
+const float Player::GetMuscleRatio(int index)
 {
     // 左右腕のローカル行列取得
-    MATRIX leftMat = MV1GetFrameLocalMatrix(unit_.model_, ArmBase::LEFT_ARM_INDEX);
-    MATRIX rightMat = MV1GetFrameLocalMatrix(unit_.model_, ArmBase::RIGHT_ARM_INDEX);
+    MATRIX leftMat = MV1GetFrameLocalMatrix(unit_.model_, index);
 
     // 太さ方向(Y軸)のスケールのみ抽出
-    float leftScale = VSize({ leftMat.m[1][0], leftMat.m[1][1], leftMat.m[1][2] });
-    float rightScale = VSize({ rightMat.m[1][0], rightMat.m[1][1], rightMat.m[1][2] });
-
-    // 右腕と左腕の平均値の取得
-    float avgScale = (leftScale + rightScale) * 0.5f;
+    float scale = VSize({ leftMat.m[1][0], leftMat.m[1][1], leftMat.m[1][2] });
 
     // ratio計算
     float ret = Utility::Clamp(
-        (avgScale - ArmBase::MIN_ARM_MUSCLE.y) /
+        (scale - ArmBase::MIN_ARM_MUSCLE.y) /
         (ArmBase::MAX_ARM_MUSCLE.x - ArmBase::MIN_ARM_MUSCLE.x),
         0.0f, 1.0f);
 

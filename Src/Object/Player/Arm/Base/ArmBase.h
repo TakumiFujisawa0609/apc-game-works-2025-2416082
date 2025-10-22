@@ -8,19 +8,17 @@ class ArmBase : public UnitBase
 {
 public:
 
-	static constexpr VECTOR MAX_ARM_MUSCLE = { 4.0f,4.0f,4.0f };	// 筋肉のスケールの最大値
+	static constexpr VECTOR MAX_ARM_MUSCLE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
-	static constexpr int RIGHT_ARM_INDEX = 35;
+	static constexpr int RIGHT_ARM_INDEX = 4;//35;
 	static constexpr int RIGHT_HAND_INDEX = 38;
-	static constexpr int LEFT_ARM_INDEX = 11;   
+	static constexpr int LEFT_ARM_INDEX = 4;//11;   
 	static constexpr int LEFT_HAND_INDEX = 13;  
 
 	static constexpr float RADIUS = 30;
 
 	static constexpr VECTOR BONE_UP = { 0.01f, 0.01f, 0.01 };
-
-
 
 	ArmBase(int modelId);
 	~ArmBase() override;

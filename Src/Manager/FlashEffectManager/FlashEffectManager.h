@@ -11,8 +11,8 @@ public:
 	{
 		VECTOR start_;
 		VECTOR end_;
-		float life_;
-		float maxLife_;
+		float aliveTime_;
+		float maxAliveTime_;
 
 	};
 

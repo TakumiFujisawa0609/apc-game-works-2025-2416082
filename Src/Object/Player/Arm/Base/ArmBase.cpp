@@ -59,6 +59,9 @@ void ArmBase::SubUpdate(void)
 	if (CheckHitKey(KEY_INPUT_0)) {
 		AddArmScale({ -0.05, -0.05, -0.05 });
 	}
+	if (CheckHitKey(KEY_INPUT_9)) {
+		AddBoneScale(4,{ 0.05, 0.05, 0.05 });
+	}
 
 	auto randf = [](float min, float max)
 		{

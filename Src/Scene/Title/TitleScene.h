@@ -11,6 +11,7 @@ public:
 	enum  class ANIM_TYPE
 	{
 		IDLE,
+		ATTACK,
 
 		MAX
 	};

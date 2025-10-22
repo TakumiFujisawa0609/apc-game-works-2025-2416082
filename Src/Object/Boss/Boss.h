@@ -14,7 +14,7 @@ public:
 	static constexpr VECTOR SCALE = { 4.0f,4.0f,4.0f };
 	static constexpr float HALF_LEN = 300.0f;
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 300.0f, 1000.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 600.0f, 0.0f };
 
 	static constexpr int HP_MAX = 300;
 

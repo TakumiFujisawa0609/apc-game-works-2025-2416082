@@ -18,6 +18,8 @@
 #include"../../Object/Boss/Boss.h"
 #include"../../Object/Boss/Hand/BossRightHand.h"
 
+#include"../../Object/Stage/Stage.h"
+
 #include"../../Object/Grid/Grid.h"
 
 #include"../Title/TitleScene.h"
@@ -37,7 +39,8 @@ GameScene::GameScene() :
 	collision_(nullptr),
 	player_(nullptr),
 	boss_(nullptr),
-	grid_(nullptr)
+	grid_(nullptr),
+	stage_(nullptr)
 {
 
 }
@@ -60,6 +63,9 @@ void GameScene::Load(void)
 	boss_ = new Boss();
 	boss_->Load();
 
+	stage_ = new Stage();
+	stage_->Load();
+
 	grid_ = new Grid();
 
 	collision_->AddEnemy(boss_);
@@ -77,6 +83,7 @@ void GameScene::Init(void)
 	player_->Init();
 	boss_->Init();
 	grid_->Init();
+	stage_->Init();
 
 	SetMouseDispFlag(false);
 
@@ -126,9 +133,10 @@ void GameScene::Update(void)
 	Camera::GetInstance().Update();
 	player_->Update();
 	boss_->Update();
-	boss_->SetMuscleRatio(player_->GetMuscleRatio());
+	boss_->SetMuscleRatio(player_->GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
 	boss_->SetTarget(player_->GetUnit().pos_);
 	grid_->Update();
+	stage_->Update();
 
 	auto& input = InputManager::GetInstance();
 	auto& scene = SceneManager::GetInstance();
@@ -166,12 +174,13 @@ void GameScene::Draw(void)
 #pragma region •`‰æˆ—
 	Camera::GetInstance().Apply();
 
-	DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
+	//DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
 
 	using app = Application;
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
+	stage_->Draw();
 	player_->Draw();
 
 	boss_->Draw();
@@ -219,6 +228,13 @@ void GameScene::Release(void)
 		grid_->Release();
 		delete grid_;
 		grid_ = nullptr;
+	}
+
+	if (stage_)
+	{
+		stage_->Release();
+		delete stage_;
+		stage_ = nullptr;
 	}
 
 	DeleteGraph(mainScreen_);

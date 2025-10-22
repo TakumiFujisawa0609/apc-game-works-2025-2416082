@@ -51,7 +51,7 @@ public:
 
 	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -100.0f };	//初期座標
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -500.0f };	//初期座標
 
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };			//モデルの向き修正用
 
@@ -107,7 +107,7 @@ public:
 
 	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
 	const VECTOR &GetAngle(void) { return unit_.angle_; }
-	const float GetMuscleRatio();
+	const float GetMuscleRatio(int index);
 	const STATE GetState(void) { return state_; }
 
 

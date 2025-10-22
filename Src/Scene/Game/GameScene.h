@@ -10,6 +10,7 @@
 class Player;
 class Grid;
 class Boss;
+class Stage;
 
 class GameScene : public SceneBase
 {
@@ -58,6 +59,8 @@ private:
 	Grid* grid_;
 
 	Boss* boss_;
+
+	Stage* stage_;
 
 #pragma region ‰æ–Ê‰‰o
 	bool ScreenProduction(void);

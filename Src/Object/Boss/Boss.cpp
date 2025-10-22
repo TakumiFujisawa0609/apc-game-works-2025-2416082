@@ -60,7 +60,7 @@ void Boss::SubUpdate(void)
 		unit_.isAlive_ = false;
 	}
 
-	//// target_ の方向に向く
+	// target_ の方向に向く
 	//VECTOR dir = VSub(target_, unit_.pos_);
 	//float targetAngleY = atan2f(dir.x, dir.z);
 
@@ -135,13 +135,10 @@ void Boss::SubDraw(void)
 	// モデルに行列の適用
 	// モデルの描画
 	MV1SetMatrix(unit_.model_, mat);
-	MV1DrawModel(unit_.model_);
 
 	//ボスの右手の描画
 	rHand_->SetBaseMat(mat);
 	rHand_->Draw();
-
-
 }
 
 void Boss::SubRelease(void)
