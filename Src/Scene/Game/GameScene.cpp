@@ -172,16 +172,21 @@ void GameScene::Draw(void)
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
-	player_->Draw();
-
-	boss_->Draw();
+#ifdef _DEBUG
 	grid_->Draw();
 
 	SetFontSize(32);
 	DrawString(0, 0, "ƒQ[ƒ€", 0xffffff);
 	SetFontSize(16);
+#endif // _DEBUG
 
-	//UI‚È‚Ç‚Ì•`‰æ
+	// ƒvƒŒƒCƒ„[‚Ì•`‰æ
+	player_->Draw();
+
+	// ƒ{ƒX‚Ì•`‰æ
+	boss_->Draw();
+
+	//UI‚Ì•`‰æ
 	player_->UIDraw();
 	boss_->UIDraw();
 

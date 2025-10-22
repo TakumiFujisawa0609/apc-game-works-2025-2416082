@@ -25,6 +25,7 @@ Player::~Player()
 {
 }
 
+// 最初に一度だけ呼び出す関数
 void Player::SubLoad(void)
 {
    // パスの省略
@@ -63,6 +64,7 @@ void Player::SubLoad(void)
     SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
 }
 
+//初期化処理
 void Player::SubInit(void)
 {
     unit_.para_.colliShape = CollisionShape::CAPSULE;
@@ -115,18 +117,19 @@ void Player::SubInit(void)
     rightArm_->Init();
 }
 
+//更新処理
 void Player::SubUpdate(void)
 {
     auto& input = InputManager::GetInstance();
 
+#ifdef _DEBUG
     if (input.IsTrgDown(KEY_INPUT_P)) {
         leftArm_->SetAttackTime(60);
         rightArm_->SetAttackTime(60);
     }
+#endif // _DEBUG
 
-    if (state_ != STATE::ATTACK) {
-        conbo_ = CONBO::CONBO1;
-    }
+  
 
     // ローリング制御
     if (nextRollCounter_ <= 0)
@@ -142,19 +145,13 @@ void Player::SubUpdate(void)
         isAttacked_ = false;
     }
 
-    //HPがなくなったら死亡処理に移行
-    if (unit_.hp_ <= 0) {
-        unit_.hp_ = 0;
-        state_ = STATE::DEATH;
-    }
 
-    // 関数ポインタでそれぞれのステートの
-    // アップデート関数を呼び出している
-    int key = static_cast<int>(state_);
-    auto it = stateFuncs_.find(key);
 
-    // 安全確認
-    if (it != stateFuncs_.end() && it->second) {        
+    auto it = stateFuncs_.find(static_cast<int>(state_));
+    if (it != stateFuncs_.end() && it->second)  // 安全確認
+    {   
+        // 関数ポインタでそれぞれのステートの
+        // アップデート関数を呼び出している
         it->second();
     }
      
@@ -167,14 +164,19 @@ void Player::SubUpdate(void)
     //カメラ
     CameraPosUpdate();
 
-    // アニメーション処理
-    animation_->Update();
+#pragma region 呼び出し更新処理
+
     // 腕の更新処理
     leftArm_->Update();
     rightArm_->Update();
 
+    // アニメーション処理
+    animation_->Update();
+
+#pragma endregion
 }
 
+// 描画処理
 void Player::SubDraw(void)
 {
 	if (!unit_.isAlive_)return;
@@ -234,7 +236,7 @@ void Player::OnCollision(UnitBase* other)
 
     if (dynamic_cast<Boss*>(other))
     {
-   
+
         return;
     }
 
@@ -259,46 +261,6 @@ void Player::UIDraw(void)
     DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio());
 #endif 
 }
-
-// 筋肉処理
-//void Player::Muscle(void)
-//{
-    //static int cnt = 0;
-
-    //AddArmScale(DOWN_MUSCLE);
-
-#ifdef _DEBUG
-    //if (CheckHitKey(KEY_INPUT_0))
-    //{
-    //    AddArmScale({ -1.0f,-1.0f,-1.0f });
-    //}
-    //if (CheckHitKey(KEY_INPUT_O)) {
-    //    AddArmScale(UP_MUSCLE[2]);
-    //}
-#endif // _DEBUG
-
-
-    //if (state_ != STATE::ATTACK)
-    //{
-    //    cnt = 0;
-    //    isUpMuscle_ = false;
-    //    return;
-    //}
-
-    //if (isUpMuscle_)
-    //{
-    //    cnt++;
-    //    if (cnt <= 10)
-    //    {
-    //        AddArmScale(UP_MUSCLE[(int)conbo_]);
-    //    }
-    //    else
-    //    {
-    //        cnt = 0;
-    //        isUpMuscle_ = false;
-    //    }
-    //}
-//}
 
 // 何もしていない
 void Player::Idle(void)
@@ -489,12 +451,6 @@ void Player::Roll(void)
         unit_.angle_.y = atan2f(worldMove.x, worldMove.z);
         return;
     }
-
-    // プレイヤーがどこに向いているかどうか
-    //if (CheckHitKey(KEY_INPUT_W)) { move_ = { 0.0f, 0.0f, 1.0f  }; }
-    //if (CheckHitKey(KEY_INPUT_S)) { move_ = { 0.0f, 0.0f, -1.0f }; }
-    //if (CheckHitKey(KEY_INPUT_A)) { move_ = { -1.0f, 0.0f, 0.0f }; }
-    //if (CheckHitKey(KEY_INPUT_D)) { move_ = { 1.0f, 0.0f, 0.0f  }; }
 }
 
 void Player::Death(void)
@@ -507,6 +463,13 @@ void Player::Death(void)
 
 void Player::StateManager(void)
 {
+    //HPがなくなったら死亡処理に移行
+    if (unit_.hp_ <= 0) {
+        unit_.hp_ = 0;
+        state_ = STATE::DEATH;
+        return;
+    }
+
     switch (state_)
     {
     case Player::STATE::IDLE:
@@ -585,6 +548,10 @@ void Player::DoIdle(void)
 
 void Player::DoAttack(void)
 {
+    if (state_ != STATE::ATTACK) {
+        conbo_ = CONBO::CONBO1;
+    }
+
     auto& input = InputManager::GetInstance();
     auto& sound = SoundManager::GetIns();
 
@@ -650,75 +617,6 @@ void Player::DoRoll(void)
     }
 
 }
-
-//void Player::DrawRingGauge(int cx, int cy, int outerR, int innerR, float ratio, int color)
-//{
-//    float ratioC = Utility::Clamp(ratio, 0.0f, 1.0f);
-//    int time = GetNowCount();
-//
-//    // --- 筋肉の鼓動パルス（少しだけ伸縮）---
-//    float pulse = 0.03f * sinf(time * 0.03f);
-//    float effectiveRatio = Utility::Clamp(ratioC + pulse, 0.0f, 1.0f);
-//
-//    // --- 太さ計算 ---
-//    float baseThickness = (float)(outerR - innerR);
-//
-//    // --- 色変化（緑→黄→赤） ---
-//    int r, g, b;
-//    if (effectiveRatio < 0.5f) {
-//        float t = effectiveRatio / 0.5f;
-//        r = (int)(0 + 255 * t);
-//        g = 255;
-//        b = 0;
-//    }
-//    else {
-//        float t = (effectiveRatio - 0.5f) / 0.5f;
-//        r = 255;
-//        g = (int)(255 - 255 * t);
-//        b = 0;
-//    }
-//    int ringColor = GetColor(r, g, b);
-//
-//    // --- リング角度（時計回り） ---
-//    float endAngle = 360.0f * ratioC;
-//
-//    // --- MAX時の特別演出 ---
-//    if (ratioC >= 0.999f) {
-//        float glow = 3.0f * sinf(time * 0.2f) + 5.0f;
-//        ringColor = GetColor(255, 200, 150);
-//        int auraColor = GetColor(255, 255, 200);
-//        DrawCircleAA(cx, cy, outerR + glow * 0.5f, 64, auraColor, FALSE, 4.0f);
-//    }
-//
-//    // --- リング描画 ---
-//    const int div = 128;
-//    for (int i = 0; i < div; i++) {
-//        float angle1 = DX_PI_F * 2.0f * i / div;
-//        float angle2 = DX_PI_F * 2.0f * (i + 1) / div;
-//        if ((360.0f * i / div) > endAngle) break;
-//
-//        float inner = (float)innerR;
-//        float outer = (float)outerR;
-//
-//        VECTOR p1 = { cx + cosf(angle1) * inner, cy + sinf(angle1) * inner };
-//        VECTOR p2 = { cx + cosf(angle1) * outer, cy + sinf(angle1) * outer };
-//        VECTOR p3 = { cx + cosf(angle2) * inner, cy + sinf(angle2) * inner };
-//        VECTOR p4 = { cx + cosf(angle2) * outer, cy + sinf(angle2) * outer };
-//
-//        DrawTriangleAA(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, ringColor, TRUE);
-//        DrawTriangleAA(p3.x, p3.y, p2.x, p2.y, p4.x, p4.y, ringColor, TRUE);
-//    }
-//
-//    // --- 中央にパーセント表示 ---
-//    char str[16];
-//    sprintf_s(str, "%3d%%", (int)(ratioC * 100));
-//    int fontSize = 32 + (int)(8 * pulse);
-//    int font = CreateFontToHandle("Impact", fontSize, 4);
-//    int textColor = (ratioC >= 0.999f) ? GetColor(255, 240, 200) : GetColor(230, 255, 230);
-//    int strW = GetDrawStringWidthToHandle(str, strlen(str), font);
-//    DrawStringToHandle(cx - strW / 2, cy - fontSize / 2, str, textColor, font);
-//    DeleteFontToHandle(font);
-//}
 
  //カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
