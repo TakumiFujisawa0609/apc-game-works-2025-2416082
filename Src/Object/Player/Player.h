@@ -6,6 +6,8 @@
 
 class AnimationController;
 
+class MicInput;
+
 class LeftArm;
 class RightArm;
 
@@ -117,7 +119,7 @@ public:
 private:
 
 	AnimationController* animation_;
-
+	MicInput* mic_;
 	LeftArm* leftArm_;
 	RightArm* rightArm_;;
 	

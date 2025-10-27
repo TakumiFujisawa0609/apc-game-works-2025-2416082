@@ -6,6 +6,7 @@
 #include "../../Manager/Animation/AnimationController.h"
 #include "../../Manager/Input/InputManager.h"   
 #include "../../Manager/Sound/SoundManager.h"
+#include "../../Manager/MicInput/MicInput.h"
 
 #include "../Camera/Camera.h"
 
@@ -17,7 +18,11 @@
 
 
 
-Player::Player()
+Player::Player() :
+    animation_(nullptr),
+    mic_(nullptr),
+    leftArm_(nullptr),
+    rightArm_(nullptr)
 {
 }
 
@@ -38,6 +43,9 @@ void Player::SubLoad(void)
    // アニメーションクラス
     animation_ = new AnimationController(unit_.model_);
 
+    mic_ = new MicInput();
+    mic_->Init();
+    mic_->Start();
 
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
@@ -186,6 +194,8 @@ void Player::SubDraw(void)
     leftArm_->Draw();
     rightArm_->Draw();
 
+    int volume = mic_->GetLevel();
+    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", volume);
 }
 
 // 解放処理
@@ -213,6 +223,13 @@ void Player::SubRelease(void)
         rightArm_->Release();
         delete rightArm_;
         rightArm_ = nullptr;
+    }
+
+    if (mic_)
+    {
+        mic_->Stop();
+        delete mic_;
+        mic_ = nullptr;
     }
 
     // モデルの解放

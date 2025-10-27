@@ -138,6 +138,7 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Manager\Animation\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\FlashEffectManager\FlashEffectManager.cpp" />
+    <ClCompile Include="Src\Manager\MicInput\MicInput.cpp" />
     <ClCompile Include="Src\Object\Camera\Camera.cpp" />
     <ClCompile Include="Src\Manager\Collision\Collision.cpp" />
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="Src\Manager\Sound\SoundManager.cpp" />
     <ClCompile Include="Src\Object\Boss\Boss.cpp" />
     <ClCompile Include="Src\Object\Boss\Hand\BossRightHand.cpp" />
+    <ClCompile Include="Src\Object\Enemy\Enemy.cpp" />
     <ClCompile Include="Src\Object\Grid\Grid.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\Base\ArmBase.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\LeftArm.cpp" />
@@ -165,6 +167,7 @@
     <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\Manager\Animation\AnimationController.h" />
     <ClInclude Include="Src\Manager\FlashEffectManager\FlashEffectManager.h" />
+    <ClInclude Include="Src\Manager\MicInput\MicInput.h" />
     <ClInclude Include="Src\Object\Camera\Camera.h" />
     <ClInclude Include="Src\Manager\Collision\Collision.h" />
     <ClInclude Include="Src\Manager\FPS\FPS.h" />
@@ -173,6 +176,7 @@
     <ClInclude Include="Src\Manager\Sound\SoundManager.h" />
     <ClInclude Include="Src\Object\Boss\Boss.h" />
     <ClInclude Include="Src\Object\Boss\Hand\BossRightHand.h" />
+    <ClInclude Include="Src\Object\Enemy\Enemy.h" />
     <ClInclude Include="Src\Object\Grid\Grid.h" />
     <ClInclude Include="Src\Object\Player\Arm\Base\ArmBase.h" />
     <ClInclude Include="Src\Object\Player\Arm\LeftArm.h" />
