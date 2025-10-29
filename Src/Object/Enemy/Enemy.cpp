@@ -32,9 +32,6 @@ void Enemy::UIDraw(void)
 {
 }
 
-void Enemy::OnCollision(UnitBase* other)
-{
-}
 
 void Enemy::Spawn(void)
 {

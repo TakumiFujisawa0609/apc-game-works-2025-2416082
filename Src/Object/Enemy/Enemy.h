@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../UnitBase.h"
+#include "EnemyBase/EnemyBase.h"
 
-class Enemy : public UnitBase
+class Enemy : public EnemyBase
 {
 public:
 
@@ -17,7 +17,6 @@ public:
 
 	void UIDraw(void);				// UI•`‰æ
 
-	void OnCollision(UnitBase* other) override;		// “–‚½‚è”»’èˆ—
 
 private:
 

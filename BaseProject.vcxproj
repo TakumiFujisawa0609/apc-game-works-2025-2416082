@@ -148,6 +148,8 @@
     <ClCompile Include="Src\Object\Boss\Boss.cpp" />
     <ClCompile Include="Src\Object\Boss\Hand\BossRightHand.cpp" />
     <ClCompile Include="Src\Object\Enemy\Enemy.cpp" />
+    <ClCompile Include="Src\Object\Enemy\EnemyBase\EnemyBase.cpp" />
+    <ClCompile Include="Src\Object\Enemy\EnemyManager\EnemyManager.cpp" />
     <ClCompile Include="Src\Object\Grid\Grid.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\Base\ArmBase.cpp" />
     <ClCompile Include="Src\Object\Player\Arm\LeftArm.cpp" />
@@ -177,6 +179,8 @@
     <ClInclude Include="Src\Object\Boss\Boss.h" />
     <ClInclude Include="Src\Object\Boss\Hand\BossRightHand.h" />
     <ClInclude Include="Src\Object\Enemy\Enemy.h" />
+    <ClInclude Include="Src\Object\Enemy\EnemyBase\EnemyBase.h" />
+    <ClInclude Include="Src\Object\Enemy\EnemyManager\EnemyManager.h" />
     <ClInclude Include="Src\Object\Grid\Grid.h" />
     <ClInclude Include="Src\Object\Player\Arm\Base\ArmBase.h" />
     <ClInclude Include="Src\Object\Player\Arm\LeftArm.h" />
