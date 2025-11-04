@@ -80,7 +80,7 @@ void Camera::MouseMoveCamera(void)
     angle_.x += deltaY * sens;
 
     // ã‰º‚Ì‰ñ“]§ŒÀ
-    float limit = DX_PI_F * 12;
+    float limit = DX_PI_F * 20;
     if (angle_.x > limit) angle_.x = limit;
     if (angle_.x < -limit) angle_.x = -limit;
 }

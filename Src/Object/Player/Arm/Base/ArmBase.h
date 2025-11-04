@@ -8,8 +8,7 @@ class ArmBase : public UnitBase
 {
 public:
 
-	static constexpr VECTOR MAX_ARM_MUSCLE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
-	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
+
 
 	static constexpr int RIGHT_ARM_INDEX = 4;//35;
 	static constexpr int RIGHT_HAND_INDEX = 38;
@@ -23,26 +22,23 @@ public:
 	ArmBase(int modelId);
 	~ArmBase() override;
 
-	void SubLoad(void) override;
-	void SubInit(void) override;
-	void SubUpdate(void) override;
-	void SubDraw(void) override;
-	void SubRelease(void) override;
-
 	void OnCollision(UnitBase* other) override;
-
-	void AddArmScale(VECTOR scale);
-	void AddBoneScale(int index, VECTOR scale);
-
 	void UIDraw(void);
 
 	// 呼び出して時間を設定した瞬間から、攻撃判定が出てくる
 	void SetAttackTime(int collTime);
 
 protected:
+	void SubLoad(void) override;
+	void SubInit(void) override;
+	void SubUpdate(void) override;
+	void SubDraw(void) override;
+	void SubRelease(void) override;
+private:
+	void AddArmScale(VECTOR scale);
 	FlashEffectManager* flash_;
 
-	int *state_;
+	int* state_;
 
 	bool isHit_;
 
@@ -50,5 +46,5 @@ protected:
 	int frameScrollIndex_;
 	float muscleRatio_;
 	int cnt_;
-
+	
 };

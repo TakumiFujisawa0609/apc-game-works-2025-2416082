@@ -78,7 +78,7 @@
     <ClCompile Include="Src\Object\Player\Arm\RightArm.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Object\Boss\Hand\BossRightHand.cpp">
+    <ClCompile Include="Src\Object\Boss\Hand\HandSlap.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Scene\GameOver\GameOver.cpp">
@@ -99,10 +99,13 @@
     <ClCompile Include="Src\Manager\MicInput\MicInput.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Object\Enemy\EnemyBase\EnemyBase.cpp">
+    <ClCompile Include="Src\Object\Enemy\EnemyBase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Object\Enemy\EnemyManager\EnemyManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Scene\Event\ShoutEvent\ShoutEvent.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,7 +173,7 @@
     <ClInclude Include="Src\Object\Player\Arm\RightArm.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Object\Boss\Hand\BossRightHand.h">
+    <ClInclude Include="Src\Object\Boss\Hand\HandSlap.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\GameOver\GameOver.h">
@@ -191,10 +194,13 @@
     <ClInclude Include="Src\Manager\MicInput\MicInput.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Object\Enemy\EnemyBase\EnemyBase.h">
+    <ClInclude Include="Src\Object\Enemy\EnemyBase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Object\Enemy\EnemyManager\EnemyManager.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Scene\Event\ShoutEvent\ShoutEvent.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

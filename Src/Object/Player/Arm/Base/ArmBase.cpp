@@ -8,7 +8,7 @@
 #include "../../Player.h"
 
 #include "../../../Boss/Boss.h"
-#include "../../../Boss/Hand/BossRightHand.h"
+#include "../../../Boss/Hand/HandSlap.h"
 
 
 ArmBase::ArmBase(int modelId)
@@ -49,12 +49,13 @@ void ArmBase::SubUpdate(void)
 {
 	if (cnt_ > 0) {
 		cnt_--;
-		unit_.isAlive_ = true;
-		if (cnt_ <= 0) {
-			unit_.isAlive_ = false;
-			cnt_ = 0;
-		}
 	}
+	if (cnt_ <= 0) {
+		cnt_ = 0;
+	}
+
+	unit_.isAlive_ = (cnt_ > 0);
+
 
 	if (CheckHitKey(KEY_INPUT_0)) {
 		AddArmScale({ -0.05, -0.05, -0.05 });
@@ -91,15 +92,12 @@ void ArmBase::SubRelease(void)
 
 void ArmBase::OnCollision(UnitBase* other)
 {
-	if (isHit_) { return; }
 	auto& sound = SoundManager::GetIns();
 
 
 	if (dynamic_cast<Boss*>(other))
 	{
-	
-
-		AddArmScale(BONE_UP);
+		//AddArmScale(BONE_UP);
 		isHit_ = true;
 		return;
 	}
@@ -114,60 +112,7 @@ void ArmBase::OnCollision(UnitBase* other)
 	//}
 }
 
-void ArmBase::AddArmScale(VECTOR scale)
-{
-	AddBoneScale(LEFT_ARM_INDEX, scale);
-	AddBoneScale(RIGHT_ARM_INDEX, scale);
 
-	//// 行列からスケール成分を抽出
-	//float currentScale[3];
-	//for (int i = 0; i < 3; i++) {
-	//    currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-	//}
-
-	//// スケール加算
-	//VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
-}
-
-
-void ArmBase::AddBoneScale(int index, VECTOR scale)
-{
-	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
-
-	// 行列からスケール成分を抽出
-	float currentScale[3];
-	for (int i = 0; i < 3; i++) {
-		currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-	}
-
-	// スケール加算
-	VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
-
-	// 最大値の制限
-	if (newScale.x > MAX_ARM_MUSCLE.x) newScale.x = MAX_ARM_MUSCLE.x;
-	if (newScale.y > MAX_ARM_MUSCLE.y) newScale.y = MAX_ARM_MUSCLE.y;
-	if (newScale.z > MAX_ARM_MUSCLE.z) newScale.z = MAX_ARM_MUSCLE.z;
-
-	// 最低値の制限
-	if (newScale.x < MIN_ARM_MUSCLE.x) newScale.x = MIN_ARM_MUSCLE.x;
-	if (newScale.y < MIN_ARM_MUSCLE.y) newScale.y = MIN_ARM_MUSCLE.y;
-	if (newScale.z < MIN_ARM_MUSCLE.z) newScale.z = MIN_ARM_MUSCLE.z;
-
-#ifdef _DEBUG
-	// 筋肉量を確認する用の処理(デバッグ用)
-	float avgScale = (newScale.x + newScale.y + newScale.z) / 3.0f;
-	float avgMin = (MIN_ARM_MUSCLE.x + MIN_ARM_MUSCLE.y + MIN_ARM_MUSCLE.z) / 3.0f;
-	float avgMax = (MAX_ARM_MUSCLE.x + MAX_ARM_MUSCLE.y + MAX_ARM_MUSCLE.z) / 3.0f;
-
-	float muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin);
-#endif // _DEBUG
-
-	// スケール行列を作成
-	MATRIX scaleMat = MGetScale(newScale);
-
-	// 適用
-	MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
-}
 
 void ArmBase::UIDraw(void)
 {
@@ -204,7 +149,21 @@ void ArmBase::UIDraw(void)
 void ArmBase::SetAttackTime(int collTime)
 {
 	cnt_ = collTime;
-	isHit_ = false;
 }
 
 
+
+void ArmBase::AddArmScale(VECTOR scale)
+{
+	AddBoneScale(LEFT_ARM_INDEX, scale);
+	AddBoneScale(RIGHT_ARM_INDEX, scale);
+
+	//// 行列からスケール成分を抽出
+	//float currentScale[3];
+	//for (int i = 0; i < 3; i++) {
+	//    currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
+	//}
+
+	//// スケール加算
+	//VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
+}

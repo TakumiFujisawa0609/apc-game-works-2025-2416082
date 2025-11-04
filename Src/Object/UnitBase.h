@@ -12,6 +12,8 @@ enum class CollisionType { NON = -2, ALLY/*味方*/, ENEMY/*敵*/ };
 
 struct Base
 {
+
+
 	struct {
 		CollisionShape colliShape = CollisionShape::NON;
 		CollisionType colliType = CollisionType::NON;
@@ -40,6 +42,9 @@ struct Base
 class UnitBase
 {
 public:
+	static constexpr VECTOR MAX_MUSCLE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
+	static constexpr VECTOR MIN_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
+
 	UnitBase();
 	virtual ~UnitBase() = 0;
 
@@ -59,7 +64,7 @@ protected:
 	virtual void SubDraw(void) = 0;
 	virtual void SubRelease(void) = 0;
 
-
+	void AddBoneScale(int index, VECTOR scale);
 
 	// 関数ポインタ
 	using StateFunc = std::function<void()>;
@@ -68,7 +73,7 @@ protected:
 	// 子クラスで定義した関数を関数ポインタに登録
 	void StateAdd(int state, StateFunc func);
 
-	void ChangeState(int state);
+	void StateUpdate(int state);
 
 	static constexpr int INVI_TIME = 40;
 

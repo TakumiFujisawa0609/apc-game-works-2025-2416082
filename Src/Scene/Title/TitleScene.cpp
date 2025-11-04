@@ -4,6 +4,7 @@
 
 #include"../SceneManager/SceneManager.h"
 
+#include "../../Manager/MicInput/MicInput.h"
 #include"../../Manager/Input/InputManager.h"
 #include "../../Manager/Animation/AnimationController.h"
 
@@ -13,7 +14,8 @@
 TitleScene::TitleScene():
 	pos(),
 	scale(),
-	angle()
+	angle(),
+	mic_(nullptr)
 {
 }
 
@@ -31,32 +33,46 @@ void TitleScene::Load(void)
 	animation_ = new AnimationController(model_);
 	animation_->Add((int)(ANIM_TYPE::IDLE), 30, "Data/Model/Player/Animation/Idle.mv1");	//タイトル用のプレイヤーに使うアイドルアニメーション
 	animation_->Add((int)(ANIM_TYPE::ATTACK), 60, "Data/Model/Player/Animation/Punching.mv1");	//タイトル用のプレイヤーに使う攻撃アニメーション
+
+	mic_ = new MicInput();
 }
 
 // 初期化処理
 void TitleScene::Init(void)
 {
 	// プレイヤーの初期化
-	pos = { 1000.0f,200.0f,0.0f, };
+	pos = { 1000.0f,100.0f,0.0f, };
 	angle = Utility::VECTOR_ZERO; 
 	scale = { 2.0f,2.0f,2.0f };
+
+	mic_->Init();
+	mic_->Start();
 }
 
 // 更新処理
 void TitleScene::Update(void)
 {
 	auto& input = InputManager::GetInstance();
+	auto& scene = SceneManager::GetInstance();
 	static bool is = false;
 
 	// どれかのキーが「押された瞬間」なら遷移
 	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
-		animation_->Play((int)ANIM_TYPE::ATTACK, false);
 		is = true;
 	}
+	static int cnt = 0;
+	if (is) {
+		cnt++;
+		if (cnt > 120) {
+			scene.ChangeScene(SCENE_ID::GAME);
+			return;
+		}
+	}
 
-	if (animation_->IsEnd((int)ANIM_TYPE::ATTACK)) {
-		SceneManager::GetInstance().ChangeScene(SCENE_ID::GAME);
-		return;
+	AddBoneScale(4, { -0.03f,-0.03f,-0.03f });
+
+	if (mic_->GetPlayGameLevel() > 4000) {
+		AddBoneScale(4, { 0.04f,0.04f,0.04f });
 	}
 
 	if (!is) {
@@ -64,6 +80,7 @@ void TitleScene::Update(void)
 	}
 
 	animation_->Update();
+	mic_->Update();
 
 }
 
@@ -87,15 +104,6 @@ void TitleScene::Draw(void)
 	mat = MMult(mat, MGetRotX(angle.y));
 	mat = MMult(mat, MGetRotZ(angle.z));
 
-	//const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
-	//MATRIX localMat = MGetIdent();
-
-	//localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-	//localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-	//localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
-
-	//mat = MMult(mat, localMat);
-
 	mat = MMult(MGetScale(scale), mat);
 
 	mat.m[3][0] = pos.x;
@@ -107,7 +115,7 @@ void TitleScene::Draw(void)
 
 #ifdef _DEBUG
 	SetFontSize(32);
-	DrawString(0, 0, "タイトル", 0xffffff);
+	DrawFormatString(0, 0, 0xffffff,"%i", mic_->GetLevel());
 	SetFontSize(16);
 #endif // _DEBUG
 }
@@ -123,4 +131,49 @@ void TitleScene::Release(void)
 		delete animation_;
 		animation_ = nullptr;
 	}
+
+	if (mic_) {
+		mic_->Stop();
+		delete mic_;
+		mic_ = nullptr;
+	}
+}
+
+void TitleScene::AddBoneScale(int index, VECTOR scale)
+{
+	MATRIX mat = MV1GetFrameLocalMatrix(model_, index);
+
+	// 行列からスケール成分を抽出
+	float currentScale[3];
+	for (int i = 0; i < 3; i++) {
+		currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
+	}
+
+	// スケール加算
+	VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
+
+	// 最大値の制限
+	if (newScale.x > MAX_SIZE.x) newScale.x = MAX_SIZE.x;
+	if (newScale.y > MAX_SIZE.y) newScale.y = MAX_SIZE.y;
+	if (newScale.z > MAX_SIZE.z) newScale.z = MAX_SIZE.z;
+
+	// 最低値の制限
+	if (newScale.x < MIN_ARM_MUSCLE.x) newScale.x = MIN_ARM_MUSCLE.x;
+	if (newScale.y < MIN_ARM_MUSCLE.y) newScale.y = MIN_ARM_MUSCLE.y;
+	if (newScale.z < MIN_ARM_MUSCLE.z) newScale.z = MIN_ARM_MUSCLE.z;
+
+#ifdef _DEBUG
+	// 筋肉量を確認する用の処理(デバッグ用)
+	float avgScale = (newScale.x + newScale.y + newScale.z) / 3.0f;
+	float avgMin = (MIN_ARM_MUSCLE.x + MIN_ARM_MUSCLE.y + MIN_ARM_MUSCLE.z) / 3.0f;
+	float avgMax = (MAX_SIZE.x + MAX_SIZE.y + MAX_SIZE.z) / 3.0f;
+
+	float muscleRatio_ = (avgScale - avgMin) / (avgMax - avgMin);
+#endif // _DEBUG
+
+	// スケール行列を作成
+	MATRIX scaleMat = MGetScale(newScale);
+
+	// 適用
+	MV1SetFrameUserLocalMatrix(model_, index, scaleMat);
 }

@@ -11,7 +11,7 @@
 #include "../Camera/Camera.h"
 
 #include "../Boss/Boss.h"
-#include "../Boss/Hand/BossRightHand.h"
+#include "../Boss/Hand/HandSlap.h"
 
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
@@ -107,8 +107,6 @@ void Player::SubInit(void)
     // 攻撃処理の初期化
     isAttacked_ = false;
 
-    // 筋肉を増やす
-    isUpMuscle_ = false;
 
     // 関数ポインタに登録
     StateAdd((int)STATE::IDLE,      [this]() { Idle();      });
@@ -130,6 +128,8 @@ void Player::SubUpdate(void)
 {
     auto& input = InputManager::GetInstance();
 
+    StageCollision();
+
 #ifdef _DEBUG
     if (input.IsTrgDown(KEY_INPUT_P)) {
         leftArm_->SetAttackTime(60);
@@ -137,7 +137,7 @@ void Player::SubUpdate(void)
     }
 #endif // _DEBUG
 
-  
+    VoiceUpMuscle();
 
     // ローリング制御
     if (nextRollCounter_ <= 0)
@@ -153,15 +153,8 @@ void Player::SubUpdate(void)
         isAttacked_ = false;
     }
 
-
-
-    auto it = stateFuncs_.find(static_cast<int>(state_));
-    if (it != stateFuncs_.end() && it->second)  // 安全確認
-    {   
-        // 関数ポインタでそれぞれのステートの
-        // アップデート関数を呼び出している
-        it->second();
-    }
+    // ステートごと更新処理呼び出し
+    StateUpdate((int)state_);
      
     //状態遷移用関数
     StateManager();
@@ -257,7 +250,7 @@ void Player::OnCollision(UnitBase* other)
         return;
     }
 
-    if (dynamic_cast<BossRightHand*>(other))
+    if (dynamic_cast<HandSlap*>(other))
     {
 
         unit_.hp_ -= 10;
@@ -304,15 +297,12 @@ void Player::Move(void)
         const float deadZone = 8000.0f;   // デッドゾーン
         const float maxValue = 32767.0f;  // 最大スティック値
 
-        int joyX = padState.ThumbLX;
-        int joyY = padState.ThumbLY;
-
         // デッドゾーン処理
-        if (fabsf((float)joyX) > deadZone) {
-            move_.x += (float)joyX / maxValue;
+        if (fabsf((float)padState.ThumbLX) > deadZone) {
+            move_.x += (float)padState.ThumbLX / maxValue;
         }
-        if (fabsf((float)joyY) > deadZone) {
-            move_.z += (float)joyY / maxValue; // 上方向を前進に補正
+        if (fabsf((float)padState.ThumbLY) > deadZone) {
+            move_.z += (float)padState.ThumbLY / maxValue;
         }
     }
 
@@ -355,15 +345,12 @@ void Player::Attack(void)
         const float deadZone = 8000.0f;   // デッドゾーン
         const float maxValue = 32767.0f;  // 最大スティック値
 
-        int joyX = padState.ThumbLX;
-        int joyY = padState.ThumbLY;
-
         // デッドゾーン処理
-        if (fabsf((float)joyX) > deadZone) {
-            move_.x += (float)joyX / maxValue;
+        if (fabsf((float)padState.ThumbLX) > deadZone) {
+            move_.x += (float)padState.ThumbLX / maxValue;
         }
-        if (fabsf((float)joyY) > deadZone) {
-            move_.z += (float)joyY / maxValue; // 上方向を前進に補正
+        if (fabsf((float)padState.ThumbLY) > deadZone) {
+            move_.z += (float)padState.ThumbLY / maxValue;
         }
     }
 
@@ -383,15 +370,15 @@ void Player::Attack(void)
     {
     case CONBO::CONBO1: 
         anim = (int)ANIM_TYPE::ATTACK1;
-        leftArm_->SetAttackTime(5);
+        leftArm_->SetAttackTime(ATTACK_TIME);
         break;
     case CONBO::CONBO2: 
         anim = (int)ANIM_TYPE::ATTACK2; 
-        rightArm_->SetAttackTime(5);
+        rightArm_->SetAttackTime(ATTACK_TIME);
         break;
     case CONBO::CONBO3:
         anim = (int)ANIM_TYPE::ATTACK3; 
-        leftArm_->SetAttackTime(5);
+        leftArm_->SetAttackTime(ATTACK_TIME);
         break;
     }
 
@@ -425,7 +412,7 @@ void Player::Attack(void)
 
     static int cnt = 0;
     cnt++;
-    if (cnt > 300) {
+    if (cnt > 120) {
         cnt = 0;
         state_ = STATE::IDLE;
     }
@@ -506,14 +493,14 @@ void Player::StateManager(void)
 
 void Player::DoWalk(void)
 {
-    // --- キーボード入力チェック ---
+    // キーボード入力チェック
     bool keyboardMove =
         CheckHitKey(KEY_INPUT_W) ||
         CheckHitKey(KEY_INPUT_S) ||
         CheckHitKey(KEY_INPUT_A) ||
         CheckHitKey(KEY_INPUT_D);
 
-    // --- コントローラー入力チェック ---
+    // コントローラー入力チェック
     XINPUT_STATE padState{};
     bool controllerMove = false;
 
@@ -530,7 +517,7 @@ void Player::DoWalk(void)
         }
     }
 
-    // --- 状態遷移処理 ---
+    // 状態遷移処理 
     if (keyboardMove || controllerMove)
     {
         state_ = STATE::MOVE;
@@ -539,7 +526,7 @@ void Player::DoWalk(void)
 
 void Player::DoIdle(void)
 {
-    // --- コントローラー入力チェック ---
+    // コントローラー入力チェック
     XINPUT_STATE padState{};
     bool controllerMove = false;
 
@@ -572,19 +559,19 @@ void Player::DoAttack(void)
     auto& input = InputManager::GetInstance();
     auto& sound = SoundManager::GetIns();
 
+    bool isTrg = (input.IsTrgMouseLeft() ||
+        input.IsTrgDown(KEY_INPUT_J) ||
+        input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::LEFT) ||
+        input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER1) ||
+        input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER2));
+
     // 攻撃開始（1段目）
-    if (!isAttacked_ &&
-        (input.IsTrgMouseLeft() ||
-            input.IsTrgDown(KEY_INPUT_J) ||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::LEFT) ||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER1) ||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER2)))
+    if (!isAttacked_ && isTrg)
     {
         conbo_ = CONBO::CONBO1;
         state_ = STATE::ATTACK;
 
         isAttacked_ = true;
-        isUpMuscle_ = true;
 
         sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
         sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
@@ -593,17 +580,14 @@ void Player::DoAttack(void)
     }
 
     int animIndex = (int)ANIM_TYPE::ATTACK1 + (int)conbo_;
-    if (animation_->IsPassedRatio(animIndex, 0.4f) &&
-        (input.IsTrgMouseLeft() || input.IsTrgDown(KEY_INPUT_J) ||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::LEFT)  ||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER1)||
-            input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER2)))
+    if (animation_->IsPassedRatio(animIndex, 0.4f) && isTrg)
     {
+
+
         if (conbo_ < CONBO::CONBO3)
         {
             conbo_ = (CONBO)((int)conbo_ + 1);
             state_ = STATE::ATTACK;
-            isUpMuscle_ = true;
 
             sound.Stop(SOUND::PLAYER_BIG_ATTACK);
             sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
@@ -635,10 +619,34 @@ void Player::DoRoll(void)
 
 }
 
+void Player::VoiceUpMuscle(void)
+{
+    if (mic_->GetPlayGameLevel() > 4000) {
+        AddBoneScale(4, { 0.01f,0.01f,0.01f });
+    }
+}
+
+const float Player::GetMuscleRatio(int index)
+{
+    // 指定ボーンのローカル行列を取得
+    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
+
+    // 太さ方向（Y軸）のスケールを抽出
+    float scaleY = VSize({ mat.m[1][0], mat.m[1][1], mat.m[1][2] });
+
+    // 筋肉比率を0～1に正規化
+    float ret = Utility::Clamp(
+        (scaleY - ArmBase::MIN_MUSCLE.y) /
+        (ArmBase::MAX_MUSCLE.y - ArmBase::MIN_MUSCLE.y),
+        0.0f, 1.0f);
+
+    return ret;
+}
+
+
  //カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
 {
- 
     cameraPos_ = unit_.pos_;
 
     //もともとボーンごとじゃなくてモデル自体を
@@ -651,22 +659,7 @@ void Player::CameraPosUpdate(void)
     cameraPos_.y = unit_.pos_.y + currentHeight;
 }
 
-const float Player::GetMuscleRatio(int index)
-{
-    // 左右腕のローカル行列取得
-    MATRIX leftMat = MV1GetFrameLocalMatrix(unit_.model_, index);
 
-    // 太さ方向(Y軸)のスケールのみ抽出
-    float scale = VSize({ leftMat.m[1][0], leftMat.m[1][1], leftMat.m[1][2] });
-
-    // ratio計算
-    float ret = Utility::Clamp(
-        (scale - ArmBase::MIN_ARM_MUSCLE.y) /
-        (ArmBase::MAX_ARM_MUSCLE.x - ArmBase::MIN_ARM_MUSCLE.x),
-        0.0f, 1.0f);
-
-    return ret;
-}
 
 void Player::DebugDraw(void)
 {
@@ -772,6 +765,33 @@ void Player::HpDraw(void)
     // ▼ 外光オーラ（力の気配）
     int auraColor = GetColor(255, 80, 80);
     DrawBox(startPosX - 5, startPosY - 5, startPosX + filled + 5, startPosY + height + 5, auraColor, false);
+}
+
+void Player::StageCollision(void)
+{
+    // 移動範囲制限（外側）
+    const float radius = 4300.0f;  // 最大半径
+    const float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
+
+    if (distance > radius)
+    {
+        // 原点からの方向ベクトルを正規化して外側の円に制限
+        float nx = unit_.pos_.x / distance;
+        float nz = unit_.pos_.z / distance;
+        unit_.pos_.x = nx * radius;
+        unit_.pos_.z = nz * radius;
+    }
+
+    // 移動範囲制限（内側）
+    const float miniRadius = 450.0f;  // 最小半径
+    if (distance < miniRadius)
+    {
+        // 原点からの方向ベクトルを正規化して内側の円に制限
+        float nx = unit_.pos_.x / distance;
+        float nz = unit_.pos_.z / distance;
+        unit_.pos_.x = nx * miniRadius;
+        unit_.pos_.z = nz * miniRadius;
+    }
 }
 
 

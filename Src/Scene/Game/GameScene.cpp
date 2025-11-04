@@ -3,27 +3,30 @@
 #include<DxLib.h>
 #include<cmath>
 
-#include"../../Manager/Input/InputManager.h"
+#include "../../Manager/Input/InputManager.h"
 
-#include"../../Application/Application.h"
-#include"../../scene/SceneManager/SceneManager.h"
+#include "../../Application/Application.h"
+#include "../../scene/SceneManager/SceneManager.h"
 
-#include"../../Utility/Utility.h"
+#include "../../Utility/Utility.h"
 
-#include"../../Object/Camera/Camera.h"
-#include"../../Object/Player/Player.h"
-#include"../../Object/Player/Arm/LeftArm.h"
-#include"../../Object/Player/Arm/RightArm.h"
+#include "../../Object/Camera/Camera.h"
+#include "../../Object/Player/Player.h"
+#include "../../Object/Player/Arm/LeftArm.h"
+#include "../../Object/Player/Arm/RightArm.h"
 
-#include"../../Object/Boss/Boss.h"
-#include"../../Object/Boss/Hand/BossRightHand.h"
+#include "../../Object/Boss/Boss.h"
+#include "../../Object/Boss/Hand/HandSlap.h"
 
-#include"../../Object/Stage/Stage.h"
+#include "../../Object/Enemy/EnemyManager/EnemyManager.h"
+#include "../../Object/Enemy/EnemyBase.h"
 
-#include"../../Object/Grid/Grid.h"
+#include "../../Object/Stage/Stage.h"
 
-#include"../Title/TitleScene.h"
-#include"../../Scene/PauseScene/PauseScene.h"
+#include "../../Object/Grid/Grid.h"
+
+#include "../Title/TitleScene.h"
+#include "../../Scene/PauseScene/PauseScene.h"
 
 int GameScene::hitStop_ = 0;
 
@@ -40,7 +43,8 @@ GameScene::GameScene() :
 	player_(nullptr),
 	boss_(nullptr),
 	grid_(nullptr),
-	stage_(nullptr)
+	stage_(nullptr),
+	enemy_(nullptr)
 {
 
 }
@@ -56,20 +60,25 @@ void GameScene::Load(void)
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
 	collision_ = new Collision();
-
 	player_ = new Player();
-	player_->Load();
 
 	boss_ = new Boss();
-	boss_->Load();
-
+	enemy_ = new EnemyManager(player_->GetUnit().pos_);
 	stage_ = new Stage();
+	grid_ = new Grid();
+
+
+	player_->Load();
+	boss_->Load();
+	enemy_->Load();
 	stage_->Load();
 
-	grid_ = new Grid();
 
 	collision_->AddEnemy(boss_);
 	collision_->AddEnemy(boss_->GetRightHand());
+	for (auto& enemy : enemy_->GetEnemy()) {
+		collision_->AddEnemy(enemy);
+	}
 
 	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
@@ -81,9 +90,11 @@ void GameScene::Load(void)
 void GameScene::Init(void)
 {
 	player_->Init();
+	boss_->SetPlayerPos(player_->GetUnit().pos_);
 	boss_->Init();
 	grid_->Init();
 	stage_->Init();
+	enemy_->Init();
 
 	SetMouseDispFlag(false);
 
@@ -115,42 +126,26 @@ void GameScene::Update(void)
 
 #pragma region オブジェクト更新処理
 
-	//if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
-
-	//	//シーン遷移の書き方2種類
-	//	
-	//	//今まで通りの
-	//	SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
-
-	//	//列挙型(enum)とかswitchとか書かないやり方
-	//	SceneManager::GetInstance().ChangeScene(std::make_shared<TitleScene>());
-	//	
-	//	//まあ実際、上のは使いやすいように下をオーバーロードしたものだから内部的には一緒
-
-	//	return;
-	//}
-
 	Camera::GetInstance().Update();
 	player_->Update();
 	boss_->Update();
-	boss_->SetMuscleRatio(player_->GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
-	boss_->SetTarget(player_->GetUnit().pos_);
+	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
+	boss_->SetPlayerPos(player_->GetUnit().pos_);
+	enemy_->Update();
 	grid_->Update();
 	stage_->Update();
-
-	auto& input = InputManager::GetInstance();
-	auto& scene = SceneManager::GetInstance();
-	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
-		scene.PushScene(std::make_shared<PauseScene>());
-		//if (input.IsTrgDown(KEY_INPUT_SPACE)) {
-		//	scene.PopScene();
-		//}
-	}
 
 	// 当たり判定
 	collision_->Check();
 
 #pragma endregion
+	auto& scene = SceneManager::GetInstance();
+	auto& input = InputManager::GetInstance();
+	
+	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
+		scene.PushScene(std::make_shared<PauseScene>());
+		return;
+	}
 
 	if (!boss_->GetUnit().isAlive_) {
 		scene.ChangeScene(SCENE_ID::TITLE);
@@ -182,7 +177,7 @@ void GameScene::Draw(void)
 
 	stage_->Draw();
 	player_->Draw();
-
+	enemy_->Draw();
 	boss_->Draw();
 #ifdef _DEBUG
 	grid_->Draw();
@@ -192,14 +187,9 @@ void GameScene::Draw(void)
 	SetFontSize(16);
 #endif // _DEBUG
 
-	// プレイヤーの描画
-	player_->Draw();
-
-	// ボスの描画
-	boss_->Draw();
-
 	//UIの描画
 	player_->UIDraw();
+
 	boss_->UIDraw();
 
 #pragma endregion
@@ -230,6 +220,12 @@ void GameScene::Release(void)
 		boss_->Release();
 		delete boss_;
 		boss_ = nullptr;
+	}
+
+	if (enemy_) {
+		enemy_->Release();
+		delete enemy_;
+		enemy_ = nullptr;
 	}
 
 	if (grid_) {

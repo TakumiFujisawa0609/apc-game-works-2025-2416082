@@ -11,6 +11,7 @@ class Player;
 class Grid;
 class Boss;
 class Stage;
+class EnemyManager;
 
 class GameScene : public SceneBase
 {
@@ -61,6 +62,8 @@ private:
 	Boss* boss_;
 
 	Stage* stage_;
+
+	EnemyManager* enemy_;
 
 #pragma region ‰æ–Ê‰‰o
 	bool ScreenProduction(void);

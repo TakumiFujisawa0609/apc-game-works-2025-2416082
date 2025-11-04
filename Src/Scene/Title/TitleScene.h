@@ -3,7 +3,7 @@
 #include<DxLib.h>
 
 class AnimationController;
-
+class MicInput;
 
 class TitleScene : public SceneBase
 {
@@ -15,6 +15,9 @@ public:
 
 		MAX
 	};
+
+	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
+	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
 	TitleScene();
 	~TitleScene()override;
@@ -32,6 +35,7 @@ public:
 
 private:
 	AnimationController* animation_;
+	MicInput* mic_;
 
 	int image_;
 
@@ -40,4 +44,7 @@ private:
 	VECTOR pos;
 	VECTOR scale;
 	VECTOR angle;
+
+	void AddBoneScale(int index, VECTOR scale);
+
 };

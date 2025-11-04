@@ -9,12 +9,14 @@
 
 #include "../../Manager/Sound/SoundManager.h"
 
-#include "Hand/BossRightHand.h"
+#include "Hand/HandSlap.h"
 
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
 
-Boss::Boss()
+Boss::Boss() :
+	target_(),
+	playerMuscleRatio_()
 {
 }
 
@@ -24,8 +26,8 @@ Boss::~Boss()
 
 void Boss::SubLoad(void)
 {
-	rHand_ = new BossRightHand();
-	rHand_->Load();
+	hand_ = new HandSlap(target_);
+	hand_->Load();
 
 	unit_.model_ = MV1LoadModel("Data/Model/Boss/BossHead.mv1");
 
@@ -48,7 +50,7 @@ void Boss::SubInit(void)
 
 	color1 = 0xfff000;
 
-	rHand_->Init();
+	hand_->Init();
 
 }
 
@@ -60,21 +62,23 @@ void Boss::SubUpdate(void)
 		unit_.isAlive_ = false;
 	}
 
-	// target_ の方向に向く
-	//VECTOR dir = VSub(target_, unit_.pos_);
-	//float targetAngleY = atan2f(dir.x, dir.z);
+	 //target_ の方向に向く
+	VECTOR dir = VSub(target_, unit_.pos_);
+	float targetAngleY = atan2f(dir.x, dir.z);
 
-	//float rotationSpeed = Utility::Deg2RadF(1.0f);
-	//float deltaAngle = targetAngleY - unit_.angle_.y;
-	//while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
-	//while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
+	float rotationSpeed = Utility::Deg2RadF(1.0f);
+	float deltaAngle = targetAngleY - unit_.angle_.y;
+	while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
+	while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
 
-	//if (fabsf(deltaAngle) < rotationSpeed)
-	//	unit_.angle_.y = targetAngleY;
-	//else
-	//	unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
+	if (fabsf(deltaAngle) < rotationSpeed) {
+		unit_.angle_.y = targetAngleY;
+	}
+	else {
+		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
+	}
 
-	rHand_->Update();
+	hand_->Update();
 	Invi();
 
 	// ダメージテキストの更新
@@ -136,9 +140,7 @@ void Boss::SubDraw(void)
 	// モデルの描画
 	MV1SetMatrix(unit_.model_, mat);
 
-	//ボスの右手の描画
-	rHand_->SetBaseMat(mat);
-	rHand_->Draw();
+	hand_->Draw();
 }
 
 void Boss::SubRelease(void)
@@ -147,17 +149,37 @@ void Boss::SubRelease(void)
 	MV1DeleteModel(unit_.model_);
 
 	//右手の開放
-	if (rHand_)
+	if (hand_)
 	{
-		rHand_->Release();
-		delete rHand_;
-		rHand_ = nullptr;
+		hand_->Release();
+		delete hand_;
+		hand_ = nullptr;
 	}
 
 	// 音声の開放
 	for (int i = 0; i < (int)SOUND::MAX; i++) {
 		SoundManager::GetIns().Delete((SOUND)i);
 	}
+}
+
+void Boss::SetMatrix(void)
+{
+}
+
+void Boss::Attack(void)
+{
+}
+
+void Boss::Idle(void)
+{
+}
+
+void Boss::Damage(void)
+{
+}
+
+void Boss::Death(void)
+{
 }
 
 void Boss::UIDraw(void)
@@ -195,13 +217,13 @@ void Boss::OnCollision(UnitBase* other)
 	int damage = 0;
 	if (dynamic_cast<LeftArm*>(other) || dynamic_cast<RightArm*>(other)) {
 		SoundManager::GetIns().Play(SOUND::HIT, true);
-		if (playerMuscleRatio_ > 0.0f) {
+		unit_.inviciCounter_ = INVI_TIME;
+		if (playerMuscleRatio_ >= 0.0f) {
 			if (playerMuscleRatio_ > 0.6f) damage = 25;
 			else if (playerMuscleRatio_ > 0.4f) damage = 15;
 			else damage = 10;
 
 			unit_.hp_ -= damage;
-			unit_.inviciCounter_ = INVI_TIME;
 			GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 15);
 			GameScene::HitStop(5);
 

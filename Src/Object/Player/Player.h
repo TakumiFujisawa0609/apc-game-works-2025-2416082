@@ -67,6 +67,8 @@ public:
 	static constexpr int ROLLING_TIME = 30;					// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
+	static constexpr int ATTACK_TIME = 20;
+
 
 
 	// コンボの段階に応じて攻撃したときの移動量
@@ -90,16 +92,8 @@ public:
 	static constexpr VECTOR DOWN_MUSCLE = { -0.001f,-0.001f,-0.001f };	//常時筋肉が減るため、減らし続ける用の値
 #pragma endregion
 
-
-
 	Player();
 	~Player() override;
-
-	void SubLoad(void) override;		// 最初に呼び出す関数
-	void SubInit(void) override;		// 初期化処理
-	void SubUpdate(void) override;		// 更新処理
-	void SubDraw(void) override;		// 描画処理
-	void SubRelease(void) override;	// 解放処理
 
 	void UIDraw(void);				// UI描画
 
@@ -116,6 +110,12 @@ public:
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
 
+protected:
+	void SubLoad(void) override;		// 最初に呼び出す関数
+	void SubInit(void) override;		// 初期化処理
+	void SubUpdate(void) override;		// 更新処理
+	void SubDraw(void) override;		// 描画処理
+	void SubRelease(void) override;	// 解放処理
 private:
 
 	AnimationController* animation_;
@@ -126,6 +126,10 @@ private:
 	void DebugDraw(void);
 	void SetMatrix(void);
 	void HpDraw(void);
+
+	void StageCollision(void);
+
+	void VoiceUpMuscle(void);
 
 #pragma region 列挙型定義
 	// ステート管理用
@@ -144,9 +148,6 @@ private:
 	// 攻撃したかどうかの確認用
 	bool isAttacked_;
 
-	// 筋肉を増やす
-	bool isUpMuscle_;
-
 	// 回避用カウンタ
 	int nextRollCounter_;
 
@@ -161,7 +162,7 @@ private:
 #pragma endregion
 
 #pragma region 筋肉関係
-	void Muscle(void);
+	//void Muscle(void);
 	//void AddBoneScale(int index, VECTOR scale);
 #pragma endregion
 
