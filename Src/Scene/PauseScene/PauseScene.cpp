@@ -14,13 +14,14 @@ void PauseScene::Update()
 
     if (CheckHitKey(KEY_INPUT_SPACE) || CheckHitKey(KEY_INPUT_RETURN))
     {
+        auto& scene = SceneManager::GetInstance();
         switch (next_)
         {
         case PauseScene::NEXT_SCENE::END:
             Application::GetInstance().GameEnd();
+            scene.PopScene();
             break;
         case PauseScene::NEXT_SCENE::GAME:
-            auto& scene = SceneManager::GetInstance();
             scene.PopScene();
             break;
         }

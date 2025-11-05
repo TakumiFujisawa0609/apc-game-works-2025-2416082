@@ -8,10 +8,10 @@
 #include<vector>
 
 class Player;
-class Grid;
 class Boss;
 class Stage;
 class EnemyManager;
+class SkyDome;
 
 class GameScene : public SceneBase
 {
@@ -57,13 +57,13 @@ private:
 
 	Player* player_;
 
-	Grid* grid_;
-
 	Boss* boss_;
 
 	Stage* stage_;
 
 	EnemyManager* enemy_;
+
+	SkyDome* skyDome_;
 
 #pragma region âÊñ ââèo
 	bool ScreenProduction(void);

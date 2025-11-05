@@ -2,6 +2,8 @@
 
 #include "../../Player/Player.h"
 
+#include "../../../Scene/Game/GameScene.h"
+
 HandSlap::HandSlap(const VECTOR& target) :
     target_(target)
 {
@@ -21,28 +23,35 @@ void HandSlap::SubInit(void)
 	unit_.para_.colliShape = CollisionShape::OBB;
 	unit_.para_.colliType = CollisionType::ENEMY;
 
-    unit_.angle_ = { Utility::Deg2RadF(-90.0f), Utility::Deg2RadF(90.0f), 0.0f };
+    unit_.angle_ = { Utility::Deg2RadF(-90.0f), Utility::Deg2RadF(90.0f), 0.0f};
 
     unit_.para_.radius = 200.0f;
 
-    unit_.para_.center = unit_.pos_;
-    unit_.para_.size = { 200,500,200 };
+    unit_.para_.size = { 500,500,500 };
     unit_.scale_ = SCALE;
 
 	unit_.isAlive_ = true;
 
-
-}
-
-void HandSlap::SubUpdate(void)
-{
     // ターゲットの真上に配置
     const float offsetY = 500.0f;
     unit_.pos_ = VGet(target_.x, target_.y + offsetY, target_.z);
 
-    if (unit_.pos_.y > 0 && !end_) {
-        unit_.pos_.y -= 5;
+    unit_.pos_.z = -1000.0f;
+}
+
+void HandSlap::SubUpdate(void)
+{
+    if (end_) { return; }
+    static bool is = false;
+    if (CheckHitKey(KEY_INPUT_L)) {
+        is = true;
+    }
+    if (!is) { return; }
+
+    if (unit_.pos_.y > 0) {
+        unit_.pos_.y -= FALL_SPEED;
         if (unit_.pos_.y <= 0) {
+            GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
             end_ = true;
         }
     }
@@ -71,18 +80,22 @@ void HandSlap::SubDraw(void)
 
 #ifdef _DEBUG
     //DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xff00ff, 0xff00ff, false);
-    DrawLineBox(
-        unit_.para_.center.x - unit_.para_.size.x,
-        unit_.para_.center.y - unit_.para_.size.y,
-        unit_.para_.center.x + unit_.para_.size.x,
-        unit_.para_.center.y + unit_.para_.size.y,
-        0xffffff
-        );
+    VECTOR size = { unit_.para_.size.x / 2, unit_.para_.size.y / 2, unit_.para_.size.z / 2 };
+    VECTOR pos1 = VSub(unit_.pos_, size);
+    VECTOR pos2 = VAdd(unit_.pos_, size);
+    DrawCube3D(
+        pos1,
+        pos2,
+        GetColor(255, 0, 0),
+        GetColor(255, 0, 0),
+        false
+    );
+
 #endif
 }
 
 void HandSlap::SubRelease(void)
-{
+{   
     MV1DeleteModel(unit_.model_);
 }
 

@@ -10,8 +10,8 @@ class Boss : public UnitBase
 public:
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
 
-	static constexpr float RADIUS = 250.0f;
-	static constexpr VECTOR SCALE = { 4.0f,4.0f,4.0f };
+	static constexpr float RADIUS = 300.0f;
+	static constexpr VECTOR SCALE = { 5.0f,5.0f,5.0f };
 	static constexpr float HALF_LEN = 300.0f;
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 600.0f, 0.0f };

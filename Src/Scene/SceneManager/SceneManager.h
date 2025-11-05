@@ -79,6 +79,8 @@ public:
 	// ƒV[ƒ“ID‚Ìæ“¾
 	SCENE_ID GetSceneID(void) const { return sceneId_; };
 
+	int GetSceneSize(void);
+
 	const float GetDeltaTime(void)const { return deltaTime_; }
 
 private:

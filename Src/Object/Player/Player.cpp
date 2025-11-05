@@ -128,30 +128,18 @@ void Player::SubUpdate(void)
 {
     auto& input = InputManager::GetInstance();
 
-    StageCollision();
-
-#ifdef _DEBUG
-    if (input.IsTrgDown(KEY_INPUT_P)) {
-        leftArm_->SetAttackTime(60);
-        rightArm_->SetAttackTime(60);
-    }
-#endif // _DEBUG
-
-    VoiceUpMuscle();
-
-    // ローリング制御
-    if (nextRollCounter_ <= 0)
-    {
-        nextRollCounter_ = 0;
-    }
-    else
-    {
-        nextRollCounter_--;
-    }
-
     if (state_ != STATE::ATTACK) {
         isAttacked_ = false;
     }
+
+    // ステージとの当たり判定を無理やりやってる処理
+    StageCollision();
+
+    // 音量で筋肉を増やす処理
+    VoiceUpMuscle();
+
+    // 回避用のカウンタ処理
+    RollCountUpdate();
 
     // ステートごと更新処理呼び出し
     StateUpdate((int)state_);
@@ -159,7 +147,7 @@ void Player::SubUpdate(void)
     //状態遷移用関数
     StateManager();
 
-    // プレイヤーの無敵処理
+    // プレイヤーの無敵時間処理
 	Invi();
 
     //カメラ
@@ -175,6 +163,13 @@ void Player::SubUpdate(void)
     animation_->Update();
 
 #pragma endregion
+
+#ifdef _DEBUG
+    if (input.IsTrgDown(KEY_INPUT_P)) {
+        leftArm_->SetAttackTime(60);
+        rightArm_->SetAttackTime(60);
+    }
+#endif // _DEBUG
 }
 
 // 描画処理
@@ -189,8 +184,6 @@ void Player::SubDraw(void)
     leftArm_->Draw();
     rightArm_->Draw();
 
-    int volume = mic_->GetLevel();
-    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", volume);
 }
 
 // 解放処理
@@ -268,7 +261,10 @@ void Player::UIDraw(void)
     DebugDraw();
 
     // 現在の筋肉の割合（ratio）
-    DrawFormatString(0, Application::SCREEN_SIZE_Y - 16, 0xffffff, "%f", GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
+    
+    SetFontSize(64);
+    DrawFormatString(0, Application::SCREEN_SIZE_Y - 64, 0xffffff, "%f", GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
+    SetFontSize(16);
 #endif 
 }
 
@@ -370,15 +366,15 @@ void Player::Attack(void)
     {
     case CONBO::CONBO1: 
         anim = (int)ANIM_TYPE::ATTACK1;
-        leftArm_->SetAttackTime(ATTACK_TIME);
+        leftArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO2: 
         anim = (int)ANIM_TYPE::ATTACK2; 
-        rightArm_->SetAttackTime(ATTACK_TIME);
+        rightArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO3:
         anim = (int)ANIM_TYPE::ATTACK3; 
-        leftArm_->SetAttackTime(ATTACK_TIME);
+        leftArm_->SetAttackTime(10);
         break;
     }
 
@@ -477,7 +473,7 @@ void Player::StateManager(void)
     switch (state_)
     {
     case Player::STATE::IDLE:
-        DoWalk();
+        DoMove();
         DoAttack();
         DoRoll();
         break;
@@ -491,7 +487,7 @@ void Player::StateManager(void)
     }
 }
 
-void Player::DoWalk(void)
+void Player::DoMove(void)
 {
     // キーボード入力チェック
     bool keyboardMove =
@@ -624,6 +620,8 @@ void Player::VoiceUpMuscle(void)
     if (mic_->GetPlayGameLevel() > 4000) {
         AddBoneScale(4, { 0.01f,0.01f,0.01f });
     }
+
+    AddBoneScale(4, { -0.001f,-0.001f,-0.001f });
 }
 
 const float Player::GetMuscleRatio(int index)
@@ -634,10 +632,9 @@ const float Player::GetMuscleRatio(int index)
     // 太さ方向（Y軸）のスケールを抽出
     float scaleY = VSize({ mat.m[1][0], mat.m[1][1], mat.m[1][2] });
 
-    // 筋肉比率を0～1に正規化
+    // 筋肉比率を正規化
     float ret = Utility::Clamp(
-        (scaleY - ArmBase::MIN_MUSCLE.y) /
-        (ArmBase::MAX_MUSCLE.y - ArmBase::MIN_MUSCLE.y),
+        (scaleY - ArmBase::MIN_MUSCLE.y) / (ArmBase::MAX_MUSCLE.y - ArmBase::MIN_MUSCLE.y),
         0.0f, 1.0f);
 
     return ret;
@@ -661,11 +658,25 @@ void Player::CameraPosUpdate(void)
 
 
 
+void Player::RollCountUpdate(void)
+{
+    // ローリング制御
+    if (nextRollCounter_ <= 0)
+    {
+        nextRollCounter_ = 0;
+    }
+    else
+    {
+        nextRollCounter_--;
+    }
+}
+
+//デバック用描画
 void Player::DebugDraw(void)
 {
     auto& input = InputManager::GetInstance();
-    //デバック用Draw
 
+    // プレイヤーのステートをデバッグ表示用
     switch (state_)
     {
     case Player::STATE::IDLE:
@@ -682,9 +693,14 @@ void Player::DebugDraw(void)
         break;
     }
 
+    // 当たり判定を視覚的に見えるように
     VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
+
+    // 音量確認用
+    int volume = mic_->GetLevel();
+    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", volume);
 }
 
 void Player::SetMatrix(void)

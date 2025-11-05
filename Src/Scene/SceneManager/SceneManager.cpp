@@ -122,6 +122,12 @@ void SceneManager::Draw(void)
 			scene->Draw();
 		}
 	}
+
+#ifdef _DEBUG
+	SetFontSize(32);
+	DrawFormatString(0, 32, 0xffffff, "%i", SceneManager::GetInstance().GetSceneSize());
+	SetFontSize(16);
+#endif // _DEBUG
 }
 
 // ‰ð•ú
@@ -241,4 +247,9 @@ void SceneManager::JumpScene(SCENE_ID scene)
 	default:
 		break;
 	}
+}
+
+int SceneManager::GetSceneSize(void)
+{
+	return scenes_.size();
 }

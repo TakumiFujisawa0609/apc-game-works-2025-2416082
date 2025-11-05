@@ -59,15 +59,13 @@ void Enemy::SubUpdate(void)
 	{
 	case STATE::MOVE:
 		// 近づいたら攻撃に移行
-		if (dist < 300.0f)  // 攻撃距離（調整可）
-		{
+		if (dist < 300.0f) {
 			state_ = STATE::ATTACK;
 		}
 		break;
 	case STATE::ATTACK:
 		// 離れたら移動に戻す
-		if (dist > 500.0f)  // 離脱距離（調整可）
-		{
+		if (dist > 500.0f) {
 			state_ = STATE::MOVE;
 		}
 		break;
@@ -96,39 +94,39 @@ void Enemy::SubRelease(void)
 
 void Enemy::Move(void)
 {
-	//if (!unit_.isAlive_) return;
+	if (!unit_.isAlive_) return;
 
-	//// ターゲットへの方向ベクトルを求める
-	//VECTOR toTarget = VSub(target_, unit_.pos_);
-	//float dist = VSize(toTarget);
+	// ターゲットへの方向ベクトルを求める
+	VECTOR toTarget = VSub(target_, unit_.pos_);
+	float dist = VSize(toTarget);
 
-	//// 距離が近すぎる場合は移動しない
-	//if (dist < 10.0f) return;
+	// 距離が近すぎる場合は移動しない
+	if (dist < 10.0f) return;
 
-	//// 正規化（向き）
-	//VECTOR dir = VScale(toTarget, 1.0f / dist);
+	// 正規化（向き）
+	VECTOR dir = VScale(toTarget, 1.0f / dist);
 
-	//// 移動速度
-	//const float speed = 3.0f;
+	// 移動速度
+	const float speed = 3.0f;
 
-	//// 移動
-	//unit_.pos_ = VAdd(unit_.pos_, VScale(dir, speed));
+	// 移動
+	unit_.pos_ = VAdd(unit_.pos_, VScale(dir, speed));
 
-	//// 向き更新（任意）
-	//unit_.angle_.y = atan2f(dir.x, dir.z);
+	// 向き更新（任意）
+	unit_.angle_.y = atan2f(dir.x, dir.z);
 
-	//// ---------- 移動範囲制限（円形） ----------
-	//float radius = 2000.0f;  // 行動範囲の半径
-	//float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
+	// 移動範囲制限（円形）
+	float radius = 2000.0f;  // 行動範囲の半径
+	float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
 
-	//if (distance > radius)
-	//{
-	//	// 原点方向に戻す
-	//	float nx = unit_.pos_.x / distance;
-	//	float nz = unit_.pos_.z / distance;
-	//	unit_.pos_.x = nx * radius;
-	//	unit_.pos_.z = nz * radius;
-	//}
+	if (distance > radius)
+	{
+		// 原点方向に戻す
+		float nx = unit_.pos_.x / distance;
+		float nz = unit_.pos_.z / distance;
+		unit_.pos_.x = nx * radius;
+		unit_.pos_.z = nz * radius;
+	}
 }
 
 void Enemy::Attack(void)

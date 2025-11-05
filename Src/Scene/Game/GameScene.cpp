@@ -22,8 +22,7 @@
 #include "../../Object/Enemy/EnemyBase.h"
 
 #include "../../Object/Stage/Stage.h"
-
-#include "../../Object/Grid/Grid.h"
+#include "../../Object/SkyDome/SkyDome.h"
 
 #include "../Title/TitleScene.h"
 #include "../../Scene/PauseScene/PauseScene.h"
@@ -42,9 +41,9 @@ GameScene::GameScene() :
 	collision_(nullptr),
 	player_(nullptr),
 	boss_(nullptr),
-	grid_(nullptr),
 	stage_(nullptr),
-	enemy_(nullptr)
+	enemy_(nullptr),
+	skyDome_(nullptr)
 {
 
 }
@@ -61,18 +60,17 @@ void GameScene::Load(void)
 
 	collision_ = new Collision();
 	player_ = new Player();
-
 	boss_ = new Boss();
 	enemy_ = new EnemyManager(player_->GetUnit().pos_);
 	stage_ = new Stage();
-	grid_ = new Grid();
+	skyDome_ = new SkyDome();
 
 
 	player_->Load();
 	boss_->Load();
 	enemy_->Load();
 	stage_->Load();
-
+	skyDome_->Load();
 
 	collision_->AddEnemy(boss_);
 	collision_->AddEnemy(boss_->GetRightHand());
@@ -92,9 +90,9 @@ void GameScene::Init(void)
 	player_->Init();
 	boss_->SetPlayerPos(player_->GetUnit().pos_);
 	boss_->Init();
-	grid_->Init();
 	stage_->Init();
 	enemy_->Init();
+	skyDome_->Init();
 
 	SetMouseDispFlag(false);
 
@@ -126,22 +124,9 @@ void GameScene::Update(void)
 
 #pragma region オブジェクト更新処理
 
-	Camera::GetInstance().Update();
-	player_->Update();
-	boss_->Update();
-	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
-	boss_->SetPlayerPos(player_->GetUnit().pos_);
-	enemy_->Update();
-	grid_->Update();
-	stage_->Update();
-
-	// 当たり判定
-	collision_->Check();
-
-#pragma endregion
 	auto& scene = SceneManager::GetInstance();
 	auto& input = InputManager::GetInstance();
-	
+
 	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
 		scene.PushScene(std::make_shared<PauseScene>());
 		return;
@@ -156,6 +141,20 @@ void GameScene::Update(void)
 		scene.ChangeScene(SCENE_ID::OVER);
 		return;
 	}
+
+	Camera::GetInstance().Update();
+	player_->Update();
+	boss_->Update();
+	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
+	boss_->SetPlayerPos(player_->GetUnit().pos_);
+	enemy_->Update();
+	stage_->Update();
+	skyDome_->Update();
+
+	// 当たり判定
+	collision_->Check();
+#pragma endregion
+
 }
 
 
@@ -175,12 +174,14 @@ void GameScene::Draw(void)
 	int x = app::SCREEN_SIZE_X / 2;
 	int y = app::SCREEN_SIZE_Y / 2;
 
+	skyDome_->Draw();
+
 	stage_->Draw();
 	player_->Draw();
 	enemy_->Draw();
 	boss_->Draw();
 #ifdef _DEBUG
-	grid_->Draw();
+	//grid_->Draw()
 
 	SetFontSize(32);
 	DrawString(0, 0, "ゲーム", 0xffffff);
@@ -228,17 +229,16 @@ void GameScene::Release(void)
 		enemy_ = nullptr;
 	}
 
-	if (grid_) {
-		grid_->Release();
-		delete grid_;
-		grid_ = nullptr;
-	}
-
-	if (stage_)
-	{
+	if (stage_) {
 		stage_->Release();
 		delete stage_;
 		stage_ = nullptr;
+	}
+
+	if (skyDome_) {
+		skyDome_->Release();
+		delete skyDome_;
+		skyDome_ = nullptr;
 	}
 
 	DeleteGraph(mainScreen_);
