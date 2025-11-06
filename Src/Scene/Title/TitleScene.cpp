@@ -7,6 +7,7 @@
 #include "../../Manager/MicInput/MicInput.h"
 #include"../../Manager/Input/InputManager.h"
 #include "../../Manager/Animation/AnimationController.h"
+#include "../../Manager/Sound/SoundManager.h"
 
 #include"../../Utility/Utility.h"
 
@@ -22,6 +23,7 @@ TitleScene::TitleScene():
 // デストラクタ
 TitleScene::~TitleScene()
 {
+
 }
 
 // 最初に一度だけ呼び出す処理
@@ -29,6 +31,8 @@ void TitleScene::Load(void)
 {
 	image_ = LoadGraph("Data/Image/脳筋の拳_ロゴ.png");			// タイトル画像
 	model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");		// タイトル用のプレイヤー
+
+	SoundManager::GetIns().Load(SOUND::TITLE_BGM);
 
 	animation_ = new AnimationController(model_);
 	animation_->Add((int)(ANIM_TYPE::IDLE), 30, "Data/Model/Player/Animation/Idle.mv1");	//タイトル用のプレイヤーに使うアイドルアニメーション
@@ -47,6 +51,11 @@ void TitleScene::Init(void)
 
 	mic_->Init();
 	mic_->Start();
+
+	startCounter_ = 0;
+	isStart_ = false;
+
+	//SoundManager::GetIns().Play(SOUND::TITLE_BGM, true, 155, true, true);
 }
 
 // 更新処理
@@ -54,16 +63,15 @@ void TitleScene::Update(void)
 {
 	auto& input = InputManager::GetInstance();
 	auto& scene = SceneManager::GetInstance();
-	static bool is = false;
 
 	// どれかのキーが「押された瞬間」なら遷移
 	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
-		is = true;
+		isStart_ = true;
 	}
-	static int cnt = 0;
-	if (is) {
-		cnt++;
-		if (cnt > 120) {
+	if (isStart_) {
+		startCounter_++;
+		animation_->Play((int)ANIM_TYPE::ATTACK,false);
+		if (startCounter_ > 120) {
 			scene.ChangeScene(SCENE_ID::GAME);
 			return;
 		}
@@ -75,7 +83,7 @@ void TitleScene::Update(void)
 		AddBoneScale(4, { 0.04f,0.04f,0.04f });
 	}
 
-	if (!is) {
+	if (!isStart_) {
 		animation_->Play((int)ANIM_TYPE::IDLE, true);
 	}
 
@@ -87,6 +95,8 @@ void TitleScene::Update(void)
 // 描画処理
 void TitleScene::Draw(void)
 {
+	DrawVoiceGauge();
+
 	// タイトルロゴの描画
 	VECTOR center = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 2 };
 	DrawRotaGraph(
@@ -115,9 +125,10 @@ void TitleScene::Draw(void)
 
 #ifdef _DEBUG
 	SetFontSize(32);
-	DrawFormatString(0, 0, 0xffffff,"%i", mic_->GetLevel());
+	DrawFormatString(0, 0, 0xffffff,"マイクレベル %i", mic_->GetLevel());
 	SetFontSize(16);
 #endif // _DEBUG
+
 }
 
 // 解放処理
@@ -125,6 +136,8 @@ void TitleScene::Release(void)
 {
 	DeleteGraph(image_);
 	MV1DeleteModel(model_);
+	SoundManager::GetIns().Stop(SOUND::TITLE_BGM);
+	SoundManager::GetIns().Delete(SOUND::TITLE_BGM);
 
 	if (animation_) {
 		animation_->Release();
@@ -176,4 +189,23 @@ void TitleScene::AddBoneScale(int index, VECTOR scale)
 
 	// 適用
 	MV1SetFrameUserLocalMatrix(model_, index, scaleMat);
+}
+
+void TitleScene::DrawVoiceGauge(void)
+{
+	VECTOR startPos = {	0, Application::SCREEN_SIZE_Y - 50 };
+
+	voiceLevel_ = mic_->GetLevel();
+	voiceLevel_ /= 10;
+	int color = (voiceLevel_ > 400) ? 0xbb0000 : 0x0000bb;
+	for (int i = 0; i < voiceLevel_; i++) {
+
+		DrawBox(
+			(startPos.x + (i * 3)) + (i * 10),
+			startPos.y, ((startPos.x + 10) + (i * 3)) + (i * 10), 
+			startPos.y + 50, 
+			color,
+			true
+		);
+	}
 }

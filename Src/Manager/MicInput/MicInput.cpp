@@ -52,7 +52,7 @@ bool MicInput::Init(int sampleRate, int bufSize, int bufferCount)
     if (waveOutOpen(&hWaveOut_, WAVE_MAPPER, &wf, 0, 0, CALLBACK_NULL) != MMSYSERR_NOERROR)
     {
         waveInClose(hWaveIn_);
-        hWaveIn_ = nullptr;
+        hWaveIn_ = nullptr;    
         return false;
     }
 
@@ -94,7 +94,7 @@ void MicInput::Stop()
             waveInUnprepareHeader(hWaveIn_, &hdr, sizeof(WAVEHDR));
         }
 
-        // デバイスを閉じる
+        // 入力デバイスを閉じる
         waveInClose(hWaveIn_);
         hWaveIn_ = nullptr;
     }
@@ -104,7 +104,7 @@ void MicInput::Stop()
         // バッファの解放
         waveOutUnprepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
 
-        // デバイスを閉じる
+        // 出力デバイスを閉じる
         waveOutClose(hWaveOut_);
         hWaveOut_ = nullptr;
     }

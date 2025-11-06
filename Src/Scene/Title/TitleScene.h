@@ -19,6 +19,8 @@ public:
 	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
+	static constexpr int VOICE_GAUGE_MAX = 10;;
+
 	TitleScene();
 	~TitleScene()override;
 
@@ -45,6 +47,11 @@ private:
 	VECTOR scale;
 	VECTOR angle;
 
+	int startCounter_;
+	bool isStart_;
+	int	voiceLevel_;
+
 	void AddBoneScale(int index, VECTOR scale);
+	void DrawVoiceGauge(void);
 
 };

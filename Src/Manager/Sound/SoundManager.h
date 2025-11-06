@@ -17,6 +17,8 @@ public:
 	{
 		NON=-1,
 
+		TITLE_BGM,
+
 		PLAYER_BIG_ATTACK,
 		PLAYER_SMALL_ATTACK,
 		HIT,

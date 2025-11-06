@@ -19,7 +19,6 @@ void PauseScene::Update()
         {
         case PauseScene::NEXT_SCENE::END:
             Application::GetInstance().GameEnd();
-            scene.PopScene();
             break;
         case PauseScene::NEXT_SCENE::GAME:
             scene.PopScene();

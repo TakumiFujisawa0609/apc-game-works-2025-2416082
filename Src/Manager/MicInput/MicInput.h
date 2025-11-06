@@ -28,6 +28,7 @@ public:
     int  GetPlayGameLevel() const;
 
 private:
+
     static void CALLBACK WaveInProc(HWAVEIN hwi, UINT msg, DWORD_PTR instance, DWORD_PTR param1, DWORD_PTR param2);
 
     void OnBufferDone(WAVEHDR* hdr);    // コールバックから呼ばれる
