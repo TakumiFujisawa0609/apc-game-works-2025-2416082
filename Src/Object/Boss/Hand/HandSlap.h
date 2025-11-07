@@ -9,6 +9,10 @@ public:
 
 	static constexpr float FALL_SPEED = 20.0f;
 
+	static constexpr VECTOR COLL_SIZE = { 800.0f,500.0f,500.0f };
+	static constexpr float OFFSET_Y = 500.0f;
+	static constexpr int COUNT_DOWN = 20.0f;
+
 	HandSlap(const VECTOR& target);
 	~HandSlap() override;
 
@@ -23,6 +27,10 @@ protected:
 
 private:
 	bool end_;
+
+	bool isSlap_;
+
+	int cnt_;
 
 	const VECTOR& target_;
 };

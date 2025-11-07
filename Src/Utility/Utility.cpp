@@ -519,3 +519,13 @@ float Utility::LerpAngle(float from, float to, float t)
     float diff = NormalizeAngle(to - from); // Å’ZŒo˜H‚ÌŠp“x·‚ğŒvZ
     return from + diff * t; // ·•ª‚¾‚¯•âŠÔ‚µ‚Ä‘«‚·
 }
+
+float Utility::QuadInOut(float time, float totaltime, float start, float end)
+{
+    end -= start;
+    time /= totaltime / 2;
+    if (time < 1) return end / 2 * time * time + start;
+
+    time = time - 1;
+    return -end / 2 * (time * (time - 2) - 1) + start;
+}

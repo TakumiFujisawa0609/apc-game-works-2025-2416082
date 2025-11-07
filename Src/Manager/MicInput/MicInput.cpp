@@ -2,6 +2,8 @@
 #include <cstring>
 #include <cmath>
 
+#include "../../Application/Application.h"
+
 static constexpr float M_PI = 3.14159265358979323846f;
 
 static constexpr int MIN_MIC_LEVEL = 2000;
@@ -124,6 +126,27 @@ int MicInput::GetPlayGameLevel() const
 {
     // 最低値は返さない
     return (level_ < MIN_MIC_LEVEL) ?  0 : level_;
+}
+
+void MicInput::VoiceLevelDraw(void)
+{
+    VECTOR startPos = { 0, Application::SCREEN_SIZE_Y - 50 };
+
+    int level = level_;
+    level /= 10;   
+
+    // 一定の音量を超えたら赤く描画する
+    int color = (level > 400) ? 0xbb0000 : 0x0000bb;    
+    for (int i = 0; i < level; i++) {
+
+        DrawBox(
+            (startPos.x + (i * 3)) + (i * 10),
+            startPos.y, ((startPos.x + 10) + (i * 3)) + (i * 10),
+            startPos.y + 50,
+            color,
+            true
+        );
+    }
 }
 
 // ===== コールバック =====

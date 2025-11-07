@@ -119,5 +119,10 @@ public:
 	static float NormalizeAngle(float rad);
 	// 角度の線形補間(常に最短経路)
 	static float LerpAngle(float from, float to, float t);
+
+#pragma region イージング
+	static float QuadInOut(float time, float totaltime, float start, float end);
+
+#pragma endregion 
 };
 

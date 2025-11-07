@@ -44,7 +44,7 @@ public:
 		MAX
 	};
 
-	Boss();
+	Boss(const VECTOR& target);
 	~Boss() override;
 
 	void UIDraw(void);
@@ -53,7 +53,6 @@ public:
 
 	HandSlap* GetRightHand(void) { return hand_; }
 	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
-	void SetPlayerPos(VECTOR pos) { target_ = pos; }
 
 protected:
 	void SubLoad(void) override;
@@ -64,7 +63,6 @@ protected:
 private:
 	HandSlap* hand_;
 
-	VECTOR target_;
 	float playerMuscleRatio_;
 
 	STATE state_;
@@ -73,7 +71,7 @@ private:
 
 	std::vector<DamageText> damageTexts_;
 
-
+	const VECTOR& target_;
 
 	void SetMatrix(void);
 

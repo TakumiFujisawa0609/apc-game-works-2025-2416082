@@ -27,29 +27,38 @@ void HandSlap::SubInit(void)
 
     unit_.para_.radius = 200.0f;
 
-    unit_.para_.size = { 500,500,500 };
+    unit_.para_.size = COLL_SIZE;
     unit_.scale_ = SCALE;
 
 	unit_.isAlive_ = true;
 
     // ターゲットの真上に配置
-    const float offsetY = 500.0f;
-    unit_.pos_ = VGet(target_.x, target_.y + offsetY, target_.z);
+    unit_.pos_ = VGet(target_.x, target_.y + OFFSET_Y, target_.z);
 
     unit_.pos_.z = -1000.0f;
+
+    isSlap_ = false;
+    cnt_ = COUNT_DOWN;
 }
 
 void HandSlap::SubUpdate(void)
 {
     if (end_) { return; }
-    static bool is = false;
-    if (CheckHitKey(KEY_INPUT_L)) {
-        is = true;
+    cnt_--;
+
+    if (CheckHitKey(KEY_INPUT_L) || 
+        cnt_ <= 0) {
+        isSlap_ = true;
+        cnt_ = 0;
+        unit_.pos_ = target_;
     }
-    if (!is) { return; }
+
+    if (!isSlap_) { return; }
 
     if (unit_.pos_.y > 0) {
+
         unit_.pos_.y -= FALL_SPEED;
+
         if (unit_.pos_.y <= 0) {
             GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
             end_ = true;

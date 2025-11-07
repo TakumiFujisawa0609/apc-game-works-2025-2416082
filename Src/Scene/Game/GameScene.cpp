@@ -60,7 +60,7 @@ void GameScene::Load(void)
 
 	collision_ = new Collision();
 	player_ = new Player();
-	boss_ = new Boss();
+	boss_ = new Boss(player_->GetUnit().pos_);
 	enemy_ = new EnemyManager(player_->GetUnit().pos_);
 	stage_ = new Stage();
 	skyDome_ = new SkyDome();
@@ -88,7 +88,6 @@ void GameScene::Load(void)
 void GameScene::Init(void)
 {
 	player_->Init();
-	boss_->SetPlayerPos(player_->GetUnit().pos_);
 	boss_->Init();
 	stage_->Init();
 	enemy_->Init();
@@ -124,8 +123,9 @@ void GameScene::Update(void)
 
 #pragma region オブジェクト更新処理
 
-	auto& scene = SceneManager::GetInstance();
-	auto& input = InputManager::GetInstance();
+	SceneManager& scene = SceneManager::GetInstance();
+	InputManager& input = InputManager::GetInstance();
+	Camera& camera = Camera::GetInstance();
 
 	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
 		scene.PushScene(std::make_shared<PauseScene>());
@@ -142,17 +142,17 @@ void GameScene::Update(void)
 		return;
 	}
 
-	Camera::GetInstance().Update();
 	player_->Update();
 	boss_->Update();
 	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
-	boss_->SetPlayerPos(player_->GetUnit().pos_);
 	enemy_->Update();
 	stage_->Update();
 	skyDome_->Update();
 
 	// 当たり判定
 	collision_->Check();
+	camera.Update();
+
 #pragma endregion
 
 }

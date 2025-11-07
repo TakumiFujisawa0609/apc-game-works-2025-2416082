@@ -43,7 +43,7 @@ void Camera::Apply()
 {
     SetCameraPositionAndTarget_UpVecY(camPos_, *camTarget_);
 
-    SetUseLighting(FALSE);
+    SetUseLighting(false);
 
     // ã‹ó‚Í–¾‚é‚¢ÂA’n•½ü‚Í’W‚¢Â
     //int topColor = GetColor(100, 180, 255);
