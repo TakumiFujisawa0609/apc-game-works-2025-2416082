@@ -27,6 +27,8 @@ public:
     // âπó éÊìæ (2000Å`32767 íˆìx)
     int  GetPlayGameLevel() const;
 
+    void VoiceLevelDraw(void);
+
 private:
 
     static void CALLBACK WaveInProc(HWAVEIN hwi, UINT msg, DWORD_PTR instance, DWORD_PTR param1, DWORD_PTR param2);

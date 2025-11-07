@@ -51,6 +51,8 @@ public:
 
 #pragma region 定数定義
 
+	static constexpr int HP_MAX = 100;
+
 	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -500.0f };	// 初期座標
@@ -120,11 +122,6 @@ protected:
 	void SubRelease(void) override;	// 解放処理
 private:
 
-	AnimationController* animation_;
-	MicInput* mic_;
-	LeftArm* leftArm_;
-	RightArm* rightArm_;;
-	
 	// 回避用カウンタの更新処理
 	void RollCountUpdate(void);
 
@@ -139,6 +136,17 @@ private:
 
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
+
+
+private:
+
+
+	AnimationController* animation_;
+	MicInput* mic_;
+	LeftArm* leftArm_;
+	RightArm* rightArm_;;
+	
+
 
 #pragma region 列挙型定義
 	// ステート管理用
@@ -166,6 +174,8 @@ private:
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
+
+	int hpFrameImg_;
 
 #pragma endregion
 

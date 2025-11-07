@@ -39,14 +39,15 @@ void Player::SubLoad(void)
    // モデルのロード
    unit_.model_ = MV1LoadModel((path + "Player1.mv1").c_str());
 
+   hpFrameImg_ = LoadGraph("Data/Image/PlayerUI/HP_Frame.png");
+
 #pragma region クラスの定義
 
    // アニメーションクラス
     animation_ = new AnimationController(unit_.model_);
 
     mic_ = new MicInput();
-    mic_->Init();
-    mic_->Start();
+
 
    // 左腕
    leftArm_ = new LeftArm(unit_.model_);
@@ -81,7 +82,7 @@ void Player::SubInit(void)
     // プレイヤーのパラメータの初期化
     unit_.para_.capsuleHalfLen = CAPSULE_HALF_LENGTH; // カプセルの円から円までの長さの半分
     unit_.para_.radius = RADIUS_SIZE;                 // 半径の長さ
-    unit_.hp_ = 100;
+    unit_.hp_ = HP_MAX;
 
     unit_.isAlive_ = true;                  // プレイヤーの生存フラグ
 	unit_.pos_ = DEFAULT_POS;               // プレイヤーの座標
@@ -121,6 +122,10 @@ void Player::SubInit(void)
     // 腕の初期化
     leftArm_->Init();
     rightArm_->Init();
+
+    // 入力デバイスの初期化
+    mic_->Init();
+    mic_->Start();
 }
 
 //更新処理
@@ -265,6 +270,7 @@ void Player::UIDraw(void)
     SetFontSize(64);
     DrawFormatString(0, Application::SCREEN_SIZE_Y - 64, 0xffffff, "%f", GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
     SetFontSize(16);
+    mic_->VoiceLevelDraw();
 #endif 
 }
 
@@ -601,8 +607,14 @@ void Player::DoAttack(void)
 void Player::DoRoll(void)
 {
     auto& input = InputManager::GetInstance();
-    if (nextRollCounter_ > 0 || animation_->IsEnd((int)(ANIM_TYPE::ATTACK1))) return;
 
+    // 回避のクールタイムが終わっていない and 攻撃アニメーションが終了していなければ
+    if (nextRollCounter_ > 0 ||
+        animation_->IsEnd((int)(ANIM_TYPE::ATTACK1)) ||
+        animation_->IsEnd((int)(ANIM_TYPE::ATTACK2)) ||
+        animation_->IsEnd((int)(ANIM_TYPE::ATTACK3))) {
+        return;
+    }
 
     // どちらかのキーが押された瞬間にROLLへ
     if (input.IsTrgDown(KEY_INPUT_LSHIFT) || 
@@ -629,13 +641,11 @@ const float Player::GetMuscleRatio(int index)
     // 指定ボーンのローカル行列を取得
     MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
 
-    // 太さ方向（Y軸）のスケールを抽出
+    // Y軸のスケールを抽出
     float scaleY = VSize({ mat.m[1][0], mat.m[1][1], mat.m[1][2] });
 
-    // 筋肉比率を正規化
-    float ret = Utility::Clamp(
-        (scaleY - ArmBase::MIN_MUSCLE.y) / (ArmBase::MAX_MUSCLE.y - ArmBase::MIN_MUSCLE.y),
-        0.0f, 1.0f);
+    // 筋肉の比率を正規化
+    float ret = Utility::Clamp((scaleY - ArmBase::MIN_MUSCLE.y) / (ArmBase::MAX_MUSCLE.y - ArmBase::MIN_MUSCLE.y), 0.0f, 1.0f);
 
     return ret;
 }
@@ -735,52 +745,21 @@ void Player::SetMatrix(void)
     MV1SetMatrix(unit_.model_, mat);
 }
 
+// HP描画
 void Player::HpDraw(void)
 {
-    float ratio = unit_.hp_ / 100.0f; // 100 が最大HPの場合
-    // ===== 筋肉ゲージ（外装強化）=====
-    int startPosX = 200, startPosY = 100;               // 表示位置
-    int width = 600, height = 50;       // サイズ
-    int filled = (int)(width * ratio);
+    Vector2 pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
+    Vector2 pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
 
-    // ▼ 背面の影（奥行き）
-    DrawBox(startPosX - 3, startPosY - 3, startPosX + width + 3, startPosY + height + 3, GetColor(30, 0, 0), true);
+    float nowHp = unit_.hp_;
+    float fullLength = pos2.x - pos1.x;
+    float hpRatio = nowHp / HP_MAX;
+    float currentLength = fullLength * hpRatio;
 
-    // ▼ 外枠（太め・メタル調）
-    for (int i = 0; i < 3; i++) {
-        DrawBox(startPosX - i, startPosY - i, startPosX + width + i, startPosY + height + i, GetColor(150 + i * 30, 30 + i * 10, 30 + i * 10), false);
-    }
+    // HPバーを描画
+    DrawBox(pos1.x + 50, pos1.y + 5, (pos1.x - 50) + currentLength, pos2.y-5, 0x44ff44, true);
 
-    // ▼ ゲージ背景（深赤）
-    DrawBox(startPosX, startPosY, startPosX + width, startPosY + height, GetColor(60, 0, 0), true);
-
-    // ▼ 筋繊維ライン
-    float t = (float)GetNowCount() / 100.0f;
-    for (int i = 0; i < height; i += 4)
-    {
-        int strength = (int)(128 + 127 * sin(i * 0.5f + t));
-        DrawLine(startPosX, startPosY + i, startPosX + filled, startPosY + i, GetColor(180 + strength / 4, 30, 30));
-    }
-
-    // ▼ 赤→黄グラデーション
-    for (int x = 0; x < filled; x++)
-    {
-        float f = (float)x / filled;
-        int r = 0;
-        int g = 255;
-        int b = (int)(f * 180);
-        DrawLine(startPosX + x, startPosY, startPosX + x, startPosY + height, GetColor(r, g, b));
-    }
-
-    // ▼ 上部ハイライト
-    DrawLine(startPosX, startPosY + 2, startPosX + filled, startPosY + 2, GetColor(255, 180, 180));
-
-    // ▼ 下部に影（立体感）
-    DrawLine(startPosX, startPosY + height - 1, startPosX + width, startPosY + height - 1, GetColor(40, 0, 0));
-
-    // ▼ 外光オーラ（力の気配）
-    int auraColor = GetColor(255, 80, 80);
-    DrawBox(startPosX - 5, startPosY - 5, startPosX + filled + 5, startPosY + height + 5, auraColor, false);
+    DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y, hpFrameImg_, true);
 }
 
 void Player::StageCollision(void)

@@ -60,7 +60,7 @@ void GameScene::Load(void)
 
 	collision_ = new Collision();
 	player_ = new Player();
-	boss_ = new Boss();
+	boss_ = new Boss(player_->GetUnit().pos_);
 	enemy_ = new EnemyManager(player_->GetUnit().pos_);
 	stage_ = new Stage();
 	skyDome_ = new SkyDome();

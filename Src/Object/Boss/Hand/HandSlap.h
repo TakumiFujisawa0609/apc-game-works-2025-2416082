@@ -24,5 +24,7 @@ protected:
 private:
 	bool end_;
 
+	bool isSlap_;
+
 	const VECTOR& target_;
 };

@@ -37,19 +37,30 @@ void HandSlap::SubInit(void)
     unit_.pos_ = VGet(target_.x, target_.y + offsetY, target_.z);
 
     unit_.pos_.z = -1000.0f;
+
+    isSlap_ = false;
 }
 
 void HandSlap::SubUpdate(void)
 {
     if (end_) { return; }
-    static bool is = false;
-    if (CheckHitKey(KEY_INPUT_L)) {
-        is = true;
+    static int cnt = 120;
+
+    cnt--;
+
+    if (CheckHitKey(KEY_INPUT_L) || 
+        cnt <= 0) {
+        isSlap_ = true;
+        cnt = 0;
+        unit_.pos_ = target_;
     }
-    if (!is) { return; }
+
+    if (!isSlap_) { return; }
 
     if (unit_.pos_.y > 0) {
+
         unit_.pos_.y -= FALL_SPEED;
+
         if (unit_.pos_.y <= 0) {
             GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
             end_ = true;

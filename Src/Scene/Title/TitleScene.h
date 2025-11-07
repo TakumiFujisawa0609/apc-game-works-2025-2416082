@@ -52,6 +52,5 @@ private:
 	int	voiceLevel_;
 
 	void AddBoneScale(int index, VECTOR scale);
-	void DrawVoiceGauge(void);
 
 };

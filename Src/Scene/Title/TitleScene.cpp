@@ -64,6 +64,11 @@ void TitleScene::Update(void)
 	auto& input = InputManager::GetInstance();
 	auto& scene = SceneManager::GetInstance();
 
+	if (CheckHitKey(KEY_INPUT_ESCAPE)) {
+		Application::GetInstance().GameEnd();
+		return;
+	}
+
 	// どれかのキーが「押された瞬間」なら遷移
 	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
 		isStart_ = true;
@@ -89,14 +94,11 @@ void TitleScene::Update(void)
 
 	animation_->Update();
 	mic_->Update();
-
 }
 
 // 描画処理
 void TitleScene::Draw(void)
 {
-	DrawVoiceGauge();
-
 	// タイトルロゴの描画
 	VECTOR center = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 2 };
 	DrawRotaGraph(
@@ -127,6 +129,8 @@ void TitleScene::Draw(void)
 	SetFontSize(32);
 	DrawFormatString(0, 0, 0xffffff,"マイクレベル %i", mic_->GetLevel());
 	SetFontSize(16);
+
+	mic_->VoiceLevelDraw();
 #endif // _DEBUG
 
 }
@@ -191,21 +195,3 @@ void TitleScene::AddBoneScale(int index, VECTOR scale)
 	MV1SetFrameUserLocalMatrix(model_, index, scaleMat);
 }
 
-void TitleScene::DrawVoiceGauge(void)
-{
-	VECTOR startPos = {	0, Application::SCREEN_SIZE_Y - 50 };
-
-	voiceLevel_ = mic_->GetLevel();
-	voiceLevel_ /= 10;
-	int color = (voiceLevel_ > 400) ? 0xbb0000 : 0x0000bb;
-	for (int i = 0; i < voiceLevel_; i++) {
-
-		DrawBox(
-			(startPos.x + (i * 3)) + (i * 10),
-			startPos.y, ((startPos.x + 10) + (i * 3)) + (i * 10), 
-			startPos.y + 50, 
-			color,
-			true
-		);
-	}
-}

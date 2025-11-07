@@ -18,7 +18,7 @@ void PauseScene::Update()
         switch (next_)
         {
         case PauseScene::NEXT_SCENE::END:
-            Application::GetInstance().GameEnd();
+            scene.JumpScene(SCENE_ID::TITLE);
             break;
         case PauseScene::NEXT_SCENE::GAME:
             scene.PopScene();

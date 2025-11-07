@@ -14,8 +14,8 @@
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
 
-Boss::Boss() :
-	target_(),
+Boss::Boss(const VECTOR& target) :
+	target_(target),
 	playerMuscleRatio_()
 {
 }
@@ -68,8 +68,8 @@ void Boss::SubUpdate(void)
 
 	float rotationSpeed = Utility::Deg2RadF(1.0f);
 	float deltaAngle = targetAngleY - unit_.angle_.y;
-	while (deltaAngle > 3.14159f) deltaAngle -= 2 * 3.14159f;
-	while (deltaAngle < -3.14159f) deltaAngle += 2 * 3.14159f;
+	while (deltaAngle > DX_PI_F) deltaAngle -= 2 * 3.14159f;
+	while (deltaAngle < -DX_PI_F) deltaAngle += 2 * 3.14159f;
 
 	if (fabsf(deltaAngle) < rotationSpeed) {
 		unit_.angle_.y = targetAngleY;
@@ -77,9 +77,6 @@ void Boss::SubUpdate(void)
 	else {
 		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
 	}
-
-	hand_->Update();
-	Invi();
 
 	// ダメージテキストの更新
 	for (auto it = damageTexts_.begin(); it != damageTexts_.end(); ) {
@@ -92,6 +89,9 @@ void Boss::SubUpdate(void)
 			++it;
 		}
 	}
+
+	hand_->Update();
+	Invi();
 
 #ifdef _DEBUG
 	//if (CheckHitKey(KEY_INPUT_UP)) { unit_.pos_.z += 5; }
