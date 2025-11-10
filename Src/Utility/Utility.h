@@ -114,6 +114,8 @@ public:
 	static MATRIX MatrixAllMultZXY(const std::initializer_list<VECTOR>& vecs);
 	static MATRIX MatrixAllMultZYX(const std::initializer_list<VECTOR>& vecs);
 
+	static void MatrixPosMult(MATRIX& mat, const VECTOR& pos);
+
 
 	// Šp“x‚ğ -ƒÎ ` +ƒÎ ‚É³‹K‰»
 	static float NormalizeAngle(float rad);

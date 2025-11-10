@@ -10,7 +10,7 @@ class Boss : public UnitBase
 public:
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
 
-	static constexpr float RADIUS = 300.0f;
+	static constexpr float RADIUS = 250.0f;
 	static constexpr VECTOR SCALE = { 5.0f,5.0f,5.0f };
 	static constexpr float HALF_LEN = 300.0f;
 
@@ -20,6 +20,8 @@ public:
 
 	static constexpr int INVI_TIME = 30;
 
+	static constexpr int NEXT_ATTACK_TIME = 120;
+
 
 	struct DamageText {
 		VECTOR pos_;      // 表示位置
@@ -27,7 +29,7 @@ public:
 		int drawTime_;        // 表示時間（フレーム数）
 	};
 
-	enum STATE
+	enum class STATE
 	{
 		IDLE,
 		ATTACK,
@@ -35,7 +37,7 @@ public:
 		DEATH,
 	};
 
-	enum  ATTACK
+	enum class ATTACK
 	{
 		NON,
 
@@ -44,14 +46,14 @@ public:
 		MAX
 	};
 
-	Boss(const VECTOR& target);
+	Boss(const VECTOR& target, const int& voiceLevel);
 	~Boss() override;
 
 	void UIDraw(void);
 
 	void OnCollision(UnitBase* other) override;
 
-	HandSlap* GetRightHand(void) { return hand_; }
+	HandSlap* GetRightHand(void) { return slap_; }
 	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
 
 protected:
@@ -61,17 +63,23 @@ protected:
 	void SubDraw(void) override;
 	void SubRelease(void) override;
 private:
-	HandSlap* hand_;
+	HandSlap* slap_;
 
 	float playerMuscleRatio_;
 
 	STATE state_;
+	ATTACK attackState_;
+
+	int attackCounter_;		// 攻撃用カウンタ
+	bool isAttackInit_;		// (true : 攻撃開始後 / false : 攻撃開始前)
+	bool isAttackEnd_;		// (true : 攻撃終了後 / false : 攻撃終了前)
 
 	int color1;
 
 	std::vector<DamageText> damageTexts_;
 
 	const VECTOR& target_;
+	const int& voiceLevel_;
 
 	void SetMatrix(void);
 
@@ -80,5 +88,14 @@ private:
 	void Idle(void);
 	void Damage(void);
 	void Death(void);
+#pragma endregion
+
+#pragma region 攻撃関係の処理を別で管理
+	Boss::ATTACK AttackLottery(void);
+
+	void AttackLoad(void);
+	void AttackInit(void);
+	void AttackDraw(void);
+	void AttackRelease(void);
 #pragma endregion
 };

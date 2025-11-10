@@ -1,6 +1,7 @@
 #include "UnitBase.h"
 
 #include <DxLib.h>
+#include <algorithm>
 
 #include"../Scene/SceneManager/SceneManager.h"
 
@@ -54,6 +55,7 @@ void UnitBase::StateAdd(int state, StateFunc func)
 	stateFuncs_[state] = func;
 }
 
+
 void UnitBase::StateUpdate(int state)
 {
 	auto it = stateFuncs_.find(state);
@@ -106,4 +108,28 @@ void UnitBase::AddBoneScale(int index, VECTOR scale)
 
 	// 適用
 	MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
+}
+
+void UnitBase::HpBarDraw(float currentHp, float maxHp, const VECTOR& pos1, const VECTOR& pos2, COLOR16 color)
+{
+	// static 変数で前回の表示HPを保持（関数を呼ぶたびに滑らかに変化）
+	static float displayHp = maxHp;
+
+	// HP割合
+	currentHp = std::clamp(currentHp, 0.0f, maxHp);
+	float rate = displayHp / maxHp;
+
+	// 徐々に追従
+	const float speed = 0.1f;
+	displayHp += (currentHp - displayHp) * speed;
+
+	// 枠線
+	DrawBox(pos1.x - 5, pos1.y - 5, pos2.x + 5, pos2.y + 5, 0xffffff, true);
+
+	// 背景バー
+	DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, 0x000000, true);
+
+	// 現在のバー
+	int barWidth = static_cast<int>((pos2.x - pos1.x) * rate);
+	DrawBox(pos1.x, pos1.y, pos1.x + barWidth, pos2.y, color, true);
 }

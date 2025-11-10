@@ -57,6 +57,10 @@ public:
 	const Base& GetUnit(void) const { return unit_; }
 	virtual void OnCollision(UnitBase* other) = 0;
 
+private:
+	// 関数ポインタ
+	using StateFunc = std::function<void()>;
+	std::unordered_map<int, StateFunc> stateFuncs_;
 protected:
 	virtual void SubLoad(void) = 0;
 	virtual void SubInit(void) = 0;
@@ -66,9 +70,8 @@ protected:
 
 	void AddBoneScale(int index, VECTOR scale);
 
-	// 関数ポインタ
-	using StateFunc = std::function<void()>;
-	std::unordered_map<int, StateFunc> stateFuncs_;
+	void HpBarDraw(float currentHp, float maxHp, const VECTOR& pos1, const VECTOR& pos2, COLOR16 color);
+
 
 	// 子クラスで定義した関数を関数ポインタに登録
 	void StateAdd(int state, StateFunc func);
@@ -81,4 +84,5 @@ protected:
 
 	// 無敵処理(派生先の更新処理で呼び出す用)
 	void Invi(void);
+
 };

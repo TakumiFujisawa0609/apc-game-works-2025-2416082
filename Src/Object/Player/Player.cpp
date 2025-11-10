@@ -85,11 +85,7 @@ void Player::SubInit(void)
     //カメラ座標
     cameraPos_ = Utility::VECTOR_ZERO;
 
-    // 一度回避を行ったとき、次の回避までのクールタイム用
-    nextRollCounter_ = 0;
 
-    // 三段攻撃のカウンタ変数
-    attacConboCnt_ = 0;
 
     // 向き
     move_ = Utility::VECTOR_ZERO;
@@ -97,7 +93,13 @@ void Player::SubInit(void)
     // 攻撃処理の初期化
     isAttacked_ = false;
 
-
+    // カウンタの初期化-----
+    attacConboCnt_ = 0;         // 攻撃段階が今どこか見るためのカウンタ
+    attackEscapeCounter_ = 0;   // 一定時間攻撃中だったら強制的に抜け出すためのカウンタ
+    rollCounter_ = 0;           // 回避時間用カウンタ
+    nextRollCounter_ = 0;       // 一度回避を行ったとき、次の回避までのクールタイム用
+    // ---------------------
+    
     // 関数ポインタに登録
     StateAdd((int)STATE::IDLE,      [this]() { Idle();      });
     StateAdd((int)STATE::ATTACK,    [this]() { Attack();    });
@@ -136,7 +138,7 @@ void Player::SubUpdate(void)
     RollCountUpdate();
 
     // ステートごと更新処理呼び出し
-    StateUpdate((int)state_);
+    StateUpdate(static_cast<int>(state_));
      
     //状態遷移用関数
     StateManager();
@@ -229,19 +231,16 @@ void Player::OnCollision(UnitBase* other)
 {
     if (unit_.inviciCounter_ > 0) { return; }
 
-
-
     if (dynamic_cast<Boss*>(other))
     {
-
         return;
     }
 
-    if (dynamic_cast<HandSlap*>(other))
+    if (auto* hand = dynamic_cast<HandSlap*>(other))
     {
-
-        unit_.hp_ -= 10;
-        unit_.inviciCounter_ = INVI_TIME;
+        if (hand->isHit()) { return; }
+        SetDamage(10);
+        return;
     }
 }
 
@@ -401,10 +400,9 @@ void Player::Attack(void)
         conbo_ = CONBO::CONBO1;
     }
 
-    static int cnt = 0;
-    cnt++;
-    if (cnt > 120) {
-        cnt = 0;
+    attackEscapeCounter_++;
+    if (attackEscapeCounter_ > 120) {
+        attackEscapeCounter_ = 0;
         state_ = STATE::IDLE;
     }
 }
@@ -413,14 +411,13 @@ void Player::Roll(void)
 {
     auto& camera = Camera::GetInstance();
 
-    static int cnt = 0;
-    cnt++;
+    rollCounter_++;
 
     // アイドルステートに移行
-    if (cnt > ROLLING_TIME)
+    if (rollCounter_ > ROLLING_TIME)
     {
         state_ = STATE::IDLE;
-        cnt = 0;
+        rollCounter_ = 0;
         nextRollCounter_ = NEXT_ROLL_TIME;
         return;
     }
@@ -653,6 +650,14 @@ const float Player::GetMuscleRatio(int index)
     return ret;
 }
 
+void Player::SetDamage(int damage)
+{
+    unit_.hp_ -= damage;
+    unit_.inviciCounter_ = INVI_TIME;
+}
+
+
+
 
  //カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
@@ -750,18 +755,22 @@ void Player::SetMatrix(void)
 // HP描画
 void Player::HpDraw(void)
 {
-    Vector2 pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
-    Vector2 pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
+    VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
+    VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
 
-    float nowHp = unit_.hp_;
-    float fullLength = pos2.x - pos1.x;
-    float hpRatio = nowHp / HP_MAX;
-    float currentLength = fullLength * hpRatio;
+    //float nowHp = unit_.hp_;
+    //float fullLength = pos2.x - pos1.x;
+    //float hpRatio = nowHp / HP_MAX;
+    //float currentLength = fullLength * hpRatio;
 
-    // HPバーを描画
-    DrawBox(pos1.x + 50, pos1.y + 5, (pos1.x - 50) + currentLength, pos2.y-5, 0x44ff44, true);
+    //// HPバーを描画
+    //DrawBox(pos1.x + 50, pos1.y + 5, (pos1.x - 50) + currentLength, pos2.y-5, 0x44ff44, true);
 
-    DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y, hpFrameImg_, true);
+    //DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y, hpFrameImg_, true);
+
+
+
+    HpBarDraw(unit_.hp_, HP_MAX, pos1, pos2, 0x77ff77);
 }
 
 void Player::StageCollision(void)
@@ -792,3 +801,7 @@ void Player::StageCollision(void)
 }
 
 
+int Player::GetVoiceLevel(void) const
+{
+    return mic_->GetPlayGameLevel();
+}

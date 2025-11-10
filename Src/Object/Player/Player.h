@@ -112,6 +112,10 @@ public:
 	// プレイヤーのステートのゲット関数
 	const STATE GetState(void) { return state_; }
 
+	void SetDamage(int damage);
+
+	int GetVoiceLevel(void) const;
+
 	// 腕クラスのインスタンスのゲット関数
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
@@ -170,16 +174,25 @@ private:
 	// 攻撃したかどうかの確認用
 	bool isAttacked_;
 
-	// 回避用カウンタ
+	// 回避のクールタイムカウンタ
 	int nextRollCounter_;
+
+	int rollCounter_;
 
 	// 攻撃コンボ用
 	int attacConboCnt_;
+
+	// 攻撃から抜け出さないときがあるので、
+	// 攻撃の状態が一定時間たったら抜けるようにする用カウンタ
+	int attackEscapeCounter_;
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
 
 	int hpFrameImg_;
+
+	//using CAST_I = static_cast<int>;
+#define CAST_I(i) = static_cast<int>(i);
 
 #pragma endregion
 

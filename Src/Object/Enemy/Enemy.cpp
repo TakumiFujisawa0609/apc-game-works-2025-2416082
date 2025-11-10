@@ -72,7 +72,7 @@ void Enemy::SubUpdate(void)
 	default:
 		break;
 	}
-	StateUpdate((int)state_);
+	StateUpdate(static_cast<int>(state_));
 }
 
 void Enemy::SubDraw(void)

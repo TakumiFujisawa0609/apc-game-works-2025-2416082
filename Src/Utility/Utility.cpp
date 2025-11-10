@@ -501,6 +501,13 @@ MATRIX Utility::MatrixAllMultZYX(const std::initializer_list<VECTOR>& vecs)
     return m;
 }
 
+void Utility::MatrixPosMult(MATRIX& mat, const VECTOR& pos)
+{
+    mat.m[3][0] = pos.x;
+    mat.m[3][1] = pos.y;
+    mat.m[3][2] = pos.z;
+}
+
 float Utility::NormalizeAngle(float rad)
 {
     while (rad > DX_PI)

@@ -14,8 +14,9 @@
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
 
-Boss::Boss(const VECTOR& target) :
+Boss::Boss(const VECTOR& target, const int& voiceLevel) :
 	target_(target),
+	voiceLevel_(voiceLevel),
 	playerMuscleRatio_()
 {
 }
@@ -26,12 +27,11 @@ Boss::~Boss()
 
 void Boss::SubLoad(void)
 {
-	hand_ = new HandSlap(target_);
-	hand_->Load();
-
 	unit_.model_ = MV1LoadModel("Data/Model/Boss/BossHead.mv1");
 
 	SoundManager::GetIns().Load(SOUND::HIT);
+
+	AttackLoad();
 }
 
 void Boss::SubInit(void)
@@ -50,8 +50,14 @@ void Boss::SubInit(void)
 
 	color1 = 0xfff000;
 
-	hand_->Init();
+	isAttackInit_ = false;
+	isAttackEnd_ = false;
+	AttackInit();
 
+	state_ = STATE::ATTACK;
+	attackState_ = ATTACK::NON;
+
+	StateAdd((int)STATE::ATTACK, [this](void) {Attack(); });
 }
 
 void Boss::SubUpdate(void)
@@ -90,8 +96,10 @@ void Boss::SubUpdate(void)
 		}
 	}
 
-	hand_->Update();
+	StateUpdate(static_cast<int>(state_));
 	Invi();
+
+	voiceLevel_;
 
 #ifdef _DEBUG
 	//if (CheckHitKey(KEY_INPUT_UP)) { unit_.pos_.z += 5; }
@@ -106,11 +114,32 @@ void Boss::SubDraw(void)
 {
 	if (!unit_.isAlive_)return;
 
+	SetMatrix();
+
+	AttackDraw();
+}
+
+void Boss::SubRelease(void)
+{
+	//モデルの解放
+	MV1DeleteModel(unit_.model_);
+
+	AttackRelease();
+
+	// 音声の開放
+	for (int i = 0; i < (int)SOUND::MAX; i++) {
+		SoundManager::GetIns().Delete((SOUND)i);
+	}
+}
+
+void Boss::SetMatrix(void)
+{
+
 	VECTOR offset = { 0.0f, -150.0f, 0.0f };
 
 	// 行列の作成
 	MATRIX mat = MGetIdent();
-	
+
 	// 行列に向きの適用
 	mat = MMult(mat, MGetRotX(unit_.angle_.x));
 	mat = MMult(mat, MGetRotY(unit_.angle_.y));
@@ -139,35 +168,34 @@ void Boss::SubDraw(void)
 	// モデルに行列の適用
 	// モデルの描画
 	MV1SetMatrix(unit_.model_, mat);
-
-	hand_->Draw();
 }
 
-void Boss::SubRelease(void)
-{
-	//モデルの解放
-	MV1DeleteModel(unit_.model_);
-
-	//右手の開放
-	if (hand_)
-	{
-		hand_->Release();
-		delete hand_;
-		hand_ = nullptr;
-	}
-
-	// 音声の開放
-	for (int i = 0; i < (int)SOUND::MAX; i++) {
-		SoundManager::GetIns().Delete((SOUND)i);
-	}
-}
-
-void Boss::SetMatrix(void)
-{
-}
-
+#pragma region ステート処理
 void Boss::Attack(void)
 {
+	switch (attackState_)
+	{
+	case ATTACK::NON:
+		attackCounter_++;
+		if (attackCounter_ > NEXT_ATTACK_TIME)
+		{
+			attackCounter_ = 0;
+			// 次の攻撃を抽選
+			attackState_ = AttackLottery();
+			slap_->Init();
+		}
+		break;
+
+	case ATTACK::SLAP:
+		slap_->Update();
+		if (slap_->isEnd()) {
+			attackState_ = ATTACK::NON; // 終了したら戻る
+		}
+		break;
+
+	default:
+		break;
+	}
 }
 
 void Boss::Idle(void)
@@ -181,6 +209,42 @@ void Boss::Damage(void)
 void Boss::Death(void)
 {
 }
+#pragma endregion 
+
+#pragma region 攻撃関係
+
+Boss::ATTACK Boss::AttackLottery(void)
+{
+	return ATTACK::SLAP;
+}
+
+void Boss::AttackLoad(void)
+{
+	slap_ = new HandSlap(target_, voiceLevel_);
+	slap_->Load();
+}
+
+void Boss::AttackInit(void)
+{
+	slap_->Init();
+}
+
+void Boss::AttackDraw(void)
+{
+	slap_->Draw();
+}
+
+void Boss::AttackRelease(void)
+{
+	//右手の開放
+	if (slap_)
+	{
+		slap_->Release();
+		delete slap_;
+		slap_ = nullptr;
+	}
+}
+#pragma endregion 
 
 void Boss::UIDraw(void)
 {

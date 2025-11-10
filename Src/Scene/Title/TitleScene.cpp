@@ -61,8 +61,8 @@ void TitleScene::Init(void)
 // XVˆ—
 void TitleScene::Update(void)
 {
-	auto& input = InputManager::GetInstance();
-	auto& scene = SceneManager::GetInstance();
+	InputManager& input = InputManager::GetInstance();
+	SceneManager& scene = SceneManager::GetInstance();
 
 	if (CheckHitKey(KEY_INPUT_ESCAPE)) {
 		Application::GetInstance().GameEnd();
@@ -77,7 +77,7 @@ void TitleScene::Update(void)
 		startCounter_++;
 		animation_->Play((int)ANIM_TYPE::ATTACK,false);
 		if (startCounter_ > 120) {
-			scene.ChangeScene(SCENE_ID::GAME);
+			scene.JumpScene(SCENE_ID::GAME);
 			return;
 		}
 	}
@@ -118,9 +118,11 @@ void TitleScene::Draw(void)
 
 	mat = MMult(MGetScale(scale), mat);
 
-	mat.m[3][0] = pos.x;
-	mat.m[3][1] = pos.y;
-	mat.m[3][2] = pos.z;
+	//mat.m[3][0] = pos.x;
+	//mat.m[3][1] = pos.y;
+	//mat.m[3][2] = pos.z;
+
+	Utility::MatrixPosMult(mat, pos);
 
 	MV1SetMatrix(model_, mat);
 	MV1DrawModel(model_);

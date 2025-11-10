@@ -59,17 +59,20 @@ void GameScene::Load(void)
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
 	collision_ = new Collision();
+
 	player_ = new Player();
-	boss_ = new Boss(player_->GetUnit().pos_);
-	enemy_ = new EnemyManager(player_->GetUnit().pos_);
-	stage_ = new Stage();
-	skyDome_ = new SkyDome();
-
-
 	player_->Load();
+
+	boss_ = new Boss(player_->GetUnit().pos_, player_->GetVoiceLevel());
 	boss_->Load();
+
+	enemy_ = new EnemyManager(player_->GetUnit().pos_);
 	enemy_->Load();
+
+	stage_ = new Stage();
 	stage_->Load();
+
+	skyDome_ = new SkyDome();
 	skyDome_->Load();
 
 	collision_->AddEnemy(boss_);
