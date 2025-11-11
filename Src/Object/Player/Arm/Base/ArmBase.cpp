@@ -8,7 +8,7 @@
 #include "../../Player.h"
 
 #include "../../../Boss/Boss.h"
-#include "../../../Boss/Hand/HandSlap.h"
+#include "../../../Boss/Attack/Hand/HandSlap.h"
 
 
 ArmBase::ArmBase(int modelId)

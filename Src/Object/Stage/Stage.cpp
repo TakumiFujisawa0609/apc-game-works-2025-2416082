@@ -21,6 +21,7 @@ void Stage::SubInit(void)
 	unit_.pos_ = DEFAULT_POS;
 	unit_.angle_ = Utility::VECTOR_ZERO;
 	unit_.scale_ = SCALE;
+	unit_.isAlive_ = true;
 }
 
 void Stage::SubUpdate(void)
@@ -29,9 +30,15 @@ void Stage::SubUpdate(void)
 
 void Stage::SubDraw(void)
 {
-	MV1SetPosition(unit_.model_, unit_.pos_);
-	MV1SetRotationXYZ(unit_.model_, unit_.angle_);
-	MV1SetScale(unit_.model_, unit_.scale_);
+	MATRIX mat = MGetIdent();
+
+	mat = MMult(MGetScale(unit_.scale_), mat);
+
+	Utility::MatrixRotMult(mat, unit_.angle_);
+	Utility::MatrixPosMult(mat, unit_.pos_);
+
+	MV1SetMatrix(unit_.model_, mat);
+	MV1DrawModel(unit_.model_);
 }
 
 void Stage::SubRelease(void)

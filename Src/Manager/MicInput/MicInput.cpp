@@ -201,12 +201,12 @@ void MicInput::OnBufferDone(WAVEHDR* hdr)
     }
 
     // ループバック再生
-    memcpy(outBuffer_, data, bufferSize_ * sizeof(short));
-    WaveOutHdr_.lpData = (LPSTR)outBuffer_;
-    WaveOutHdr_.dwBufferLength = bufferSize_ * sizeof(short);
-    WaveOutHdr_.dwFlags = 0;
-    waveOutPrepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
-    waveOutWrite(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+    //memcpy(outBuffer_, data, bufferSize_ * sizeof(short));
+    //WaveOutHdr_.lpData = (LPSTR)outBuffer_;
+    //WaveOutHdr_.dwBufferLength = bufferSize_ * sizeof(short);
+    //WaveOutHdr_.dwFlags = 0;
+    //waveOutPrepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+    //waveOutWrite(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
 
     // 再度録音バッファとして登録
     waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));

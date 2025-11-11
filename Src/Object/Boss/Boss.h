@@ -46,7 +46,7 @@ public:
 		MAX
 	};
 
-	Boss(const VECTOR& target, const int& voiceLevel);
+	Boss(const VECTOR& target);
 	~Boss() override;
 
 	void UIDraw(void);
@@ -55,6 +55,7 @@ public:
 
 	HandSlap* GetRightHand(void) { return slap_; }
 	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
+	void SetVoiceLevel(float voiceLevel) { voiceLevel_ = voiceLevel; }
 
 protected:
 	void SubLoad(void) override;
@@ -79,7 +80,7 @@ private:
 	std::vector<DamageText> damageTexts_;
 
 	const VECTOR& target_;
-	const int& voiceLevel_;
+	int voiceLevel_;
 
 	void SetMatrix(void);
 

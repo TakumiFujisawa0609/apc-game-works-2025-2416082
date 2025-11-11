@@ -20,7 +20,7 @@ void SkyDome::SubLoad(void)
 void SkyDome::SubInit(void)
 {
 	unit_.pos_ = { 0.0f,0.0f,0.0f };
-	unit_.scale_ = { 1.0f,1.0f,1.0f };
+	unit_.scale_ = { 100.0f,100.f,100.0f };
 	unit_.angle_ = { 0.0f,0.0f,0.0f };
 }
 
@@ -30,6 +30,15 @@ void SkyDome::SubUpdate(void)
 
 void SkyDome::SubDraw(void)
 {
+	MATRIX mat = MGetIdent();
+
+	mat = MMult(MGetScale(unit_.scale_), mat);
+
+	Utility::MatrixRotMult(mat, unit_.angle_);
+	Utility::MatrixPosMult(mat, unit_.pos_);
+
+	MV1SetMatrix(unit_.model_, mat);
+
 	MV1DrawModel(unit_.model_);
 }
 

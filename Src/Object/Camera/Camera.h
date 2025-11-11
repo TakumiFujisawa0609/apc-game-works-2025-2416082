@@ -5,7 +5,7 @@ class Camera
 {
 public:
 
-	static constexpr float CAMERA_PLAYER_POS = 200.0f;
+	static constexpr float CAMERA_PLAYER_POS = 300.0f;
 
 	enum MODE
 	{

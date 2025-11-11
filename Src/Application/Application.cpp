@@ -1,6 +1,8 @@
 #include "Application.h"
 
 #include"../Manager/FPS/FPS.h"
+#include"../Manager/Input/KeyManager.h"
+
 #include"../Scene/SceneManager/SceneManager.h"
 
 Application* Application::instance_ = nullptr;
@@ -45,6 +47,8 @@ void Application::Init(void)
 	// 描画先画面を裏にする
 	SetDrawScreen(DX_SCREEN_BACK);
 
+	KEY::CreateIns();
+
 	// シーン管理初期化
 	SceneManager::CreateInstance();
 	SceneManager::GetInstance().Init();
@@ -64,6 +68,8 @@ void Application::Run(void)
 		// 1/60秒経過していないなら再ループさせる
 		if (!fps_->UpdateFrameRate()) continue;
 
+		KEY::GetIns().Update();
+
 		SceneManager::GetInstance().Update();	// シーン管理更新
 		fps_->CalcFrameRate();					// フレームレート計算
 
@@ -82,6 +88,8 @@ void Application::Release(void)
 	// シーン管理解放・削除	
 	SceneManager::GetInstance().Release();
 	SceneManager::DeleteInstance();
+
+	KEY::DeleteIns();
 
 	// フレームレート解放
 	delete fps_;

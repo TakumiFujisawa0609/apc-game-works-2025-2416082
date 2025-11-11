@@ -9,14 +9,13 @@
 
 #include "../../Manager/Sound/SoundManager.h"
 
-#include "Hand/HandSlap.h"
+#include "Attack/Hand/HandSlap.h"
 
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
 
-Boss::Boss(const VECTOR& target, const int& voiceLevel) :
+Boss::Boss(const VECTOR& target) :
 	target_(target),
-	voiceLevel_(voiceLevel),
 	playerMuscleRatio_()
 {
 }
@@ -99,8 +98,6 @@ void Boss::SubUpdate(void)
 	StateUpdate(static_cast<int>(state_));
 	Invi();
 
-	voiceLevel_;
-
 #ifdef _DEBUG
 	//if (CheckHitKey(KEY_INPUT_UP)) { unit_.pos_.z += 5; }
 	//if (CheckHitKey(KEY_INPUT_DOWN)) { unit_.pos_.z -= 5; }
@@ -117,6 +114,13 @@ void Boss::SubDraw(void)
 	SetMatrix();
 
 	AttackDraw();
+
+	MV1DrawModel(unit_.model_);
+
+	slap_->MarkerDraw();
+
+	UIDraw();
+
 }
 
 void Boss::SubRelease(void)
@@ -141,15 +145,18 @@ void Boss::SetMatrix(void)
 	MATRIX mat = MGetIdent();
 
 	// 行列に向きの適用
-	mat = MMult(mat, MGetRotX(unit_.angle_.x));
-	mat = MMult(mat, MGetRotY(unit_.angle_.y));
-	mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+	Utility::MatrixRotMult(mat, unit_.angle_);
+	//mat = MMult(mat, MGetRotX(unit_.angle_.x));
+	//mat = MMult(mat, MGetRotY(unit_.angle_.y));
+	//mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+
 
 	// モデルの向きを修正
 	MATRIX localMat = MGetIdent();
-	localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-	localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-	localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+	Utility::MatrixRotMult(localMat, LOCAL_ANGLE);
+	//localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+	//localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+	//localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
 
 	// 合体
 	mat = MMult(localMat, mat);
@@ -161,9 +168,12 @@ void Boss::SetMatrix(void)
 	VECTOR worldPos = VTransform(offset, mat);
 
 	// 座標の情報を行列に渡す
-	mat.m[3][0] = worldPos.x + unit_.pos_.x;
-	mat.m[3][1] = worldPos.y + unit_.pos_.y;
-	mat.m[3][2] = worldPos.z + unit_.pos_.z;
+	//mat.m[3][0] = worldPos.x + unit_.pos_.x;
+	//mat.m[3][1] = worldPos.y + unit_.pos_.y;
+	//mat.m[3][2] = worldPos.z + unit_.pos_.z;
+
+	VECTOR pos = VAdd(worldPos, unit_.pos_);
+	Utility::MatrixPosMult(mat, pos);
 
 	// モデルに行列の適用
 	// モデルの描画

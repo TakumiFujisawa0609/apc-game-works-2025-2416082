@@ -49,6 +49,15 @@ public:
 		MAX,
 	};
 
+	enum MUSCLE_LEVEL
+	{
+		LOW,
+		NORMAL,
+		BIG,
+
+		MAX
+	};
+
 #pragma region 定数定義
 
 	static constexpr int HP_MAX = 100;
@@ -114,7 +123,7 @@ public:
 
 	void SetDamage(int damage);
 
-	int GetVoiceLevel(void) const;
+	int GetVoiceLevel(void);
 
 	// 腕クラスのインスタンスのゲット関数
 	LeftArm* GetLeftArm(void) { return leftArm_; }
@@ -145,23 +154,22 @@ private:
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
-
+	void MuscleGauge(void);
 private:
-
 
 	AnimationController* animation_;
 	MicInput* mic_;
 	LeftArm* leftArm_;
 	RightArm* rightArm_;;
 	
-
-
 #pragma region 列挙型定義
 	// ステート管理用
 	STATE state_;
 
 	// 現在のコンボ
 	CONBO conbo_;
+
+	MUSCLE_LEVEL muscleLevel_;
 
 #pragma endregion
 

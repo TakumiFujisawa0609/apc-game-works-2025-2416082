@@ -11,7 +11,7 @@
 #include "../Camera/Camera.h"
 
 #include "../Boss/Boss.h"
-#include "../Boss/Hand/HandSlap.h"
+#include "../Boss/Attack/Hand/HandSlap.h"
 
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
@@ -109,6 +109,7 @@ void Player::SubInit(void)
 
     state_ = STATE::IDLE;
     conbo_ = CONBO::CONBO1;
+    muscleLevel_ = MUSCLE_LEVEL::LOW;
 
     // 腕の初期化
     leftArm_->Init();
@@ -126,6 +127,16 @@ void Player::SubUpdate(void)
 
     if (state_ != STATE::ATTACK) {
         isAttacked_ = false;
+    }
+
+    if (GetMuscleRatio(4) < 0.04f) {
+        muscleLevel_ = MUSCLE_LEVEL::BIG;
+    }
+    else if (GetMuscleRatio(4) < 0.8f) {
+        muscleLevel_ = MUSCLE_LEVEL::NORMAL;
+    }
+    else if (GetMuscleRatio(4) < 1.0f) {
+        muscleLevel_ = MUSCLE_LEVEL::BIG;
     }
 
     // ステージとの当たり判定を無理やりやってる処理
@@ -179,6 +190,9 @@ void Player::SubDraw(void)
     // 腕に関する描画処理
     leftArm_->Draw();
     rightArm_->Draw();
+
+    MV1DrawModel(unit_.model_);
+
 
 }
 
@@ -236,7 +250,7 @@ void Player::OnCollision(UnitBase* other)
         return;
     }
 
-    if (auto* hand = dynamic_cast<HandSlap*>(other))
+    if (HandSlap* hand = dynamic_cast<HandSlap*>(other))
     {
         if (hand->isHit()) { return; }
         SetDamage(10);
@@ -249,6 +263,9 @@ void Player::UIDraw(void)
     //HP描画
     HpDraw();
     rightArm_->UIDraw();
+    MuscleGauge();
+
+
 
 #ifdef _DEBUG
     DebugDraw();
@@ -432,7 +449,7 @@ void Player::Roll(void)
 
         // カメラ基準の方向をワールド基準に変換
         VECTOR worldMove = VTransform(move_, mat);
-
+        
         // 正規化＋スケーリング
         worldMove = VNorm(worldMove);
         worldMove = VScale(worldMove, ROLL_SPEED);
@@ -800,8 +817,32 @@ void Player::StageCollision(void)
     }
 }
 
+void Player::MuscleGauge(void)
+{
+    VECTOR centerPos_ = { Application::SCREEN_SIZE_X / 10 * 7, Application::SCREEN_SIZE_Y / 10 };
 
-int Player::GetVoiceLevel(void) const
+    for (int i = 0; i < 3; i++) {
+
+        // 半径（中心からの距離）
+        float radius = 30.0f + i * 20.0f;
+
+        // 三角形の回転角度（ラジアン）
+        float angle = DX_PI_F / 3 * i;
+
+        // 頂点座標を計算
+        int x1 = static_cast<int>(centerPos_.x + cosf(angle + 0.0f) * radius);
+        int y1 = static_cast<int>(centerPos_.y + sinf(angle + 0.0f) * radius);
+        int x2 = static_cast<int>(centerPos_.x + cosf(angle + DX_PI_F * 2 / 3) * radius);
+        int y2 = static_cast<int>(centerPos_.y + sinf(angle + DX_PI_F * 2 / 3) * radius);
+        int x3 = static_cast<int>(centerPos_.x + cosf(angle + DX_PI_F * 4 / 3) * radius);
+        int y3 = static_cast<int>(centerPos_.y + sinf(angle + DX_PI_F * 4 / 3) * radius);
+
+        DrawTriangle(x1, y1, x2, y2, x3, y3, GetColor(255, 0, 0), TRUE);
+    }
+}
+
+
+int Player::GetVoiceLevel(void)
 {
     return mic_->GetPlayGameLevel();
 }

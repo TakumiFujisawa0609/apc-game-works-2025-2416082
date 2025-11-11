@@ -25,6 +25,8 @@ void UnitBase::Update(void)
 
 void UnitBase::Draw(void)
 {
+
+	// Œp³æ‚Ì•`‰æˆ—
 	SubDraw();
 
 	if (unit_.inviciCounter_ > 0)
@@ -39,8 +41,8 @@ void UnitBase::Draw(void)
 		MV1SetDifColorScale(unit_.model_, { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
 
-	// ƒ‚ƒfƒ‹•`‰æ
-	MV1DrawModel(unit_.model_);
+
+
 }
 
 void UnitBase::Release(void)

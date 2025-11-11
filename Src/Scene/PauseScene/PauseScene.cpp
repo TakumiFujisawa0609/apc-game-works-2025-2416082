@@ -1,10 +1,13 @@
 #include "PauseScene.h"
 #include <DxLib.h>
 #include "../SceneManager/SceneManager.h"
+#include "../../Manager/Input/InputManager.h"
 #include "../../Application/Application.h"
 
 void PauseScene::Update()
 {
+    InputManager& input = InputManager::GetInstance();
+    
     if (CheckHitKey(KEY_INPUT_UP) || CheckHitKey(KEY_INPUT_W) && next_ != NEXT_SCENE::GAME) {
         next_ = NEXT_SCENE::GAME;
     }

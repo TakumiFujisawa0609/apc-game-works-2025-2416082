@@ -4,6 +4,7 @@
 #include<cmath>
 
 #include "../../Manager/Input/InputManager.h"
+#include "../../Manager/Input/KeyManager.h"
 
 #include "../../Application/Application.h"
 #include "../../scene/SceneManager/SceneManager.h"
@@ -16,7 +17,7 @@
 #include "../../Object/Player/Arm/RightArm.h"
 
 #include "../../Object/Boss/Boss.h"
-#include "../../Object/Boss/Hand/HandSlap.h"
+#include "../../Object/Boss/Attack/Hand/HandSlap.h"
 
 #include "../../Object/Enemy/EnemyManager/EnemyManager.h"
 #include "../../Object/Enemy/EnemyBase.h"
@@ -63,7 +64,7 @@ void GameScene::Load(void)
 	player_ = new Player();
 	player_->Load();
 
-	boss_ = new Boss(player_->GetUnit().pos_, player_->GetVoiceLevel());
+	boss_ = new Boss(player_->GetUnit().pos_);
 	boss_->Load();
 
 	enemy_ = new EnemyManager(player_->GetUnit().pos_);
@@ -130,7 +131,7 @@ void GameScene::Update(void)
 	InputManager& input = InputManager::GetInstance();
 	Camera& camera = Camera::GetInstance();
 
-	if (input.IsTrgDown(KEY_INPUT_ESCAPE)) {
+	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
 		scene.PushScene(std::make_shared<PauseScene>());
 		return;
 	}
@@ -148,6 +149,7 @@ void GameScene::Update(void)
 	player_->Update();
 	boss_->Update();
 	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
+	boss_->SetVoiceLevel(player_->GetVoiceLevel());
 	enemy_->Update();
 	stage_->Update();
 	skyDome_->Update();
@@ -159,8 +161,6 @@ void GameScene::Update(void)
 #pragma endregion
 
 }
-
-
 
 void GameScene::Draw(void)
 {

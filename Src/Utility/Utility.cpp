@@ -354,6 +354,13 @@ void Utility::LoadArrayImg(std::string path, int AllNum, int XNum, int YNum, int
     }
 }
 
+void Utility::MatrixRotMult(MATRIX& mat, const VECTOR& angle)
+{
+    mat = MMult(MGetRotX(angle.x), mat);
+    mat = MMult(MGetRotY(angle.y), mat);
+    mat = MMult(MGetRotZ(angle.z), mat);
+}
+
 MATRIX Utility::MatrixAllMultX(const std::initializer_list<VECTOR>& vecs)
 {
     MATRIX m = MGetIdent();

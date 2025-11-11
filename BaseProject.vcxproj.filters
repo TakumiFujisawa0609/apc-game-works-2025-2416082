@@ -39,9 +39,6 @@
     <ClCompile Include="Src\main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Common\Vector2.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Object\Player\Player.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -75,7 +72,7 @@
     <ClCompile Include="Src\Object\Player\Arm\RightArm.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Object\Boss\Hand\HandSlap.cpp">
+    <ClCompile Include="Src\Object\Boss\Attack\Hand\HandSlap.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Scene\GameOver\GameOver.cpp">
@@ -108,6 +105,15 @@
     <ClCompile Include="Src\Object\SkyDome\SkyDome.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Common\Vector2.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Manager\Input\KeyManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Boss\Attack\Shot\Shot.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Application\Application.h">
@@ -132,9 +138,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Utility\Utility.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Common\Vector2.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Object\Player\Player.h">
@@ -170,7 +173,7 @@
     <ClInclude Include="Src\Object\Player\Arm\RightArm.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Object\Boss\Hand\HandSlap.h">
+    <ClInclude Include="Src\Object\Boss\Attack\Hand\HandSlap.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\GameOver\GameOver.h">
@@ -201,6 +204,12 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Object\SkyDome\SkyDome.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Common\Vector2.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Manager\Input\KeyManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

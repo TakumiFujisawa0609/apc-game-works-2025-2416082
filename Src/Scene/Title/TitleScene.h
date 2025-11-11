@@ -19,7 +19,11 @@ public:
 	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
-	static constexpr int VOICE_GAUGE_MAX = 10;;
+	static constexpr int VOICE_GAUGE_MAX = 10;
+	static constexpr int KINNIKU_IMAGE_SCALE_MAX = 8.0f;
+	static constexpr int KINNIKU_IMAGE_SCALE_MIN = 3.0f;
+
+	static constexpr int MUSCLE_INDEX = 4;
 
 	TitleScene();
 	~TitleScene()override;
@@ -39,17 +43,30 @@ private:
 	AnimationController* animation_;
 	MicInput* mic_;
 
-	int image_;
+	int titleLogoImage_;
+	int nikuImage_;
+	int kinImage_;
+	int haikeiImage_;
 
-	int model_;
+	VECTOR imagePos_[10];
+	int frameCounter_;
 
-	VECTOR pos;
-	VECTOR scale;
-	VECTOR angle;
+	struct SubBase
+	{
+		int model_;
+
+		VECTOR pos;
+		VECTOR scale;
+		VECTOR angle;
+	};
+
+	SubBase unit_;
 
 	int startCounter_;
 	bool isStart_;
 	int	voiceLevel_;
+
+	float imageScale_;
 
 	void AddBoneScale(int index, VECTOR scale);
 

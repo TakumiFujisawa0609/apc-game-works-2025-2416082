@@ -46,8 +46,11 @@ public:
 		L_TRIGGER1,
 		R_TRIGGER2,
 		L_TRIGGER2,
+		START,
 		MAX
 	};
+
+	using BTN = InputManager::JOYPAD_BTN;
 
 	// ゲームコントローラーの入力情報
 	struct JOYPAD_IN_STATE

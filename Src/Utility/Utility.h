@@ -91,6 +91,7 @@ public:
 	static void LoadArrayImg(std::string path, int AllNum, int XNum, int YNum, int XSize, int YSize, int* handleArray);
 	static void LoadArrayImg(std::string path, int AllNum, int XNum, int YNum, int XSize, int YSize, std::vector<int>& handleArray);
 
+	static void MatrixRotMult(MATRIX& mat, const VECTOR& angle);
 
 	static MATRIX MatrixAllMultX(const std::initializer_list<VECTOR>& vecs);
 	static MATRIX MatrixAllMultY(const std::initializer_list<VECTOR>& vecs);

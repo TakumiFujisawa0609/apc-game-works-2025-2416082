@@ -7,9 +7,13 @@ class FPS;
 class Application
 {
 public:
+	
+	static constexpr int FULL_SCREEN_SIZE_X = 1920;
+	static constexpr int FULL_SCREEN_SIZE_Y = 980;	// スクリーン縦幅;
+
 	// スクリーンサイズ
-	static constexpr int SCREEN_SIZE_X = 1920;	// スクリーン横幅;
-	static constexpr int SCREEN_SIZE_Y = 980;	// スクリーン縦幅;
+	static constexpr int SCREEN_SIZE_X = (FULL_SCREEN_SIZE_X / 10) * 8;	// スクリーン横幅;
+	static constexpr int SCREEN_SIZE_Y = (FULL_SCREEN_SIZE_Y / 10) * 8;	// スクリーン縦幅;
 
 public:
 	// シングルトン（生成・取得・削除）

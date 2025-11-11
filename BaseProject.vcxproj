@@ -138,7 +138,9 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Manager\Animation\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\FlashEffectManager\FlashEffectManager.cpp" />
+    <ClCompile Include="Src\Manager\Input\KeyManager.cpp" />
     <ClCompile Include="Src\Manager\MicInput\MicInput.cpp" />
+    <ClCompile Include="Src\Object\Boss\Attack\Shot\Shot.cpp" />
     <ClCompile Include="Src\Object\Camera\Camera.cpp" />
     <ClCompile Include="Src\Manager\Collision\Collision.cpp" />
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
@@ -146,7 +148,7 @@
     <ClCompile Include="Src\Manager\Loading\Loading.cpp" />
     <ClCompile Include="Src\Manager\Sound\SoundManager.cpp" />
     <ClCompile Include="Src\Object\Boss\Boss.cpp" />
-    <ClCompile Include="Src\Object\Boss\Hand\HandSlap.cpp" />
+    <ClCompile Include="Src\Object\Boss\Attack\Hand\HandSlap.cpp" />
     <ClCompile Include="Src\Object\Enemy\Enemy.cpp" />
     <ClCompile Include="Src\Object\Enemy\EnemyBase.cpp" />
     <ClCompile Include="Src\Object\Enemy\EnemyManager\EnemyManager.cpp" />
@@ -170,6 +172,7 @@
     <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\Manager\Animation\AnimationController.h" />
     <ClInclude Include="Src\Manager\FlashEffectManager\FlashEffectManager.h" />
+    <ClInclude Include="Src\Manager\Input\KeyManager.h" />
     <ClInclude Include="Src\Manager\MicInput\MicInput.h" />
     <ClInclude Include="Src\Object\Camera\Camera.h" />
     <ClInclude Include="Src\Manager\Collision\Collision.h" />
@@ -178,7 +181,7 @@
     <ClInclude Include="Src\Manager\Loading\Loading.h" />
     <ClInclude Include="Src\Manager\Sound\SoundManager.h" />
     <ClInclude Include="Src\Object\Boss\Boss.h" />
-    <ClInclude Include="Src\Object\Boss\Hand\HandSlap.h" />
+    <ClInclude Include="Src\Object\Boss\Attack\Hand\HandSlap.h" />
     <ClInclude Include="Src\Object\Enemy\Enemy.h" />
     <ClInclude Include="Src\Object\Enemy\EnemyBase.h" />
     <ClInclude Include="Src\Object\Enemy\EnemyManager\EnemyManager.h" />
