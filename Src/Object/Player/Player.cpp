@@ -129,15 +129,16 @@ void Player::SubUpdate(void)
         isAttacked_ = false;
     }
 
-    if (GetMuscleRatio(4) < 0.04f) {
-        muscleLevel_ = MUSCLE_LEVEL::BIG;
+    if (GetMuscleRatio(4) <= 0.03f) {
+        muscleLevel_ = MUSCLE_LEVEL::LOW;
     }
-    else if (GetMuscleRatio(4) < 0.8f) {
+    else if (GetMuscleRatio(4) <= 0.7f) {
         muscleLevel_ = MUSCLE_LEVEL::NORMAL;
     }
-    else if (GetMuscleRatio(4) < 1.0f) {
+    else  if (GetMuscleRatio(4) <= 1.0f) {
         muscleLevel_ = MUSCLE_LEVEL::BIG;
     }
+   
 
     // ステージとの当たり判定を無理やりやってる処理
     StageCollision();
@@ -160,7 +161,7 @@ void Player::SubUpdate(void)
     //カメラ
     CameraPosUpdate();
 
-#pragma region 呼び出し更新処理
+#pragma region 他クラスの更新処理
 
     // 腕の更新処理
     leftArm_->Update();
@@ -172,7 +173,7 @@ void Player::SubUpdate(void)
 #pragma endregion
 
 #ifdef _DEBUG
-    if (input.IsTrgDown(KEY_INPUT_P)) {
+    if (input.IsNew(KEY_INPUT_P)) {
         leftArm_->SetAttackTime(60);
         rightArm_->SetAttackTime(60);
     }
@@ -263,18 +264,13 @@ void Player::UIDraw(void)
     //HP描画
     HpDraw();
     rightArm_->UIDraw();
-    MuscleGauge();
-
+    MuscleGaugeDraw();
 
 
 #ifdef _DEBUG
     DebugDraw();
 
     // 現在の筋肉の割合（ratio）
-    
-    SetFontSize(64);
-    DrawFormatString(0, Application::SCREEN_SIZE_Y - 64, 0xffffff, "%f", GetMuscleRatio(LeftArm::LEFT_ARM_INDEX));
-    SetFontSize(16);
     mic_->VoiceLevelDraw();
 #endif 
 }
@@ -291,27 +287,7 @@ void Player::Move(void)
     auto& camera = Camera::GetInstance();
     move_ = Utility::VECTOR_ZERO;
 
-    // ---------- キーボード入力 ----------
-    if (CheckHitKey(KEY_INPUT_W)) move_.z += 1.0f;
-    if (CheckHitKey(KEY_INPUT_S)) move_.z -= 1.0f;
-    if (CheckHitKey(KEY_INPUT_A)) move_.x -= 1.0f;
-    if (CheckHitKey(KEY_INPUT_D)) move_.x += 1.0f;
-
-    // ---------- Xbox コントローラー入力 ----------
-    XINPUT_STATE padState{};
-    if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
-    {
-        const float deadZone = 8000.0f;   // デッドゾーン
-        const float maxValue = 32767.0f;  // 最大スティック値
-
-        // デッドゾーン処理
-        if (fabsf((float)padState.ThumbLX) > deadZone) {
-            move_.x += (float)padState.ThumbLX / maxValue;
-        }
-        if (fabsf((float)padState.ThumbLY) > deadZone) {
-            move_.z += (float)padState.ThumbLY / maxValue;
-        }
-    }
+    SetMoveVec();
 
     // ---------- 実際の移動 ----------
     if (move_.x != 0.0f || move_.z != 0.0f)
@@ -336,92 +312,26 @@ void Player::Move(void)
 
 void Player::Attack(void)
 {
-    auto& input = InputManager::GetInstance();
-    auto& camera = Camera::GetInstance();
+    Camera& camera = Camera::GetInstance();
 
-    move_ = Utility::VECTOR_ZERO;
+    SetMoveVec();
 
-    if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, {  0.0f, 0.0f,  1.0f }); }
-    if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, {  0.0f, 0.0f, -1.0f }); }
-    if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f,  0.0f }); }
-    if (CheckHitKey(KEY_INPUT_D)) { move_ = VAdd(move_, {  1.0f, 0.0f,  0.0f }); }
-
-    XINPUT_STATE padState{};
-    if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
-    {
-        const float deadZone = 8000.0f;   // デッドゾーン
-        const float maxValue = 32767.0f;  // 最大スティック値
-
-        // デッドゾーン処理
-        if (fabsf((float)padState.ThumbLX) > deadZone) {
-            move_.x += (float)padState.ThumbLX / maxValue;
-        }
-        if (fabsf((float)padState.ThumbLY) > deadZone) {
-            move_.z += (float)padState.ThumbLY / maxValue;
-        }
-    }
-
+    // 実際の移動
     if (move_.x != 0.0f || move_.z != 0.0f)
     {
         MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
-        VECTOR worldMove = VTransform(move_, mat);
-        worldMove = VNorm(worldMove);
+        VECTOR worldMove = VTransform(VNorm(move_), mat);
 
+        // プレイヤーの向きを移動方向に補間
         float targetY = atan2f(worldMove.x, worldMove.z);
-        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.5f);
+        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.3f);
+
     }
 
-    int anim = (int)conbo_;
-
-    switch (conbo_)
-    {
-    case CONBO::CONBO1: 
-        anim = (int)ANIM_TYPE::ATTACK1;
-        leftArm_->SetAttackTime(10);
-        break;
-    case CONBO::CONBO2: 
-        anim = (int)ANIM_TYPE::ATTACK2; 
-        rightArm_->SetAttackTime(10);
-        break;
-    case CONBO::CONBO3:
-        anim = (int)ANIM_TYPE::ATTACK3; 
-        leftArm_->SetAttackTime(10);
-        break;
-    }
-
-    animation_->Play(anim, false);
-
-    // 攻撃判定管理
-    DoAttack();
-
-    if (animation_->IsPassedRatio(anim, 0.0f) && !animation_->IsPassedRatio(anim, 0.7f))
-    {
-         VECTOR forward = VGet(
-            sinf(unit_.angle_.y),
-            0.0f,
-            cosf(unit_.angle_.y)
-        );
-
-        float dashPower = 0.0f;
-
-        dashPower = CONBO_MOVE_SPEED[(int)conbo_];
-
-        unit_.pos_ = VAdd(unit_.pos_, VScale(forward, dashPower));
-    }
-
-    // アニメーションが終了したらリセット
-    if (animation_->IsPassedRatio(anim, 0.7))
-    {
-        isAttacked_ = false;
-        state_ = STATE::IDLE;
-        conbo_ = CONBO::CONBO1;
-    }
-
-    attackEscapeCounter_++;
-    if (attackEscapeCounter_ > 120) {
-        attackEscapeCounter_ = 0;
+    if (animation_->IsEnd((int)ANIM_TYPE::ATTACK1)) {
         state_ = STATE::IDLE;
     }
+
 }
 
 void Player::Roll(void)
@@ -445,7 +355,7 @@ void Player::Roll(void)
         animation_->Play((int)ANIM_TYPE::ROLL, false);
 
         // カメラの向きから回転行列を作る
-        MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
+        MATRIX mat = MGetRotY(Utility::Deg2RadF(camera.GetAngle().y));
 
         // カメラ基準の方向をワールド基準に変換
         VECTOR worldMove = VTransform(move_, mat);
@@ -465,6 +375,7 @@ void Player::Roll(void)
 void Player::Death(void)
 {
     animation_->Play((int)ANIM_TYPE::DEATH, false);
+
     if (animation_->IsEnd((int)ANIM_TYPE::DEATH)) {
         unit_.isAlive_ = false;
     }
@@ -557,10 +468,6 @@ void Player::DoIdle(void)
 
 void Player::DoAttack(void)
 {
-    if (state_ != STATE::ATTACK) {
-        conbo_ = CONBO::CONBO1;
-    }
-
     auto& input = InputManager::GetInstance();
     auto& sound = SoundManager::GetIns();
 
@@ -570,40 +477,9 @@ void Player::DoAttack(void)
         input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER1) ||
         input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER2));
 
-    // 攻撃開始（1段目）
-    if (!isAttacked_ && isTrg)
-    {
-        conbo_ = CONBO::CONBO1;
+    if (isTrg) {
         state_ = STATE::ATTACK;
-
-        isAttacked_ = true;
-
-        sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
-        sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
-
-        return;
-    }
-
-    int animIndex = (int)ANIM_TYPE::ATTACK1 + (int)conbo_;
-    if (animation_->IsPassedRatio(animIndex, 0.4f) && isTrg)
-    {
-
-
-        if (conbo_ < CONBO::CONBO3)
-        {
-            conbo_ = (CONBO)((int)conbo_ + 1);
-            state_ = STATE::ATTACK;
-
-            sound.Stop(SOUND::PLAYER_BIG_ATTACK);
-            sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
-
-            if ((int)conbo_ >= (int)CONBO::MAX - 1) {
-                sound.Play(SOUND::PLAYER_BIG_ATTACK, false, 255, false, true);
-            }
-            else {
-                sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
-            }
-        }
+        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
     }
 }
 
@@ -706,6 +582,31 @@ void Player::RollCountUpdate(void)
     }
 }
 
+void Player::SetMoveVec(void)
+{
+    // ---------- キーボード入力 ----------
+    if (CheckHitKey(KEY_INPUT_W)) move_.z += 1.0f;
+    if (CheckHitKey(KEY_INPUT_S)) move_.z -= 1.0f;
+    if (CheckHitKey(KEY_INPUT_A)) move_.x -= 1.0f;
+    if (CheckHitKey(KEY_INPUT_D)) move_.x += 1.0f;
+
+    // ---------- Xbox コントローラー入力 ----------
+    XINPUT_STATE padState{};
+    if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
+    {
+        const float deadZone = 8000.0f;   // デッドゾーン
+        const float maxValue = 32767.0f;  // 最大スティック値
+
+        // デッドゾーン処理
+        if (fabsf((float)padState.ThumbLX) > deadZone) {
+            move_.x += (float)padState.ThumbLX / maxValue;
+        }
+        if (fabsf((float)padState.ThumbLY) > deadZone) {
+            move_.z += (float)padState.ThumbLY / maxValue;
+        }
+    }
+}
+
 //デバック用描画
 void Player::DebugDraw(void)
 {
@@ -790,54 +691,82 @@ void Player::HpDraw(void)
     HpBarDraw(unit_.hp_, HP_MAX, pos1, pos2, 0x77ff77);
 }
 
+// ステージに対して無理やり当たり判定をしている
 void Player::StageCollision(void)
 {
-    // 移動範囲制限（外側）
-    const float radius = 4300.0f;  // 最大半径
-    const float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
+    float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
 
-    if (distance > radius)
+    //　移動範囲制限（外側）
+    if (distance > STAGE_COLLISION_RADIUS_OUTSIDE)
     {
         // 原点からの方向ベクトルを正規化して外側の円に制限
         float nx = unit_.pos_.x / distance;
         float nz = unit_.pos_.z / distance;
-        unit_.pos_.x = nx * radius;
-        unit_.pos_.z = nz * radius;
+        unit_.pos_.x = nx * STAGE_COLLISION_RADIUS_OUTSIDE;
+        unit_.pos_.z = nz * STAGE_COLLISION_RADIUS_OUTSIDE;
     }
 
     // 移動範囲制限（内側）
-    const float miniRadius = 450.0f;  // 最小半径
-    if (distance < miniRadius)
+    if (distance < STAGE_COLLISION_RADIUS_INSIDE)
     {
         // 原点からの方向ベクトルを正規化して内側の円に制限
         float nx = unit_.pos_.x / distance;
         float nz = unit_.pos_.z / distance;
-        unit_.pos_.x = nx * miniRadius;
-        unit_.pos_.z = nz * miniRadius;
+        unit_.pos_.x = nx * STAGE_COLLISION_RADIUS_INSIDE;
+        unit_.pos_.z = nz * STAGE_COLLISION_RADIUS_INSIDE;
     }
 }
 
-void Player::MuscleGauge(void)
+// ゲージ描画の定数
+const int GAUGE_WIDTH = 150;  // ゲージ全体の幅
+const int GAUGE_HEIGHT = 20;  // ゲージの高さ
+const int GAUGE_Y = 100;       // ゲージ描画開始Y座標
+const int GAUGE_X = 100;       // ゲージ描画開始X座標
+const int SEGMENT_WIDTH = GAUGE_WIDTH / 3; // 1セグメントの幅
+
+void Player::MuscleGaugeDraw(void)
 {
-    VECTOR centerPos_ = { Application::SCREEN_SIZE_X / 10 * 7, Application::SCREEN_SIZE_Y / 10 };
+    // 各セグメントの色を定義 (DxLibのGetColorを使用)
+    // RGB (R, G, B) の順
+    unsigned int color_green = GetColor(0, 255, 0); // 緑
+    unsigned int color_yellow = GetColor(255, 255, 0); // 黄色
+    unsigned int color_red = GetColor(255, 0, 0); // 赤
 
+    // ゲージの背景（全枠）を描画
+    // DrawBox(x1, y1, x2, y2, Color, FillFlag)
+    // 枠だけ描画する場合は FillFlag を FALSE (0) に
+    DrawBox(GAUGE_X, GAUGE_Y, GAUGE_X + GAUGE_WIDTH, GAUGE_Y + GAUGE_HEIGHT, GetColor(100, 100, 100), FALSE);
+
+    // 筋肉レベルに応じてセグメントを描画
     for (int i = 0; i < 3; i++) {
+        // i は 0, 1, 2 に対応 (0:緑, 1:黄, 2:赤)
+        int x1 = GAUGE_X + i * SEGMENT_WIDTH; // 描画開始X座標
+        int y1 = GAUGE_Y;                     // 描画開始Y座標
+        int x2 = x1 + SEGMENT_WIDTH;          // 描画終了X座標
+        int y2 = GAUGE_Y + GAUGE_HEIGHT;      // 描画終了Y座標
 
-        // 半径（中心からの距離）
-        float radius = 30.0f + i * 20.0f;
+        unsigned int segment_color;
 
-        // 三角形の回転角度（ラジアン）
-        float angle = DX_PI_F / 3 * i;
+        // セグメントの色を決定
+        if (i == 0) {
+            segment_color = color_green;
+        }
+        else if (i == 1) {
+            segment_color = color_yellow;
+        }
+        else { // i == 2
+            segment_color = color_red;
+        }
 
-        // 頂点座標を計算
-        int x1 = static_cast<int>(centerPos_.x + cosf(angle + 0.0f) * radius);
-        int y1 = static_cast<int>(centerPos_.y + sinf(angle + 0.0f) * radius);
-        int x2 = static_cast<int>(centerPos_.x + cosf(angle + DX_PI_F * 2 / 3) * radius);
-        int y2 = static_cast<int>(centerPos_.y + sinf(angle + DX_PI_F * 2 / 3) * radius);
-        int x3 = static_cast<int>(centerPos_.x + cosf(angle + DX_PI_F * 4 / 3) * radius);
-        int y3 = static_cast<int>(centerPos_.y + sinf(angle + DX_PI_F * 4 / 3) * radius);
+        // 筋肉レベルが現在のセグメント以上の場合、色を付けて描画
+        // i+1 は筋肉レベル (1, 2, 3) に対応
+        if (muscleLevel_ >= i + 1) {
+            // 塗りつぶしの四角を描画
+            DrawBox(x1, y1, x2, y2, segment_color, TRUE);
+        }
 
-        DrawTriangle(x1, y1, x2, y2, x3, y3, GetColor(255, 0, 0), TRUE);
+        // セグメントごとの区切り線（オプション）
+        DrawLine(x2, y1, x2, y2, GetColor(0, 0, 0)); // 黒い線で区切る
     }
 }
 

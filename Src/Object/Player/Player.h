@@ -78,6 +78,11 @@ public:
 	static constexpr int ROLLING_TIME = 30;					// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
+	    // 移動範囲制限（外側）
+    static constexpr float STAGE_COLLISION_RADIUS_OUTSIDE = 4300.0f;  // 最大半径
+	static constexpr float STAGE_COLLISION_RADIUS_INSIDE = 450.0f;  // 最大半径
+
+
 
 	// コンボの段階に応じて攻撃したときの移動量	
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
@@ -142,6 +147,8 @@ private:
 	// 回避用カウンタの更新処理
 	void RollCountUpdate(void);
 
+	void SetMoveVec(void);
+
 	// デバッグ関係の描画用関数
 	void DebugDraw(void);
 
@@ -154,7 +161,7 @@ private:
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
-	void MuscleGauge(void);
+	void MuscleGaugeDraw(void);
 private:
 
 	AnimationController* animation_;

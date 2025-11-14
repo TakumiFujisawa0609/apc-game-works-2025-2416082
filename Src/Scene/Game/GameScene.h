@@ -53,6 +53,8 @@ public:
 #pragma endregion
 
 private:
+
+	std::vector<UnitBase*> objects_;
 	Collision* collision_;
 
 	Player* player_;
@@ -83,7 +85,6 @@ private:
 	Vector2I ShakePoint(void);
 	//---------------------------------
 #pragma endregion
-	int sousaImg_;
 };
 
 using ShakeKinds = GameScene::ShakeKinds;

@@ -53,49 +53,54 @@ GameScene::~GameScene()
 {
 }
 
+
+
 void GameScene::Load(void)
 {
 	this->Release();
+	Camera::CreateInstance();
 
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
-	collision_ = new Collision();
+	objects_.reserve(10);
+	auto ObjAdd = [&]<class T, class... Args>(T * &instance, Args && ... args)->void {
+		objects_.emplace_back(Utility::ClassNew(instance, std::forward<Args>(args)...));
+		instance->Load();
+	};
 
-	player_ = new Player();
-	player_->Load();
+	Utility::ClassNew(collision_);
+	ObjAdd(player_);
+	ObjAdd(boss_, player_->GetUnit().pos_);
+	ObjAdd(enemy_, player_->GetUnit().pos_);
+	ObjAdd(stage_);
+	ObjAdd(skyDome_);
 
-	boss_ = new Boss(player_->GetUnit().pos_);
-	boss_->Load();
 
-	enemy_ = new EnemyManager(player_->GetUnit().pos_);
-	enemy_->Load();
-
-	stage_ = new Stage();
-	stage_->Load();
-
-	skyDome_ = new SkyDome();
-	skyDome_->Load();
-
+	// “–‚½‚è”»’èƒNƒ‰ƒX‚Éî•ñ‚ð“n‚·-------------
 	collision_->AddEnemy(boss_);
 	collision_->AddEnemy(boss_->GetRightHand());
-	for (auto& enemy : enemy_->GetEnemy()) {
-		collision_->AddEnemy(enemy);
-	}
 
 	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
 	collision_->AddObject(player_->GetRightArm());
 
-	Camera::CreateInstance();
+	for (auto& enemy : enemy_->GetEnemy()) {
+		collision_->AddEnemy(enemy);
+	}
+	// -------------------------------------------
 }
 
 void GameScene::Init(void)
 {
-	player_->Init();
-	boss_->Init();
-	stage_->Init();
-	enemy_->Init();
-	skyDome_->Init();
+	//player_->Init();
+	//boss_->Init();
+	//stage_->Init();
+	//enemy_->Init();
+	//skyDome_->Init();
+
+	for (auto& obj : objects_) {
+		obj->Init();
+	}
 
 	SetMouseDispFlag(false);
 
@@ -133,16 +138,15 @@ void GameScene::Update(void)
 
 	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
 		scene.PushScene(std::make_shared<PauseScene>());
-		return;
 	}
 
 	if (!boss_->GetUnit().isAlive_) {
-		scene.ChangeScene(SCENE_ID::TITLE);
+		scene.JumpScene(SCENE_ID::TITLE);
 		return;
 	}
 
 	if (!player_->GetUnit().isAlive_) {
-		scene.ChangeScene(SCENE_ID::OVER);
+		scene.JumpScene(SCENE_ID::OVER);
 		return;
 	}
 
@@ -170,12 +174,6 @@ void GameScene::Draw(void)
 
 #pragma region •`‰æˆ—
 	Camera::GetInstance().Apply();
-
-	//DrawCube3D({ 10000,0,10000 }, { -10000,0,-10000 }, 0x000000, 0x000000, true);
-
-	using app = Application;
-	int x = app::SCREEN_SIZE_X / 2;
-	int y = app::SCREEN_SIZE_Y / 2;
 
 	skyDome_->Draw();
 
@@ -214,35 +212,11 @@ void GameScene::Release(void)
 		collision_ = nullptr;
 	}
 
-	if (player_) {
-		player_->Release();
-		delete player_;
-		player_ = nullptr;
-	}
-
-	if (boss_) {
-		boss_->Release();
-		delete boss_;
-		boss_ = nullptr;
-	}
-
-	if (enemy_) {
-		enemy_->Release();
-		delete enemy_;
-		enemy_ = nullptr;
-	}
-
-	if (stage_) {
-		stage_->Release();
-		delete stage_;
-		stage_ = nullptr;
-	}
-
-	if (skyDome_) {
-		skyDome_->Release();
-		delete skyDome_;
-		skyDome_ = nullptr;
-	}
+	Utility::SafeDelete(player_);
+	Utility::SafeDelete(boss_);
+	Utility::SafeDelete(enemy_);
+	Utility::SafeDelete(stage_);
+	Utility::SafeDelete(skyDome_);
 
 	DeleteGraph(mainScreen_);
  	Camera::DeleteInstance();

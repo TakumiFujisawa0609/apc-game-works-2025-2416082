@@ -46,7 +46,7 @@ void HandSlap::SubInit(void)
     StateAdd((int)HAND_STATE::STOP, [this](void) { Stop(); });
     StateAdd((int)HAND_STATE::END,  [this](void) { End();  });
 
-    handState_ = HAND_STATE::WAIT;
+    state_ = HAND_STATE::WAIT;
 
     end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
     isHit_ = false;     // プレイヤーに当たったらそれ以降true
@@ -58,7 +58,7 @@ void HandSlap::SubUpdate(void)
 {
     if (end_) { return; }
 
-    StateUpdate(static_cast<int>(handState_));
+    StateUpdate(static_cast<int>(state_));
 
     Invi();
 }
@@ -96,8 +96,6 @@ void HandSlap::SubDraw(void)
     MV1DrawModel(unit_.model_);
 
 #endif
-
-
 }
 
 void HandSlap::SubRelease(void)
@@ -108,18 +106,21 @@ void HandSlap::SubRelease(void)
 void HandSlap::MarkerDraw(void)
 {
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
-    if (handState_ == HAND_STATE::WAIT) {
+
+    // 待ち状態の時に予測専を出す
+    if (state_ == HAND_STATE::WAIT) {
         VECTOR markerPos = { target_.x, 0.0f, target_.z };
         float radius = 300.0f;
-        int color = 0xff3333;
+        int color = 0xff0000;
 
-        DrawCone3D(unit_.pos_, markerPos, radius, 0, color, color, true);
+        DrawCapsule3D(target_, unit_.pos_, radius, 1, color, color, true);
     }
+    
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    if (handState_ == HAND_STATE::WAIT) {
+    if (state_ == HAND_STATE::WAIT) {
         SetFontSize(128);
-        DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来る\n！叫ぶんだ！！！", 0xffffff);
+        DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来る!\n叫ぶんだ！！！", 0xffffff);
         SetFontSize(0);
     }
 }
@@ -131,7 +132,7 @@ void HandSlap::Wait(void)
 
     if (CheckHitKey(KEY_INPUT_L) || counter_ <= 0) {
         counter_ = 0;
-        handState_ = HAND_STATE::FALL;
+        state_ = HAND_STATE::FALL;
     }
 }
 
@@ -142,12 +143,12 @@ void HandSlap::Fall(void)
     if (unit_.pos_.y <= 0) {
         unit_.pos_.y = 0;
         GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
-        handState_ = HAND_STATE::END;
+        state_ = HAND_STATE::END;
         counter_ = COUNT_DOWN;
     }
 
     if (voiceLevel_ > 4000) {
-        handState_ = HAND_STATE::STOP;
+        state_ = HAND_STATE::STOP;
     }
 }
 

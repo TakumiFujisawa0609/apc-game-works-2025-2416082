@@ -148,6 +148,7 @@ void ArmBase::UIDraw(void)
 
 void ArmBase::SetAttackTime(int collTime)
 {
+	if (cnt_ > 0) { return; }
 	cnt_ = collTime;
 }
 

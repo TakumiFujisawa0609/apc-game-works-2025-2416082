@@ -11,6 +11,7 @@ class Utility
 public:
 
 	static constexpr VECTOR VECTOR_ZERO = { 0.0f,0.0f,0.0f };
+	static constexpr VECTOR VECTOR_ONE = { 1.0f,1.0f,1.0f };
 
 	// ラジアン(rad)・度(deg)変換用
 	static constexpr float RAD2DEG = (180.0f / DX_PI_F);
@@ -117,11 +118,17 @@ public:
 
 	static void MatrixPosMult(MATRIX& mat, const VECTOR& pos);
 
-
 	// 角度を -π ～ +π に正規化
 	static float NormalizeAngle(float rad);
 	// 角度の線形補間(常に最短経路)
 	static float LerpAngle(float from, float to, float t);
+
+	// 
+	template<class T, class... Args>
+	static T* ClassNew(T*& ptr, Args&&... args);
+
+	template<typename T>
+	static void SafeDelete(T*& ptr);
 
 #pragma region イージング
 	static float QuadInOut(float time, float totaltime, float start, float end);
@@ -129,3 +136,25 @@ public:
 #pragma endregion 
 };
 
+/// <summary>
+/// インスタンスにクラスをNewする関数
+/// </summary>
+/// <typeparam name="T">インスタンスの型となるもの</typeparam>
+/// <typeparam name="...Args">そのクラスのコンストラクタの引数の型となるもの</typeparam>
+/// <param name="ptr">代入するためのインスタンスの変数</param>
+/// <param name="...args">そのクラスのコンストラクタの引数（順番に書いてね）</param>
+/// <returns></returns>
+template<class T, class ...Args>
+inline T* Utility::ClassNew(T*& ptr, Args && ...args)
+{
+	ptr = new T(std::forward<Args>(args)...);
+	return ptr;
+}
+
+template<typename T>
+void Utility::SafeDelete(T*& ptr) {
+	if (!ptr) return;
+	ptr->Release();
+	delete ptr;
+	ptr = nullptr;
+}

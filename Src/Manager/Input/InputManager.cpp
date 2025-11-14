@@ -107,8 +107,11 @@ void InputManager::Update(void)
 
 void InputManager::Destroy(void)
 {
-	// インスタンスのメモリ解放
-	delete instance_;
+	// インスタンスのメモリ解放7
+	if (instance_) {
+		delete instance_;
+		instance_ = nullptr;
+	}
 }
 
 void InputManager::Add(int key)

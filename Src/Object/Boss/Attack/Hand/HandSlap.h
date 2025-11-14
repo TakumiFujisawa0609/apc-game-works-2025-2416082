@@ -51,7 +51,7 @@ private:
 	void End(void);
 #pragma endregion 
 
-	HAND_STATE handState_;
+	HAND_STATE state_;
 
 	bool end_;	// 終了判定(true : 終了 / false : 攻撃中)
 	bool isHit_;	// プレイヤーに当たったらそれ以降true

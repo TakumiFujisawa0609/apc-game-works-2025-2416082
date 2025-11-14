@@ -35,6 +35,7 @@ public:
 
 	// ƒQ[ƒ€I—¹
 	void GameEnd(void) { gameEnd_ = true; }
+	bool GetGameEnd(void) { return gameEnd_; }
 
 
 

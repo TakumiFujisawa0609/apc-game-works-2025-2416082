@@ -78,12 +78,14 @@ void TitleScene::Init(void)
 // 更新処理
 void TitleScene::Update(void)
 {
+	if (Application::GetInstance().GetGameEnd()) { return; }
+
 	InputManager& input = InputManager::GetInstance();
 	SceneManager& scene = SceneManager::GetInstance();
 
 	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
 		Application::GetInstance().GameEnd();
-		return;
+		SoundManager::GetIns().Stop(SOUND::TITLE_BGM);
 	}
 
 	// どれかのキーが「押された瞬間」なら遷移
@@ -217,7 +219,6 @@ void TitleScene::Release(void)
 	DeleteGraph(kinImage_);
 	DeleteGraph(haikeiImage_);
 	MV1DeleteModel(unit_.model_);
-	SoundManager::GetIns().Stop(SOUND::TITLE_BGM);
 	SoundManager::GetIns().Delete(SOUND::TITLE_BGM);
 
 	if (animation_) {

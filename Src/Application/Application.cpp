@@ -2,6 +2,8 @@
 
 #include"../Manager/FPS/FPS.h"
 #include"../Manager/Input/KeyManager.h"
+#include"../Manager/Input/InputManager.h"
+#include "../Manager/Sound/SoundManager.h"
 
 #include"../Scene/SceneManager/SceneManager.h"
 
@@ -49,6 +51,9 @@ void Application::Init(void)
 
 	KEY::CreateIns();
 
+	InputManager::CreateInstance();
+	SoundManager::CreateIns();
+
 	// シーン管理初期化
 	SceneManager::CreateInstance();
 	SceneManager::GetInstance().Init();
@@ -69,6 +74,7 @@ void Application::Run(void)
 		if (!fps_->UpdateFrameRate()) continue;
 
 		KEY::GetIns().Update();
+		InputManager::GetInstance().Update();
 
 		SceneManager::GetInstance().Update();	// シーン管理更新
 		fps_->CalcFrameRate();					// フレームレート計算
@@ -89,6 +95,9 @@ void Application::Release(void)
 	SceneManager::GetInstance().Release();
 	SceneManager::DeleteInstance();
 
+	SoundManager::DeleteIns();
+
+	InputManager::GetInstance().Destroy();
 	KEY::DeleteIns();
 
 	// フレームレート解放

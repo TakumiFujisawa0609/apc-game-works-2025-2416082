@@ -543,3 +543,4 @@ float Utility::QuadInOut(float time, float totaltime, float start, float end)
     time = time - 1;
     return -end / 2 * (time * (time - 2) - 1) + start;
 }
+

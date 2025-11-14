@@ -3,8 +3,6 @@
 #include <DxLib.h>
 
 #include "../../Manager/Loading/Loading.h"
-#include "../../Manager/Input/InputManager.h"
-#include "../../Manager/Sound/SoundManager.h"
 
 #include"../Title/TitleScene.h"
 #include"../Game/GameScene.h"
@@ -32,8 +30,7 @@ void SceneManager::Init(void)
 	Loading::GetInstance()->Init();
 	Loading::GetInstance()->Load();
 
-	InputManager::CreateInstance();
-	SoundManager::CreateIns();
+
 
 	// 最初はタイトル画面から
 	ChangeScene(SCENE_ID::TITLE);
@@ -100,7 +97,6 @@ void SceneManager::Update(void)
 	{
 		// 現在のシーンの更新
 		scenes_.back()->Update();
-		InputManager::GetInstance().Update();
 	}
 }
 
@@ -144,7 +140,6 @@ void SceneManager::Release(void)
 	Loading::GetInstance()->Release();
 	Loading::GetInstance()->DeleteInstance();
 
-	SoundManager::DeleteIns();
 }
 
 // 状態遷移関数
