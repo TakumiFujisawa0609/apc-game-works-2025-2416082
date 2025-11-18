@@ -3,7 +3,6 @@
 
 #include "../../../../Manager/Sound/SoundManager.h"
 #include "../../../../Manager/Input/InputManager.h"
-#include "../../../../Manager/FlashEffectManager/FlashEffectManager.h"
 
 #include "../../Player.h"
 
@@ -22,7 +21,6 @@ ArmBase::~ArmBase()
 
 void ArmBase::SubLoad(void)
 {
-	flash_ = new FlashEffectManager();
 }
 
 void ArmBase::SubInit(void)
@@ -63,27 +61,10 @@ void ArmBase::SubUpdate(void)
 	if (CheckHitKey(KEY_INPUT_9)) {
 		AddBoneScale(4,{ 0.05, 0.05, 0.05 });
 	}
-
-	auto randf = [](float min, float max)
-		{
-			static std::mt19937 mt(std::random_device{}());
-			std::uniform_real_distribution<float> dist(min, max);
-			return dist(mt);
-		};
-
-	for (int i = 0; i < 10; i++)
-	{
-		VECTOR start = VAdd(unit_.pos_, VGet(randf(-30, 30), randf(-30, 30), randf(-30, 30)));
-		VECTOR end = VAdd(start, VGet(randf(-30, 30), randf(-30, 30), randf(-30, 30)));
-		flash_->Add(start, end);
-	}
-
-	flash_->Update();
 }
 
 void ArmBase::SubDraw(void)
 {
-	flash_->Draw();
 }
 
 void ArmBase::SubRelease(void)
@@ -101,15 +82,6 @@ void ArmBase::OnCollision(UnitBase* other)
 		isHit_ = true;
 		return;
 	}
-
-	//if (dynamic_cast<BossRightHand*>(other))
-	//{
-	//	if (state_ == (int*)Player::STATE::ROLL) {
-	//		ArmBase::AddArmScale(BONE_UP);
-	//		return;
-	//	}
-	//	ArmBase::AddArmScale({ -0.3f, -0.3f, -0.3f });
-	//}
 }
 
 

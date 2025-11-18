@@ -230,8 +230,7 @@ Boss::ATTACK Boss::AttackLottery(void)
 
 void Boss::AttackLoad(void)
 {
-	slap_ = new HandSlap(target_, voiceLevel_);
-	slap_->Load();
+	Utility::ClassNew(slap_, target_, voiceLevel_)->Load();
 }
 
 void Boss::AttackInit(void)
@@ -258,6 +257,10 @@ void Boss::AttackRelease(void)
 
 void Boss::UIDraw(void)
 {
+	VECTOR hpPos1 = { Application::SCREEN_SIZE_X / 10 * 2, Application::SCREEN_SIZE_Y - 100 };
+	VECTOR hpPos2 = { Application::SCREEN_SIZE_X / 10 * 8, Application::SCREEN_SIZE_Y - 50 };
+	HpBarDraw(unit_.hp_, HP_MAX, hpPos1, hpPos2, 0xff5555);
+
 #ifdef _DEBUG
 
 	// 真ん中の座標から半分の大きさ分、減産と加算
@@ -267,19 +270,19 @@ void Boss::UIDraw(void)
 	//当たり判定の範囲を可視化
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
 
-	// HPのデバッグ表示
-	for (int i = 0; i < unit_.hp_; i++) {
-		DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
-	}
-	DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
+	//// HPのデバッグ表示
+	//for (int i = 0; i < unit_.hp_; i++) {
+	//	DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
+	//}
+	//DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
 
-	// ダメージテキスト描画
-	for (auto& dt : damageTexts_) {
-		DrawFormatString((int)dt.pos_.x + 64 + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y + 64 - 16, 0xffff00, "damage");
-		SetFontSize(64);
-		DrawFormatString((int)dt.pos_.x + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y, 0xffff00, "%d", dt.damage_);
-		SetFontSize(16);
-	}
+	//// ダメージテキスト描画
+	//for (auto& dt : damageTexts_) {
+	//	DrawFormatString((int)dt.pos_.x + 64 + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y + 64 - 16, 0xffff00, "damage");
+	//	SetFontSize(64);
+	//	DrawFormatString((int)dt.pos_.x + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y, 0xffff00, "%d", dt.damage_);
+	//	SetFontSize(16);
+	//}
 
 #endif // _DEBUG
 }

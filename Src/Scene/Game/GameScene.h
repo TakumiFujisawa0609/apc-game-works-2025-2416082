@@ -54,7 +54,6 @@ public:
 
 private:
 
-	std::vector<UnitBase*> objects_;
 	Collision* collision_;
 
 	Player* player_;

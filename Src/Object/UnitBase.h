@@ -68,10 +68,22 @@ protected:
 	virtual void SubDraw(void) = 0;
 	virtual void SubRelease(void) = 0;
 
+	/// <summary>
+	/// 指定されたボーンのスケールの加算
+	/// </summary>
+	/// <param name="index">ボーンの配列番号</param>
+	/// <param name="scale">加算するスケール値</param>
 	void AddBoneScale(int index, VECTOR scale);
 
-	void HpBarDraw(float currentHp, float maxHp, const VECTOR& pos1, const VECTOR& pos2, COLOR16 color);
-
+	/// <summary>
+	/// HP描画関数
+	/// </summary>
+	/// <param name="currentHp">増減する現在HP</param>
+	/// <param name="maxHp">最大HP</param>
+	/// <param name="pos1">左上座標</param>
+	/// <param name="pos2">右下座標</param>
+	/// <param name="color">HPのカラー</param>
+	void HpBarDraw(float currentHp, float maxHp, VECTOR pos1, VECTOR pos2, COLOR16 color);
 
 	// 子クラスで定義した関数を関数ポインタに登録
 	void StateAdd(int state, StateFunc func);
@@ -84,49 +96,4 @@ protected:
 
 	// 無敵処理(派生先の更新処理で呼び出す用)
 	void Invi(void);
-
-	void DrawThreeSegmentsTriangle(const Vector2& center, float size, int level)
-	{
-		if (level <= 0) return;
-		if (level > 3) level = 3;
-
-		// 大きな三角形の頂点（高さ size、中心 center）
-		// 上頂点 y = center.y - size/2
-		// 底辺は y = center.y + size/2
-		const float cx = static_cast<float>(center.x);
-		const float cy = static_cast<float>(center.y);
-		const float halfBase = size / 2.0f;   // 底辺の半分の幅（最大）
-
-		const float band = size / 3.0f; // 各段の高さ
-
-		// 色配列（上→下）
-		unsigned int colors[3] = {
-			GetColor(0, 255, 0),   // 緑
-			GetColor(255, 255, 0), // 黄
-			GetColor(255, 0, 0)    // 赤
-		};
-
-		for (int k = 1; k <= level; ++k) {
-			// k = 1: 一番上の段、k = 3: 一番下の段
-			float apexX = cx;
-			float apexY = cy - size / 2.0f + (k - 1) * band;    // その段の上端（頂点）
-			float baseY = cy - size / 2.0f + k * band;         // その段の下端（底辺のy）
-
-			// 段ごとの底辺幅は段番号に比例させる（下に行くほど幅が広い）
-			float thisHalfBase = halfBase * (static_cast<float>(k) / 3.0f);
-
-			float leftX = cx - thisHalfBase;
-			float rightX = cx + thisHalfBase;
-
-			// DrawTriangle(int x1,int y1,int x2,int y2,int x3,int y3,unsigned int color,int fillFlag)
-			DrawTriangle(
-				static_cast<int>(apexX), static_cast<int>(apexY),
-				static_cast<int>(leftX), static_cast<int>(baseY),
-				static_cast<int>(rightX), static_cast<int>(baseY),
-				colors[k - 1],
-				TRUE // 塗りつぶす
-			);
-		}
-	}
-
 };

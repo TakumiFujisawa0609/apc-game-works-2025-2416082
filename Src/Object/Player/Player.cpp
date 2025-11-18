@@ -193,8 +193,6 @@ void Player::SubDraw(void)
     rightArm_->Draw();
 
     MV1DrawModel(unit_.model_);
-
-
 }
 
 // âï˙èàóù
@@ -675,18 +673,6 @@ void Player::HpDraw(void)
 {
     VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
     VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
-
-    //float nowHp = unit_.hp_;
-    //float fullLength = pos2.x - pos1.x;
-    //float hpRatio = nowHp / HP_MAX;
-    //float currentLength = fullLength * hpRatio;
-
-    //// HPÉoÅ[Çï`âÊ
-    //DrawBox(pos1.x + 50, pos1.y + 5, (pos1.x - 50) + currentLength, pos2.y-5, 0x44ff44, true);
-
-    //DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y, hpFrameImg_, true);
-
-
 
     HpBarDraw(unit_.hp_, HP_MAX, pos1, pos2, 0x77ff77);
 }

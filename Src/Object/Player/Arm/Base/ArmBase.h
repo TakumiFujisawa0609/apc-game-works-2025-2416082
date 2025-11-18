@@ -2,8 +2,6 @@
 
 #include "../../../UnitBase.h"
 
-class FlashEffectManager;
-
 class ArmBase : public UnitBase
 {
 public:
@@ -36,7 +34,6 @@ protected:
 	void SubRelease(void) override;
 private:
 	void AddArmScale(VECTOR scale);
-	FlashEffectManager* flash_;
 
 	int* state_;
 

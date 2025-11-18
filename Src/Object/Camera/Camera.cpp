@@ -18,6 +18,7 @@ void Camera::Init()
 
 void Camera::Update()
 {
+
     auto& input = InputManager::GetInstance();
     MouseMoveCamera();
     PadMoveCamera();

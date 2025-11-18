@@ -42,6 +42,7 @@ public:
 		NON,
 
 		SLAP,
+		BALL,
 
 		MAX
 	};

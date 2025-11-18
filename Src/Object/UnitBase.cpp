@@ -25,8 +25,6 @@ void UnitBase::Update(void)
 
 void UnitBase::Draw(void)
 {
-
-	// 継承先の描画処理
 	SubDraw();
 
 	if (unit_.inviciCounter_ > 0)
@@ -40,9 +38,7 @@ void UnitBase::Draw(void)
 	{
 		MV1SetDifColorScale(unit_.model_, { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
-
-
-
+    //SetupCamera_Ortho(1000.0f);
 }
 
 void UnitBase::Release(void)
@@ -112,10 +108,10 @@ void UnitBase::AddBoneScale(int index, VECTOR scale)
 	MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
 }
 
-void UnitBase::HpBarDraw(float currentHp, float maxHp, const VECTOR& pos1, const VECTOR& pos2, COLOR16 color)
+void UnitBase::HpBarDraw(float currentHp, float maxHp, VECTOR pos1, VECTOR pos2, COLOR16 color)
 {
 	// static 変数で前回の表示HPを保持（関数を呼ぶたびに滑らかに変化）
-	static float displayHp = maxHp;
+	float displayHp = maxHp;
 
 	// HP割合
 	currentHp = std::clamp(currentHp, 0.0f, maxHp);

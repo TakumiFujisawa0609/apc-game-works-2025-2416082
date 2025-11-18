@@ -143,7 +143,7 @@ public:
 /// <typeparam name="...Args">そのクラスのコンストラクタの引数の型となるもの</typeparam>
 /// <param name="ptr">代入するためのインスタンスの変数</param>
 /// <param name="...args">そのクラスのコンストラクタの引数（順番に書いてね）</param>
-/// <returns></returns>
+/// <returns>一応そのままLoad関数などを呼べるようにそのクラスの型でreturn</returns>
 template<class T, class ...Args>
 inline T* Utility::ClassNew(T*& ptr, Args && ...args)
 {

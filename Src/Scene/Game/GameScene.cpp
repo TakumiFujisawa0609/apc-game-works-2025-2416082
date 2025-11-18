@@ -62,10 +62,8 @@ void GameScene::Load(void)
 
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
-	objects_.reserve(10);
 	auto ObjAdd = [&]<class T, class... Args>(T * &instance, Args && ... args)->void {
-		objects_.emplace_back(Utility::ClassNew(instance, std::forward<Args>(args)...));
-		instance->Load();
+		Utility::ClassNew(instance, std::forward<Args>(args)...)->Load();
 	};
 
 	Utility::ClassNew(collision_);
@@ -92,15 +90,11 @@ void GameScene::Load(void)
 
 void GameScene::Init(void)
 {
-	//player_->Init();
-	//boss_->Init();
-	//stage_->Init();
-	//enemy_->Init();
-	//skyDome_->Init();
-
-	for (auto& obj : objects_) {
-		obj->Init();
-	}
+	player_->Init();
+	boss_->Init();
+	stage_->Init();
+	enemy_->Init();
+	skyDome_->Init();
 
 	SetMouseDispFlag(false);
 
@@ -151,11 +145,15 @@ void GameScene::Update(void)
 	}
 
 	player_->Update();
+
 	boss_->Update();
 	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
 	boss_->SetVoiceLevel(player_->GetVoiceLevel());
+
 	enemy_->Update();
+
 	stage_->Update();
+
 	skyDome_->Update();
 
 	// “–‚½‚è”»’è
