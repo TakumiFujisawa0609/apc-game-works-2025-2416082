@@ -38,7 +38,6 @@ void UnitBase::Draw(void)
 	{
 		MV1SetDifColorScale(unit_.model_, { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
-    //SetupCamera_Ortho(1000.0f);
 }
 
 void UnitBase::Release(void)

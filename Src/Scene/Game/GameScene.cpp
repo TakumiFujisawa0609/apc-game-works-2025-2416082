@@ -62,16 +62,18 @@ void GameScene::Load(void)
 
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
-	auto ObjAdd = [&]<class T, class... Args>(T * &instance, Args && ... args)->void {
+	// クラスの初期化--------------------------------------------------------------------
+	auto ObjNewAndLoad = [&]<class T, class... Args>(T * &instance, Args && ... args)->void {
 		Utility::ClassNew(instance, std::forward<Args>(args)...)->Load();
 	};
 
 	Utility::ClassNew(collision_);
-	ObjAdd(player_);
-	ObjAdd(boss_, player_->GetUnit().pos_);
-	ObjAdd(enemy_, player_->GetUnit().pos_);
-	ObjAdd(stage_);
-	ObjAdd(skyDome_);
+	ObjNewAndLoad(player_);
+	ObjNewAndLoad(boss_, player_->GetUnit().pos_);
+	ObjNewAndLoad(enemy_, player_->GetUnit().pos_);
+	ObjNewAndLoad(stage_);
+	ObjNewAndLoad(skyDome_);
+	// -------------------------------------------------------------------------------------
 
 
 	// 当たり判定クラスに情報を渡す-------------
@@ -98,7 +100,7 @@ void GameScene::Init(void)
 
 	SetMouseDispFlag(false);
 
-	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos());
+	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos(),&boss_->GetUnit().pos_);
 
 #pragma region 画面演出
 	// ヒットストップカウンターの初期化
@@ -134,12 +136,16 @@ void GameScene::Update(void)
 		scene.PushScene(std::make_shared<PauseScene>());
 	}
 
+	
+
 	if (!boss_->GetUnit().isAlive_) {
+		this->Release();
 		scene.JumpScene(SCENE_ID::TITLE);
 		return;
 	}
 
 	if (!player_->GetUnit().isAlive_) {
+		this->Release();
 		scene.JumpScene(SCENE_ID::OVER);
 		return;
 	}

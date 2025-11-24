@@ -24,6 +24,7 @@
     <ProjectGuid>{b33408c7-7599-4cec-94a4-f794c2a64fbe}</ProjectGuid>
     <RootNamespace>BaseProject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>脳筋の拳</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -139,7 +140,9 @@
     <ClCompile Include="Src\Manager\Animation\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\Input\KeyManager.cpp" />
     <ClCompile Include="Src\Manager\MicInput\MicInput.cpp" />
+    <ClCompile Include="Src\Object\Boss\Attack\Hand\RotateHand.cpp" />
     <ClCompile Include="Src\Object\Boss\Attack\Shot\BossShot.cpp" />
+    <ClCompile Include="Src\Object\Boss\Attack\Shot\BossShotManager.cpp" />
     <ClCompile Include="Src\Object\Camera\Camera.cpp" />
     <ClCompile Include="Src\Manager\Collision\Collision.cpp" />
     <ClCompile Include="Src\Manager\FPS\FPS.cpp" />
@@ -172,7 +175,9 @@
     <ClInclude Include="Src\Manager\Animation\AnimationController.h" />
     <ClInclude Include="Src\Manager\Input\KeyManager.h" />
     <ClInclude Include="Src\Manager\MicInput\MicInput.h" />
+    <ClInclude Include="Src\Object\Boss\Attack\Hand\RotateHand.h" />
     <ClInclude Include="Src\Object\Boss\Attack\Shot\BossShot.h" />
+    <ClInclude Include="Src\Object\Boss\Attack\Shot\BossShotManager.h" />
     <ClInclude Include="Src\Object\Camera\Camera.h" />
     <ClInclude Include="Src\Manager\Collision\Collision.h" />
     <ClInclude Include="Src\Manager\FPS\FPS.h" />

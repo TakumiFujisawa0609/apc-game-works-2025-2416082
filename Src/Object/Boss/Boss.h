@@ -4,6 +4,7 @@
 #include <Vector>
 
 class HandSlap;
+class RotateHand;
 
 class Boss : public UnitBase
 {
@@ -22,13 +23,6 @@ public:
 
 	static constexpr int NEXT_ATTACK_TIME = 120;
 
-
-	struct DamageText {
-		VECTOR pos_;      // 表示位置
-		int damage_;       // ダメージ量
-		int drawTime_;        // 表示時間（フレーム数）
-	};
-
 	enum class STATE
 	{
 		IDLE,
@@ -42,6 +36,7 @@ public:
 		NON,
 
 		SLAP,
+		ROTA_HAND,
 		BALL,
 
 		MAX
@@ -55,6 +50,7 @@ public:
 	void OnCollision(UnitBase* other) override;
 
 	HandSlap* GetRightHand(void) { return slap_; }
+
 	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
 	void SetVoiceLevel(float voiceLevel) { voiceLevel_ = voiceLevel; }
 
@@ -66,6 +62,10 @@ protected:
 	void SubRelease(void) override;
 private:
 	HandSlap* slap_;
+	RotateHand* rotaHnad_;
+
+	// ボスの手用のモデルハンドル
+	int handModel_;
 
 	float playerMuscleRatio_;
 
@@ -77,8 +77,6 @@ private:
 	bool isAttackEnd_;		// (true : 攻撃終了後 / false : 攻撃終了前)
 
 	int color1;
-
-	std::vector<DamageText> damageTexts_;
 
 	const VECTOR& target_;
 	int voiceLevel_;

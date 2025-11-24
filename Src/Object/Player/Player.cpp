@@ -34,43 +34,47 @@ Player::~Player()
 void Player::SubLoad(void)
 {
    // パスの省略
-   std::string path = "Data/Model/Player/";
+   std::string playerModelPath = "Data/Model/Player/";
 
    // モデルのロード
-   unit_.model_ = MV1LoadModel((path + "Player1.mv1").c_str());
+   unit_.model_ = MV1LoadModel((playerModelPath + "Player1.mv1").c_str());
 
    hpFrameImg_ = LoadGraph("Data/Image/PlayerUI/HP_Frame.png");
 
 #pragma region クラスの定義
 
    // アニメーションクラス
-    animation_ = new AnimationController(unit_.model_);
+   Utility::ClassNew(animation_, unit_.model_);
 
-    mic_ = new MicInput();
-
+   // マイク
+   //Utility::ClassNew(mic_);
+   mic_ = new MicInput();
 
    // 左腕
-   leftArm_ = new LeftArm(unit_.model_);
-   leftArm_->Load();
+   Utility::ClassNew(leftArm_, unit_.model_)->Load();
 
    // 右腕
-   rightArm_ = new RightArm(unit_.model_);
-   rightArm_->Load();
+   Utility::ClassNew(rightArm_, unit_.model_)->Load();
 
 #pragma endregion
 
-    // アニメーションのロード
-    animation_->Add((int)(ANIM_TYPE::IDLE), 30.0f, (path + "Animation/Idle1.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::RUN), 50.0f, (path + "Animation/Run.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::ROLL), 100.0f, (path + "Animation/Evasion.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::ATTACK1), 100.0f, (path + "Animation/Punching.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::ATTACK2), 100.0f, (path + "Animation/Punching2.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::ATTACK3), 130.0f, (path + "Animation/Swiping.mv1").c_str());
-    animation_->Add((int)(ANIM_TYPE::DEATH), 30.0f, (path + "Animation/Death.mv1").c_str());
+   // アニメーションのロード--------------------------------
+   using T = ANIM_TYPE;
 
-    // 音声のロード
+   // モーション追加のラムダ関数
+   auto motionAdd = [&](T type, float speed, std::string path) {
+       animation_->Add((int)type, speed, (playerModelPath + "Animation/" + path + ".mv1").c_str());
+       };
+
+   for (int i = 0; i < static_cast<int>(T::MAX); i++) {
+       motionAdd(static_cast<T>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
+   }
+   // -------------------------------------------------------
+
+    // 音声のロード-----------------------------------------
     SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
     SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
+    // -----------------------------------------------------
 }
 
 //初期化処理
@@ -78,14 +82,11 @@ void Player::SubInit(void)
 {
     ParamInit();
 
-
     // カメラの注視点をずらす
     currentHeight = Camera::CAMERA_PLAYER_POS;
 
     //カメラ座標
     cameraPos_ = Utility::VECTOR_ZERO;
-
-
 
     // 向き
     move_ = Utility::VECTOR_ZERO;
@@ -547,6 +548,10 @@ void Player::SetDamage(int damage)
     unit_.inviciCounter_ = INVI_TIME;
 }
 
+int Player::GetVoiceLevel(void) const
+{
+    return mic_->GetPlayGameLevel();
+}
 
 
 
@@ -757,7 +762,3 @@ void Player::MuscleGaugeDraw(void)
 }
 
 
-int Player::GetVoiceLevel(void)
-{
-    return mic_->GetPlayGameLevel();
-}

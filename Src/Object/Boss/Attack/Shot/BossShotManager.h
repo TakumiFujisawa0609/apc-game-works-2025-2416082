@@ -1,14 +1,17 @@
 #pragma once
+
 #include "../../../UnitBase.h"
 
-class BossShot : public UnitBase
+class BossShotManager : public UnitBase
 {
 public:
 
-	BossShot();
-	~BossShot() override;
+	BossShotManager();
+	~BossShotManager() override;
 
 	void OnCollision(UnitBase* other) override;
+
+	bool End(void) { return end_; }
 
 protected:
 	void SubLoad(void) override;
@@ -17,5 +20,7 @@ protected:
 	void SubDraw(void) override;
 	void SubRelease(void) override;
 private:
+
+	bool end_;
 
 };

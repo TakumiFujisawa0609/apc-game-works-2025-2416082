@@ -143,7 +143,7 @@ public:
 /// <typeparam name="...Args">そのクラスのコンストラクタの引数の型となるもの</typeparam>
 /// <param name="ptr">代入するためのインスタンスの変数</param>
 /// <param name="...args">そのクラスのコンストラクタの引数（順番に書いてね）</param>
-/// <returns>一応そのままLoad関数などを呼べるようにそのクラスの型でreturn</returns>
+/// <returns>一応そのままLoad関数などを呼べるようにそのクラスの型のポインタをreturnしている(やらなくてもいい)</returns>
 template<class T, class ...Args>
 inline T* Utility::ClassNew(T*& ptr, Args && ...args)
 {
@@ -151,10 +151,17 @@ inline T* Utility::ClassNew(T*& ptr, Args && ...args)
 	return ptr;
 }
 
+/// <summary>
+/// 解放処理を一括でやるやつ
+/// </summary>
+/// <typeparam name="T">インスタンスの型</typeparam>
+/// <param name="ptr">解放したいクラスのインスタンス</param>
 template<typename T>
 void Utility::SafeDelete(T*& ptr) {
-	if (!ptr) return;
-	ptr->Release();
-	delete ptr;
-	ptr = nullptr;
+	if (ptr) {
+		ptr->Release();
+		delete ptr;
+		ptr = nullptr;
+	}
 }
+

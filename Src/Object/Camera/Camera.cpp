@@ -13,44 +13,27 @@ void Camera::Init()
 {
     angle_ = Utility::VECTOR_ZERO;
 
-    GetMousePoint(&mouseX, &mouseY);
+    modeFuncs_ = {
+        { MODE::PLAYER_FOLLOW, &Camera::PlayerFollowCamera },
+        { MODE::BOSS_DEATH,    &Camera::BossDeathCamera     },
+    };
+
+    mode_ = MODE::PLAYER_FOLLOW;
 }
 
 void Camera::Update()
 {
-
-    auto& input = InputManager::GetInstance();
-    MouseMoveCamera();
-    PadMoveCamera();
-
-    if (input.IsNew(KEY_INPUT_RIGHT)) angle_.y += 5;
-    if (input.IsNew(KEY_INPUT_LEFT))  angle_.y -= 5;
-    if (input.IsNew(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
-    if (input.IsNew(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
-
-    // Y軸回転行列を作成
-    MATRIX matY = MGetRotY(angle_.y * DX_PI_F / 180.0f);
-    MATRIX matX = MGetRotX(angle_.x * DX_PI_F / 180.0f);
-    MATRIX mat = MMult(matX, matY);
-
-    // LOCAL_POSの周りで回転させる
-    VECTOR rotatePos = VTransform(LOCAL_POS, mat);
-
-    // 回転後の位置をターゲット座標に加算
-    camPos_ = VAdd(*camTarget_, rotatePos);
+    auto func = modeFuncs_.find(mode_);
+    if (func != modeFuncs_.end()) {
+        (this->*(func->second))();
+    }
 }
 
 void Camera::Apply()
 {
-    SetCameraPositionAndTarget_UpVecY(camPos_, *camTarget_);
+    SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
 
     SetUseLighting(false);
-
-    // 上空は明るい青、地平線は淡い青
-    //int topColor = GetColor(100, 180, 255);
-    //int bottomColor = GetColor(180, 220, 255);
-
-    //DrawSphere3D(camPos_, 10000.0f, 32, topColor, bottomColor, TRUE);
 
     SetUseLighting(TRUE);
 }
@@ -58,7 +41,6 @@ void Camera::Apply()
 void Camera::MouseMoveCamera(void)
 {
     // 画面の中央を基準にする
-
     int nowMouseX, nowMouseY;
     GetMousePoint(&nowMouseX, &nowMouseY);
 
@@ -103,4 +85,32 @@ void Camera::PadMoveCamera()
     // 上下制限
     if (angle_.x > 89.0f) angle_.x = 89.0f;
     if (angle_.x < -89.0f) angle_.x = -89.0f;
+}
+
+void Camera::PlayerFollowCamera(void)
+{
+    auto& input = InputManager::GetInstance();
+    MouseMoveCamera();
+    PadMoveCamera();
+
+    if (input.IsNew(KEY_INPUT_RIGHT)) angle_.y += 5;
+    if (input.IsNew(KEY_INPUT_LEFT))  angle_.y -= 5;
+    if (input.IsNew(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
+    if (input.IsNew(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
+
+    // Y軸回転行列を作成
+    MATRIX matY = MGetRotY(angle_.y * DX_PI_F / 180.0f);
+    MATRIX matX = MGetRotX(angle_.x * DX_PI_F / 180.0f);
+    MATRIX mat = MMult(matX, matY);
+
+    // LOCAL_POSの周りで回転させる
+    VECTOR rotatePos = VTransform(LOCAL_POS, mat);
+
+    // 回転後の位置をターゲット座標に加算
+    camPos_ = VAdd(*targetPlayerPos_, rotatePos);
+}
+
+void Camera::BossDeathCamera(void)
+{
+
 }

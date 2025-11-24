@@ -27,7 +27,7 @@ public:
 	static constexpr int COUNT_DOWN = 120.0f;
 	static constexpr float GRAVITY = 3.0f;
 
-	HandSlap(const VECTOR& target, const int& voiceLevel);
+	HandSlap(int model, const VECTOR& target, const int& voiceLevel);
 	~HandSlap() override;
 
 	void OnCollision(UnitBase* other) override;

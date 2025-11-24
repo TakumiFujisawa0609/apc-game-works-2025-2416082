@@ -10,6 +10,7 @@
 #include "../../Manager/Sound/SoundManager.h"
 
 #include "Attack/Hand/HandSlap.h"
+#include "Attack/Hand/RotateHand.h"
 
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
@@ -83,17 +84,6 @@ void Boss::SubUpdate(void)
 		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
 	}
 
-	// ダメージテキストの更新
-	for (auto it = damageTexts_.begin(); it != damageTexts_.end(); ) {
-		it->pos_.y += 1.0f;  // 上に浮かせる
-		it->drawTime_--;
-		if (it->drawTime_ <= 0) {
-			it = damageTexts_.erase(it);
-		}
-		else {
-			++it;
-		}
-	}
 
 	StateUpdate(static_cast<int>(state_));
 	Invi();
@@ -121,12 +111,17 @@ void Boss::SubDraw(void)
 
 	UIDraw();
 
+	SetFontSize(128);
+	DrawFormatString(0, 0, 0xffffff, "%i", voiceLevel_);
+	SetFontSize(16);
+
 }
 
 void Boss::SubRelease(void)
 {
 	//モデルの解放
 	MV1DeleteModel(unit_.model_);
+	MV1DeleteModel(handModel_);
 
 	AttackRelease();
 
@@ -146,17 +141,10 @@ void Boss::SetMatrix(void)
 
 	// 行列に向きの適用
 	Utility::MatrixRotMult(mat, unit_.angle_);
-	//mat = MMult(mat, MGetRotX(unit_.angle_.x));
-	//mat = MMult(mat, MGetRotY(unit_.angle_.y));
-	//mat = MMult(mat, MGetRotZ(unit_.angle_.z));
-
 
 	// モデルの向きを修正
 	MATRIX localMat = MGetIdent();
 	Utility::MatrixRotMult(localMat, LOCAL_ANGLE);
-	//localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-	//localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-	//localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
 
 	// 合体
 	mat = MMult(localMat, mat);
@@ -166,11 +154,6 @@ void Boss::SetMatrix(void)
 
 	// ワールド座標をゲット
 	VECTOR worldPos = VTransform(offset, mat);
-
-	// 座標の情報を行列に渡す
-	//mat.m[3][0] = worldPos.x + unit_.pos_.x;
-	//mat.m[3][1] = worldPos.y + unit_.pos_.y;
-	//mat.m[3][2] = worldPos.z + unit_.pos_.z;
 
 	VECTOR pos = VAdd(worldPos, unit_.pos_);
 	Utility::MatrixPosMult(mat, pos);
@@ -192,7 +175,6 @@ void Boss::Attack(void)
 			attackCounter_ = 0;
 			// 次の攻撃を抽選
 			attackState_ = AttackLottery();
-			slap_->Init();
 		}
 		break;
 
@@ -200,6 +182,13 @@ void Boss::Attack(void)
 		slap_->Update();
 		if (slap_->isEnd()) {
 			attackState_ = ATTACK::NON; // 終了したら戻る
+		}
+		break;
+
+	case ATTACK::ROTA_HAND:
+		rotaHnad_->Update();
+		if (rotaHnad_->IsEnd()) {
+			attackState_ = ATTACK::NON;
 		}
 		break;
 
@@ -225,22 +214,41 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::SLAP;
+	return ATTACK::ROTA_HAND;
 }
 
 void Boss::AttackLoad(void)
 {
-	Utility::ClassNew(slap_, target_, voiceLevel_)->Load();
+	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
+	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
+	Utility::ClassNew(rotaHnad_, handModel_, target_);
 }
 
 void Boss::AttackInit(void)
 {
-	slap_->Init();
+	switch (attackState_)
+	{
+	case Boss::ATTACK::NON:
+		break;
+	case Boss::ATTACK::SLAP:
+		slap_->Init();
+		break;
+	case Boss::ATTACK::ROTA_HAND:
+		rotaHnad_->Init();
+		break;
+	case Boss::ATTACK::BALL:
+		break;
+	case Boss::ATTACK::MAX:
+		break;
+	default:
+		break;
+	}
 }
 
 void Boss::AttackDraw(void)
 {
 	slap_->Draw();
+	rotaHnad_->Draw();
 }
 
 void Boss::AttackRelease(void)
@@ -252,14 +260,18 @@ void Boss::AttackRelease(void)
 		delete slap_;
 		slap_ = nullptr;
 	}
+
+	if (rotaHnad_) {
+		rotaHnad_->Release();
+		delete rotaHnad_;
+		rotaHnad_ = nullptr;
+	}
+
 }
 #pragma endregion 
 
 void Boss::UIDraw(void)
 {
-	VECTOR hpPos1 = { Application::SCREEN_SIZE_X / 10 * 2, Application::SCREEN_SIZE_Y - 100 };
-	VECTOR hpPos2 = { Application::SCREEN_SIZE_X / 10 * 8, Application::SCREEN_SIZE_Y - 50 };
-	HpBarDraw(unit_.hp_, HP_MAX, hpPos1, hpPos2, 0xff5555);
 
 #ifdef _DEBUG
 
@@ -270,19 +282,7 @@ void Boss::UIDraw(void)
 	//当たり判定の範囲を可視化
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
 
-	//// HPのデバッグ表示
-	//for (int i = 0; i < unit_.hp_; i++) {
-	//	DrawBox(50 + (i * 5), Application::SCREEN_SIZE_Y - 100, 60 + (i * 5), Application::SCREEN_SIZE_Y - 100 + 50, 0xff0000, true);
-	//}
-	//DrawSphere3D(unit_.pos_, 20, 16, 0xff00ff, 0xff00ff, true);
-
-	//// ダメージテキスト描画
-	//for (auto& dt : damageTexts_) {
-	//	DrawFormatString((int)dt.pos_.x + 64 + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y + 64 - 16, 0xffff00, "damage");
-	//	SetFontSize(64);
-	//	DrawFormatString((int)dt.pos_.x + Application::SCREEN_SIZE_X / 2, (int)dt.pos_.y, 0xffff00, "%d", dt.damage_);
-	//	SetFontSize(16);
-	//}
+	DrawFormatString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0xffffff, "BossHP(%i)", unit_.hp_);
 
 #endif // _DEBUG
 }
@@ -303,14 +303,6 @@ void Boss::OnCollision(UnitBase* other)
 			unit_.hp_ -= damage;
 			GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 15);
 			GameScene::HitStop(5);
-
-			// ダメージテキスト生成
-			DamageText dt;
-			dt.pos_ = unit_.pos_;      // ボスの頭上に表示
-			dt.pos_.y += 200.0f;
-			dt.damage_ = damage;
-			dt.drawTime_ = 60;             // 1秒表示（60フレーム想定）
-			damageTexts_.push_back(dt);
 		}
 		return;
 	}

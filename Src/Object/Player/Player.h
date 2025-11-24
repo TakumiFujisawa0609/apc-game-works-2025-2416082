@@ -37,6 +37,8 @@ public:
 		ATTACK3,
 		ROLL,
 		DEATH,
+
+		MAX
 	};
 
 	// コンボ管理用
@@ -102,6 +104,26 @@ public:
 
 	static constexpr VECTOR DOWN_MUSCLE = { -0.003f,-0.003f,-0.003f };	//常時筋肉が減るため、減らし続ける用の値
 
+
+
+	// モデルアニメーション用----------------------------------
+	struct AnimInfo
+	{
+		const char* name;
+		float speed;
+	};
+
+	// アニメーションのパスと再生速度の設定
+	const std::vector<AnimInfo> ANIMATION_INFO = {
+		{ "Idle1", 30.0f },
+		{ "Run", 50.0f },
+		{ "Punching", 100.0f },
+		{ "Punching2", 100.0f },
+		{ "Swiping", 130.0f },
+		{ "Evasion", 100.0f },
+		{ "Death", 30.0f },
+	};
+	// --------------------------------------------------------
 #pragma endregion
 
 	Player();
@@ -128,7 +150,7 @@ public:
 
 	void SetDamage(int damage);
 
-	int GetVoiceLevel(void);
+	int GetVoiceLevel(void) const;
 
 	// 腕クラスのインスタンスのゲット関数
 	LeftArm* GetLeftArm(void) { return leftArm_; }
@@ -142,6 +164,7 @@ protected:
 	void SubRelease(void) override;	// 解放処理
 private:
 
+	// プレイヤー情報の初期化
 	void ParamInit(void);
 
 	// 回避用カウンタの更新処理
@@ -161,13 +184,16 @@ private:
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
+	// 筋肉ゲージの初期化
 	void MuscleGaugeDraw(void);
 private:
 
-	AnimationController* animation_;
-	MicInput* mic_;
-	LeftArm* leftArm_;
-	RightArm* rightArm_;;
+	// インスタンス----------------------------------------
+	AnimationController* animation_;	// アニメーションクラス
+	MicInput* mic_;						// マイクインプットクラス
+	LeftArm* leftArm_;					// 左腕クラス
+	RightArm* rightArm_;				// 右腕クラス
+	// -----------------------------------------------------
 	
 #pragma region 列挙型定義
 	// ステート管理用
@@ -176,6 +202,7 @@ private:
 	// 現在のコンボ
 	CONBO conbo_;
 
+	// 筋肉の大崎を三段階に分ける用に用意しました
 	MUSCLE_LEVEL muscleLevel_;
 
 #pragma endregion
@@ -205,9 +232,6 @@ private:
 	float currentHeight;
 
 	int hpFrameImg_;
-
-	//using CAST_I = static_cast<int>;
-#define CAST_I(i) = static_cast<int>(i);
 
 #pragma endregion
 

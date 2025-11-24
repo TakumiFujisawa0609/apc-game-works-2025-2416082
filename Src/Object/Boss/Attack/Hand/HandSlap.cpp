@@ -5,10 +5,11 @@
 
 #include "../../../../Scene/Game/GameScene.h"
 
-HandSlap::HandSlap(const VECTOR& target, const int& voiceLevel) :
+HandSlap::HandSlap(int model, const VECTOR& target, const int& voiceLevel) :
     target_(target),
     voiceLevel_(voiceLevel)
 {
+    unit_.model_ = model;
 }
 
 HandSlap::~HandSlap()
@@ -17,7 +18,7 @@ HandSlap::~HandSlap()
 
 void HandSlap::SubLoad(void)
 {
-	unit_.model_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
+
 }
 
 void HandSlap::SubInit(void)
@@ -36,8 +37,8 @@ void HandSlap::SubInit(void)
 
     // ターゲットの真上に配置
     unit_.pos_ = VGet(target_.x, target_.y + OFFSET_Y, target_.z);
-
-    unit_.pos_.z = -1000.0f;
+    
+    unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
 
     counter_ = COUNT_DOWN;
 
@@ -56,6 +57,7 @@ void HandSlap::SubInit(void)
 
 void HandSlap::SubUpdate(void)
 {
+    unit_.isAlive_ = end_ * -1;
     if (end_) { return; }
 
     StateUpdate(static_cast<int>(state_));
@@ -65,7 +67,7 @@ void HandSlap::SubUpdate(void)
 
 void HandSlap::SubDraw(void)
 {
-    if (end_) return;
+    if (end_ && !unit_.isAlive_) return;
 
     MATRIX mat = MGetIdent();
 
@@ -92,10 +94,10 @@ void HandSlap::SubDraw(void)
         false
     );
 
-    if (!unit_.isAlive_) { return; }
-    MV1DrawModel(unit_.model_);
-
 #endif
+
+    if (!unit_.isAlive_ && end_) { return; }
+    MV1DrawModel(unit_.model_);
 }
 
 void HandSlap::SubRelease(void)
@@ -109,7 +111,6 @@ void HandSlap::MarkerDraw(void)
 
     // 待ち状態の時に予測専を出す
     if (state_ == HAND_STATE::WAIT) {
-        VECTOR markerPos = { target_.x, 0.0f, target_.z };
         float radius = 300.0f;
         int color = 0xff0000;
 
@@ -128,7 +129,7 @@ void HandSlap::MarkerDraw(void)
 void HandSlap::Wait(void)
 {
     counter_--;
-    unit_.pos_ = VGet(target_.x, target_.y + OFFSET_Y, target_.z);
+    unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
 
     if (CheckHitKey(KEY_INPUT_L) || counter_ <= 0) {
         counter_ = 0;
