@@ -107,26 +107,18 @@ void UnitBase::AddBoneScale(int index, VECTOR scale)
 	MV1SetFrameUserLocalMatrix(unit_.model_, index, scaleMat);
 }
 
-void UnitBase::HpBarDraw(float currentHp, float maxHp, VECTOR pos1, VECTOR pos2, COLOR16 color)
+void UnitBase::DrawBar(float sX, float sY, float eX, float eY, int hp, int maxHp, COLORREF color, COLORREF frameColor, COLORREF backColor, float frameSize)
 {
-	// static 変数で前回の表示HPを保持（関数を呼ぶたびに滑らかに変化）
-	float displayHp = maxHp;
+	DrawBoxAA(sX, sY, eX, eY, frameColor, true);
 
-	// HP割合
-	currentHp = std::clamp(currentHp, 0.0f, maxHp);
-	float rate = displayHp / maxHp;
+	sX += frameSize;
+	sY += frameSize;
+	eX -= frameSize;
+	eY -= frameSize;
 
-	// 徐々に追従
-	const float speed = 0.1f;
-	displayHp += (currentHp - displayHp) * speed;
+	DrawBoxAA(sX, sY, eX, eY, backColor, true);
 
-	// 枠線
-	DrawBox(pos1.x - 5, pos1.y - 5, pos2.x + 5, pos2.y + 5, 0xffffff, true);
+	float oneSize = ((float)(eX - sX) / (float)maxHp);
 
-	// 背景バー
-	DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, 0x000000, true);
-
-	// 現在のバー
-	int barWidth = static_cast<int>((pos2.x - pos1.x) * rate);
-	DrawBox(pos1.x, pos1.y, pos1.x + barWidth, pos2.y, color, true);
+	DrawBoxAA(sX, sY, sX + (oneSize * hp), eY, color, true);
 }

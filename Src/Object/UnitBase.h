@@ -75,15 +75,14 @@ protected:
 	/// <param name="scale">加算するスケール値</param>
 	void AddBoneScale(int index, VECTOR scale);
 
-	/// <summary>
-	/// HP描画関数
-	/// </summary>
-	/// <param name="currentHp">増減する現在HP</param>
-	/// <param name="maxHp">最大HP</param>
-	/// <param name="pos1">左上座標</param>
-	/// <param name="pos2">右下座標</param>
-	/// <param name="color">HPのカラー</param>
-	void HpBarDraw(float currentHp, float maxHp, VECTOR pos1, VECTOR pos2, COLOR16 color);
+	void DrawBar(
+		float sX, float sY, float eX, float eY,
+		int hp, int maxHp,
+		COLORREF color,
+		COLORREF frameColor = RGB(255, 255, 255),
+		COLORREF backColor = RGB(0, 0, 0),
+		float frameSize = 3.0f
+	);
 
 	// 子クラスで定義した関数を関数ポインタに登録
 	void StateAdd(int state, StateFunc func);

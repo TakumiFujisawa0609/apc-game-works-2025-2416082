@@ -12,6 +12,7 @@
 
 #include "../Boss/Boss.h"
 #include "../Boss/Attack/Hand/HandSlap.h"
+#include "../Boss/Attack/Hand/RotateHand.h"
 
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
@@ -256,6 +257,13 @@ void Player::OnCollision(UnitBase* other)
         SetDamage(10);
         return;
     }
+
+    if (dynamic_cast<RotateHand*>(other))
+    {
+        SetDamage(10);
+        return;
+    }
+
 }
 
 void Player::UIDraw(void)
@@ -311,27 +319,96 @@ void Player::Move(void)
 
 void Player::Attack(void)
 {
-    Camera& camera = Camera::GetInstance();
+    auto& input = InputManager::GetInstance();
+    auto& camera = Camera::GetInstance();
 
-    SetMoveVec();
+    move_ = Utility::VECTOR_ZERO;
 
-    // 実際の移動
+    if (CheckHitKey(KEY_INPUT_W)) { move_ = VAdd(move_, { 0.0f, 0.0f,  1.0f }); }
+    if (CheckHitKey(KEY_INPUT_S)) { move_ = VAdd(move_, { 0.0f, 0.0f, -1.0f }); }
+    if (CheckHitKey(KEY_INPUT_A)) { move_ = VAdd(move_, { -1.0f, 0.0f,  0.0f }); }
+    if (CheckHitKey(KEY_INPUT_D)) { move_ = VAdd(move_, { 1.0f, 0.0f,  0.0f }); }
+
+    XINPUT_STATE padState{};
+    if (GetJoypadXInputState(DX_INPUT_PAD1, &padState) == 0)
+    {
+        const float deadZone = 8000.0f;   // デッドゾーン
+        const float maxValue = 32767.0f;  // 最大スティック値
+
+        // デッドゾーン処理
+        if (fabsf((float)padState.ThumbLX) > deadZone) {
+            move_.x += (float)padState.ThumbLX / maxValue;
+        }
+        if (fabsf((float)padState.ThumbLY) > deadZone) {
+            move_.z += (float)padState.ThumbLY / maxValue;
+        }
+    }
+
     if (move_.x != 0.0f || move_.z != 0.0f)
     {
         MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
-        VECTOR worldMove = VTransform(VNorm(move_), mat);
+        VECTOR worldMove = VTransform(move_, mat);
+        worldMove = VNorm(worldMove);
 
-        // プレイヤーの向きを移動方向に補間
         float targetY = atan2f(worldMove.x, worldMove.z);
-        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.3f);
-
+        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.5f);
     }
 
-    if (animation_->IsEnd((int)ANIM_TYPE::ATTACK1)) {
+    int anim = (int)conbo_;
+
+    switch (conbo_)
+    {
+    case CONBO::CONBO1:
+        anim = (int)ANIM_TYPE::ATTACK1;
+        leftArm_->SetAttackTime(10);
+        break;
+    case CONBO::CONBO2:
+        anim = (int)ANIM_TYPE::ATTACK2;
+        rightArm_->SetAttackTime(10);
+        break;
+    case CONBO::CONBO3:
+        anim = (int)ANIM_TYPE::ATTACK3;
+        leftArm_->SetAttackTime(10);
+        break;
+    }
+
+    animation_->Play(anim, false);
+
+    // 攻撃判定管理
+    DoAttack();
+
+    if (animation_->IsPassedRatio(anim, 0.0f) && !animation_->IsPassedRatio(anim, 0.7f))
+    {
+        VECTOR forward = VGet(
+            sinf(unit_.angle_.y),
+            0.0f,
+            cosf(unit_.angle_.y)
+        );
+
+        float dashPower = 0.0f;
+
+        dashPower = CONBO_MOVE_SPEED[(int)conbo_];
+
+        unit_.pos_ = VAdd(unit_.pos_, VScale(forward, dashPower));
+    }
+
+    // アニメーションが終了したらリセット
+    if (animation_->IsPassedRatio(anim, 0.7))
+    {
+        isAttacked_ = false;
+        state_ = STATE::IDLE;
+        conbo_ = CONBO::CONBO1;
+    }
+
+    static int cnt = 0;
+    cnt++;
+    if (cnt > 120) {
+        cnt = 0;
         state_ = STATE::IDLE;
     }
-
 }
+
+
 
 void Player::Roll(void)
 {
@@ -467,6 +544,10 @@ void Player::DoIdle(void)
 
 void Player::DoAttack(void)
 {
+    if (state_ != STATE::ATTACK) {
+        conbo_ = CONBO::CONBO1;
+    }
+
     auto& input = InputManager::GetInstance();
     auto& sound = SoundManager::GetIns();
 
@@ -476,9 +557,40 @@ void Player::DoAttack(void)
         input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER1) ||
         input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::R_TRIGGER2));
 
-    if (isTrg) {
+    // 攻撃開始（1段目）
+    if (!isAttacked_ && isTrg)
+    {
+        conbo_ = CONBO::CONBO1;
         state_ = STATE::ATTACK;
-        animation_->Play((int)ANIM_TYPE::ATTACK1, false);
+
+        isAttacked_ = true;
+
+        sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
+        sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
+
+        return;
+    }
+
+    int animIndex = (int)ANIM_TYPE::ATTACK1 + (int)conbo_;
+    if (animation_->IsPassedRatio(animIndex, 0.4f) && isTrg)
+    {
+
+
+        if (conbo_ < CONBO::CONBO3)
+        {
+            conbo_ = (CONBO)((int)conbo_ + 1);
+            state_ = STATE::ATTACK;
+
+            sound.Stop(SOUND::PLAYER_BIG_ATTACK);
+            sound.Stop(SOUND::PLAYER_SMALL_ATTACK);
+
+            if ((int)conbo_ >= (int)CONBO::MAX - 1) {
+                sound.Play(SOUND::PLAYER_BIG_ATTACK, false, 255, false, true);
+            }
+            else {
+                sound.Play(SOUND::PLAYER_SMALL_ATTACK, false, 255, false, true);
+            }
+        }
     }
 }
 
@@ -646,28 +758,34 @@ void Player::SetMatrix(void)
 {
     VECTOR ofset = { 0.0f, -unit_.para_.capsuleHalfLen ,0.0f };
 
-    // 回転行列の作成　
     MATRIX mat = MGetIdent();
-
-    mat = MMult(mat, MGetRotX(unit_.angle_.x));
-    mat = MMult(mat, MGetRotY(unit_.angle_.y));
-    mat = MMult(mat, MGetRotZ(unit_.angle_.z));
-
-    // モデルの反転を修正
-    MATRIX localMat = MGetIdent();
-    localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-    localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-    localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
-
-    mat = MMult(localMat, mat);
 
     mat = MMult(MGetScale(unit_.scale_), mat);
 
+    // 回転行列の作成　
+    Utility::MatrixRotMult(mat, unit_.angle_);
+
+    //mat = MMult(mat, MGetRotX(unit_.angle_.x));
+    //mat = MMult(mat, MGetRotY(unit_.angle_.y));
+    //mat = MMult(mat, MGetRotZ(unit_.angle_.z));
+
+    // モデルの反転を修正
+    MATRIX localMat = MGetIdent();
+    Utility::MatrixRotMult(localMat, LOCAL_ANGLE);
+    
+    //localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
+    //localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
+    //localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
+
+    mat = MMult(localMat, mat);
+
     VECTOR worldPos = VTransform(ofset, mat);
 
-    mat.m[3][0] = unit_.pos_.x + worldPos.x;
-    mat.m[3][1] = unit_.pos_.y + worldPos.y;
-    mat.m[3][2] = unit_.pos_.z + worldPos.z;
+    //mat.m[3][0] = unit_.pos_.x + worldPos.x;
+    //mat.m[3][1] = unit_.pos_.y + worldPos.y;
+    //mat.m[3][2] = unit_.pos_.z + worldPos.z;
+
+    Utility::MatrixPosMult(mat, VAdd(unit_.pos_, worldPos));
 
     // 行列の設定
     MV1SetMatrix(unit_.model_, mat);
@@ -679,7 +797,12 @@ void Player::HpDraw(void)
     VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
     VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
 
-    HpBarDraw(unit_.hp_, HP_MAX, pos1, pos2, 0x77ff77);
+    DrawBar(
+        pos1.x, pos1.y,
+        pos2.x, pos2.y,
+        unit_.hp_, HP_MAX,
+        0xaaffaa,
+        0x000000);
 }
 
 // ステージに対して無理やり当たり判定をしている

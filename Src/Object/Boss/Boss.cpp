@@ -52,10 +52,11 @@ void Boss::SubInit(void)
 
 	isAttackInit_ = false;
 	isAttackEnd_ = false;
-	AttackInit();
 
 	state_ = STATE::ATTACK;
 	attackState_ = ATTACK::NON;
+
+	AttackInit();
 
 	StateAdd((int)STATE::ATTACK, [this](void) {Attack(); });
 }
@@ -175,6 +176,7 @@ void Boss::Attack(void)
 			attackCounter_ = 0;
 			// ŽŸ‚ÌUŒ‚‚ð’Š‘I
 			attackState_ = AttackLottery();
+			AttackInit();
 		}
 		break;
 
@@ -214,14 +216,14 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::ROTA_HAND;
+	return (ATTACK)GetRand((int)ATTACK::BALL - 1);
 }
 
 void Boss::AttackLoad(void)
 {
 	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
-	Utility::ClassNew(rotaHnad_, handModel_, target_);
+	Utility::ClassNew(rotaHnad_, unit_.pos_);
 }
 
 void Boss::AttackInit(void)
@@ -283,6 +285,15 @@ void Boss::UIDraw(void)
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
 
 	DrawFormatString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0xffffff, "BossHP(%i)", unit_.hp_);
+
+	DrawBar(
+		(Application::SCREEN_SIZE_X / 10) * 2,
+		(Application::SCREEN_SIZE_Y / 10) * 9,
+		(Application::SCREEN_SIZE_X / 10) * 8,
+		(Application::SCREEN_SIZE_Y / 10) * 8 + 60,
+		unit_.hp_, HP_MAX,
+		RGB(255, 0, 255),
+		RGB(0, 0, 0));
 
 #endif // _DEBUG
 }

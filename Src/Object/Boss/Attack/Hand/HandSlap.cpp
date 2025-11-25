@@ -57,7 +57,6 @@ void HandSlap::SubInit(void)
 
 void HandSlap::SubUpdate(void)
 {
-    unit_.isAlive_ = end_ * -1;
     if (end_) { return; }
 
     StateUpdate(static_cast<int>(state_));
@@ -67,7 +66,7 @@ void HandSlap::SubUpdate(void)
 
 void HandSlap::SubDraw(void)
 {
-    if (end_ && !unit_.isAlive_) return;
+    if (end_ || !unit_.isAlive_) return;
 
     MATRIX mat = MGetIdent();
 
@@ -107,6 +106,7 @@ void HandSlap::SubRelease(void)
 
 void HandSlap::MarkerDraw(void)
 {
+    if (!unit_.isAlive_) { return; }
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
 
     // ‘Ò‚¿ó‘Ô‚Ì‚É—\‘ªê‚ğo‚·

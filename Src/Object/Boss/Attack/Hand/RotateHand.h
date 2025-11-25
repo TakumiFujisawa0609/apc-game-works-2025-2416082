@@ -6,7 +6,7 @@ class RotateHand : public UnitBase
 public:
     static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };
 
-    RotateHand(int model, const VECTOR& bossPos);
+    RotateHand(const VECTOR& bossPos);
     ~RotateHand() override;
 
     void SubLoad() override;
@@ -18,6 +18,7 @@ public:
     void OnCollision(UnitBase* other) override;
 
     bool IsEnd(void) { return end_; }
+
 
 private:
     VECTOR center_;     // É{ÉXíÜêS
