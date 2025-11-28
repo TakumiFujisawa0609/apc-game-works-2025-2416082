@@ -152,6 +152,8 @@ public:
 
 	int GetVoiceLevel(void) const;
 
+	const MUSCLE_LEVEL GetMuscleLevel(void) const { return muscleLevel_; }
+
 	// 腕クラスのインスタンスのゲット関数
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
@@ -170,6 +172,7 @@ private:
 	// 回避用カウンタの更新処理
 	void RollCountUpdate(void);
 
+	// 入力を見て移動方向を決める
 	void SetMoveVec(void);
 
 	// デバッグ関係の描画用関数
@@ -220,9 +223,6 @@ private:
 	int nextRollCounter_;
 
 	int rollCounter_;
-
-	// 攻撃コンボ用
-	int attacConboCnt_;
 
 	// 攻撃から抜け出さないときがあるので、
 	// 攻撃の状態が一定時間たったら抜けるようにする用カウンタ

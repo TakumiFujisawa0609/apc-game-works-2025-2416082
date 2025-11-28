@@ -96,10 +96,9 @@ void Player::SubInit(void)
     isAttacked_ = false;
 
     // カウンタの初期化-----
-    attacConboCnt_ = 0;         // 攻撃段階が今どこか見るためのカウンタ
-    attackEscapeCounter_ = 0;   // 一定時間攻撃中だったら強制的に抜け出すためのカウンタ
     rollCounter_ = 0;           // 回避時間用カウンタ
     nextRollCounter_ = 0;       // 一度回避を行ったとき、次の回避までのクールタイム用
+    attackEscapeCounter_ = 0;
     // ---------------------
     
     // 関数ポインタに登録
@@ -174,12 +173,6 @@ void Player::SubUpdate(void)
 
 #pragma endregion
 
-#ifdef _DEBUG
-    if (input.IsNew(KEY_INPUT_P)) {
-        leftArm_->SetAttackTime(60);
-        rightArm_->SetAttackTime(60);
-    }
-#endif // _DEBUG
 }
 
 // 描画処理
@@ -224,6 +217,7 @@ void Player::SubRelease(void)
         rightArm_ = nullptr;
     }
 
+    // マイクインプット
     if (mic_)
     {
         mic_->Stop();
@@ -266,6 +260,7 @@ void Player::OnCollision(UnitBase* other)
 
 }
 
+// UIの描画関数
 void Player::UIDraw(void)
 {
     //HP描画
@@ -317,6 +312,7 @@ void Player::Move(void)
     animation_->Play((int)ANIM_TYPE::RUN, true);
 }
 
+// 攻撃処理
 void Player::Attack(void)
 {
     auto& input = InputManager::GetInstance();
@@ -356,18 +352,22 @@ void Player::Attack(void)
 
     int anim = (int)conbo_;
 
+    using AT = ANIM_TYPE;
+
     switch (conbo_)
     {
     case CONBO::CONBO1:
-        anim = (int)ANIM_TYPE::ATTACK1;
+        anim = static_cast<int>(AT::ATTACK1);
         leftArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO2:
-        anim = (int)ANIM_TYPE::ATTACK2;
+        anim = (int)AT::ATTACK2;
+        anim = static_cast<int>(AT::ATTACK2);
         rightArm_->SetAttackTime(10);
         break;
     case CONBO::CONBO3:
-        anim = (int)ANIM_TYPE::ATTACK3;
+        anim = (int)AT::ATTACK3;
+        anim = static_cast<int>(AT::ATTACK3);
         leftArm_->SetAttackTime(10);
         break;
     }
@@ -400,16 +400,14 @@ void Player::Attack(void)
         conbo_ = CONBO::CONBO1;
     }
 
-    static int cnt = 0;
-    cnt++;
-    if (cnt > 120) {
-        cnt = 0;
+    attackEscapeCounter_++;
+    if (attackEscapeCounter_ > 120) {
+        attackEscapeCounter_ = 0;
         state_ = STATE::IDLE;
     }
 }
 
-
-
+// 回避処理
 void Player::Roll(void)
 {
     auto& camera = Camera::GetInstance();
@@ -448,6 +446,7 @@ void Player::Roll(void)
     }
 }
 
+// 死亡処理
 void Player::Death(void)
 {
     animation_->Play((int)ANIM_TYPE::DEATH, false);
@@ -457,6 +456,7 @@ void Player::Death(void)
     }
 }
 
+// ステート管理関数
 void Player::StateManager(void)
 {
     //HPがなくなったら死亡処理に移行
@@ -466,6 +466,9 @@ void Player::StateManager(void)
         return;
     }
 
+    // 現在の状態によって遷移できるステートを管理
+    // 例）「現在がMOVEの状態ならIDLEとATTACKとROLLに遷移できる。
+    //       現在がIDLEならMOVE、ATTACK、ROLLに遷移できる。」
     switch (state_)
     {
     case Player::STATE::IDLE:
@@ -479,10 +482,14 @@ void Player::StateManager(void)
         DoRoll();
         break;
     case Player::STATE::ATTACK:
+        
+        break;
+    case Player::STATE::DEATH:
         break;
     }
 }
 
+// 移動に遷移するための関数
 void Player::DoMove(void)
 {
     // キーボード入力チェック
@@ -516,6 +523,7 @@ void Player::DoMove(void)
     }
 }
 
+// アイドルに遷移するための関数
 void Player::DoIdle(void)
 {
     // コントローラー入力チェック
@@ -542,6 +550,7 @@ void Player::DoIdle(void)
     }
 }
 
+// 攻撃に遷移する関数
 void Player::DoAttack(void)
 {
     if (state_ != STATE::ATTACK) {
@@ -615,18 +624,19 @@ void Player::DoRoll(void)
 
 void Player::ParamInit(void)
 {
+    // 当たり判定用の設定
     unit_.para_.colliShape = CollisionShape::CAPSULE;
     unit_.para_.colliType = CollisionType::ALLY;
 
     // プレイヤーのパラメータの初期化
     unit_.para_.capsuleHalfLen = CAPSULE_HALF_LENGTH; // カプセルの円から円までの長さの半分
     unit_.para_.radius = RADIUS_SIZE;                 // 半径の長さ
-    unit_.hp_ = HP_MAX;
 
+    unit_.hp_ = HP_MAX;                               // HPの初期化
     unit_.isAlive_ = true;                  // プレイヤーの生存フラグ
     unit_.pos_ = DEFAULT_POS;               // プレイヤーの座標
     unit_.angle_ = Utility::VECTOR_ZERO;    // プレイヤーの向き・アングル
-    unit_.para_.speed = MOVE_SPEED;
+    unit_.para_.speed = MOVE_SPEED;         // プレイヤーの移動速度
 }
 
 void Player::VoiceUpMuscle(void)
@@ -654,12 +664,14 @@ const float Player::GetMuscleRatio(int index)
     return ret;
 }
 
+// プレイヤーのダメージ処理
 void Player::SetDamage(int damage)
 {
     unit_.hp_ -= damage;
     unit_.inviciCounter_ = INVI_TIME;
 }
 
+// マイクの入力レベルのゲット関数
 int Player::GetVoiceLevel(void) const
 {
     return mic_->GetPlayGameLevel();
@@ -667,7 +679,7 @@ int Player::GetVoiceLevel(void) const
 
 
 
- //カメラが向く方向の処理
+//カメラが向く方向の処理
 void Player::CameraPosUpdate(void)
 {
     cameraPos_ = unit_.pos_;
@@ -697,6 +709,7 @@ void Player::RollCountUpdate(void)
     }
 }
 
+// 入力をみて移動方向を決める
 void Player::SetMoveVec(void)
 {
     // ---------- キーボード入力 ----------
@@ -760,49 +773,44 @@ void Player::SetMatrix(void)
 
     MATRIX mat = MGetIdent();
 
+    // スケール値の合成
     mat = MMult(MGetScale(unit_.scale_), mat);
 
-    // 回転行列の作成　
+    // アングル値の合成　
     Utility::MatrixRotMult(mat, unit_.angle_);
-
-    //mat = MMult(mat, MGetRotX(unit_.angle_.x));
-    //mat = MMult(mat, MGetRotY(unit_.angle_.y));
-    //mat = MMult(mat, MGetRotZ(unit_.angle_.z));
 
     // モデルの反転を修正
     MATRIX localMat = MGetIdent();
     Utility::MatrixRotMult(localMat, LOCAL_ANGLE);
     
-    //localMat = MMult(localMat, MGetRotX(LOCAL_ANGLE.x));
-    //localMat = MMult(localMat, MGetRotY(LOCAL_ANGLE.y));
-    //localMat = MMult(localMat, MGetRotZ(LOCAL_ANGLE.z));
-
+    // 反転を修正した行列と合成
     mat = MMult(localMat, mat);
 
+    // モデルの描画位置をワールド座標に変換
     VECTOR worldPos = VTransform(ofset, mat);
 
-    //mat.m[3][0] = unit_.pos_.x + worldPos.x;
-    //mat.m[3][1] = unit_.pos_.y + worldPos.y;
-    //mat.m[3][2] = unit_.pos_.z + worldPos.z;
-
+    // 座標の合成
     Utility::MatrixPosMult(mat, VAdd(unit_.pos_, worldPos));
 
-    // 行列の設定
+    // 行列をモデルに適用
     MV1SetMatrix(unit_.model_, mat);
 }
 
 // HP描画
 void Player::HpDraw(void)
 {
+    // HP描画する左上の座標と右下の座標
     VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
     VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
 
+    // HP描画関数
     DrawBar(
         pos1.x, pos1.y,
         pos2.x, pos2.y,
         unit_.hp_, HP_MAX,
         0xaaffaa,
-        0x000000);
+        0x000000
+    );
 }
 
 // ステージに対して無理やり当たり判定をしている
@@ -831,57 +839,9 @@ void Player::StageCollision(void)
     }
 }
 
-// ゲージ描画の定数
-const int GAUGE_WIDTH = 150;  // ゲージ全体の幅
-const int GAUGE_HEIGHT = 20;  // ゲージの高さ
-const int GAUGE_Y = 100;       // ゲージ描画開始Y座標
-const int GAUGE_X = 100;       // ゲージ描画開始X座標
-const int SEGMENT_WIDTH = GAUGE_WIDTH / 3; // 1セグメントの幅
-
 void Player::MuscleGaugeDraw(void)
 {
-    // 各セグメントの色を定義 (DxLibのGetColorを使用)
-    // RGB (R, G, B) の順
-    unsigned int color_green = GetColor(0, 255, 0); // 緑
-    unsigned int color_yellow = GetColor(255, 255, 0); // 黄色
-    unsigned int color_red = GetColor(255, 0, 0); // 赤
 
-    // ゲージの背景（全枠）を描画
-    // DrawBox(x1, y1, x2, y2, Color, FillFlag)
-    // 枠だけ描画する場合は FillFlag を FALSE (0) に
-    DrawBox(GAUGE_X, GAUGE_Y, GAUGE_X + GAUGE_WIDTH, GAUGE_Y + GAUGE_HEIGHT, GetColor(100, 100, 100), FALSE);
-
-    // 筋肉レベルに応じてセグメントを描画
-    for (int i = 0; i < 3; i++) {
-        // i は 0, 1, 2 に対応 (0:緑, 1:黄, 2:赤)
-        int x1 = GAUGE_X + i * SEGMENT_WIDTH; // 描画開始X座標
-        int y1 = GAUGE_Y;                     // 描画開始Y座標
-        int x2 = x1 + SEGMENT_WIDTH;          // 描画終了X座標
-        int y2 = GAUGE_Y + GAUGE_HEIGHT;      // 描画終了Y座標
-
-        unsigned int segment_color;
-
-        // セグメントの色を決定
-        if (i == 0) {
-            segment_color = color_green;
-        }
-        else if (i == 1) {
-            segment_color = color_yellow;
-        }
-        else { // i == 2
-            segment_color = color_red;
-        }
-
-        // 筋肉レベルが現在のセグメント以上の場合、色を付けて描画
-        // i+1 は筋肉レベル (1, 2, 3) に対応
-        if (muscleLevel_ >= i + 1) {
-            // 塗りつぶしの四角を描画
-            DrawBox(x1, y1, x2, y2, segment_color, TRUE);
-        }
-
-        // セグメントごとの区切り線（オプション）
-        DrawLine(x2, y1, x2, y2, GetColor(0, 0, 0)); // 黒い線で区切る
-    }
 }
 
 
