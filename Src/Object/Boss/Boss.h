@@ -51,8 +51,10 @@ public:
 
 	HandSlap* GetRightHand(void) { return slap_; }
 
-	void SetMuscleRatio(float ratio) { playerMuscleRatio_ = ratio; }
-	void SetVoiceLevel(float voiceLevel) { voiceLevel_ = voiceLevel; }
+	void SetMuscleRatio(const float ratio) { playerMuscleRatio_ = ratio; }
+	void SetVoiceLevel(const float voiceLevel) { voiceLevel_ = voiceLevel; }
+
+	const STATE GetState(void) { return state_; }
 
 protected:
 	void SubLoad(void) override;
@@ -82,6 +84,10 @@ private:
 	int voiceLevel_;
 
 	void SetMatrix(void);
+
+	void ToDeath(void);
+
+	void LookTarget(void);
 
 #pragma region ステート関数
 	void Attack(void);

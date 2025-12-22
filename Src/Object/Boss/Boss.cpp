@@ -30,6 +30,7 @@ void Boss::SubLoad(void)
 	unit_.model_ = MV1LoadModel("Data/Model/Boss/BossHead.mv1");
 
 	SoundManager::GetIns().Load(SOUND::HIT);
+	SoundManager::GetIns().Load(SOUND::GOGOGO);
 
 	AttackLoad();
 }
@@ -59,34 +60,24 @@ void Boss::SubInit(void)
 	AttackInit();
 
 	StateAdd((int)STATE::ATTACK, [this](void) {Attack(); });
+	StateAdd((int)STATE::DEATH, [this](void)  {Death();  });
 }
 
 void Boss::SubUpdate(void)
 {
 	auto& scene = SceneManager::GetInstance();
-	if (unit_.hp_ <= 0) {
-		unit_.hp_ = 0;
-		unit_.isAlive_ = false;
-	}
 
-	 //target_ の方向に向く
-	VECTOR dir = VSub(target_, unit_.pos_);
-	float targetAngleY = atan2f(dir.x, dir.z);
-
-	float rotationSpeed = Utility::Deg2RadF(1.0f);
-	float deltaAngle = targetAngleY - unit_.angle_.y;
-	while (deltaAngle > DX_PI_F) deltaAngle -= 2 * 3.14159f;
-	while (deltaAngle < -DX_PI_F) deltaAngle += 2 * 3.14159f;
-
-	if (fabsf(deltaAngle) < rotationSpeed) {
-		unit_.angle_.y = targetAngleY;
-	}
-	else {
-		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
-	}
-
+	ToDeath();		// ボスの死亡処理の遷移
 
 	StateUpdate(static_cast<int>(state_));
+
+	if (state_ == STATE::DEATH) {
+		SoundManager::GetIns().Play(SOUND::GOGOGO, false, 150, true, true);
+		return;
+	}
+
+	LookTarget();	// プレイヤーを見る処理
+
 	Invi();
 
 #ifdef _DEBUG
@@ -94,6 +85,8 @@ void Boss::SubUpdate(void)
 	//if (CheckHitKey(KEY_INPUT_DOWN)) { unit_.pos_.z -= 5; }
 	//if (CheckHitKey(KEY_INPUT_RIGHT)) { unit_.pos_.x += 5; }
 	//if (CheckHitKey(KEY_INPUT_LEFT)) { unit_.pos_.x -= 5; }
+
+	if (CheckHitKey(KEY_INPUT_P)) { state_ = STATE::DEATH; }
 #endif // _DEBUG
 
 }
@@ -127,9 +120,9 @@ void Boss::SubRelease(void)
 	AttackRelease();
 
 	// 音声の開放
-	for (int i = 0; i < (int)SOUND::MAX; i++) {
-		SoundManager::GetIns().Delete((SOUND)i);
-	}
+	SoundManager::GetIns().AllStop();
+	SoundManager::GetIns().Delete(SOUND::HIT);
+	SoundManager::GetIns().Delete(SOUND::GOGOGO);
 }
 
 void Boss::SetMatrix(void)
@@ -162,6 +155,33 @@ void Boss::SetMatrix(void)
 	// モデルに行列の適用
 	// モデルの描画
 	MV1SetMatrix(unit_.model_, mat);
+}
+
+void Boss::ToDeath(void)
+{
+	if (unit_.hp_ <= 0) {
+		unit_.hp_ = 0;
+		state_ = STATE::DEATH;
+	}
+}
+
+void Boss::LookTarget(void)
+{
+	//target_ の方向に向く
+	VECTOR dir = VSub(target_, unit_.pos_);
+	float targetAngleY = atan2f(dir.x, dir.z);
+
+	float rotationSpeed = Utility::Deg2RadF(1.0f);
+	float deltaAngle = targetAngleY - unit_.angle_.y;
+	while (deltaAngle > DX_PI_F) deltaAngle -= 2 * 3.14159f;
+	while (deltaAngle < -DX_PI_F) deltaAngle += 2 * 3.14159f;
+
+	if (fabsf(deltaAngle) < rotationSpeed) {
+		unit_.angle_.y = targetAngleY;
+	}
+	else {
+		unit_.angle_.y += (deltaAngle > 0 ? rotationSpeed : -rotationSpeed);
+	}
 }
 
 #pragma region ステート処理
@@ -209,6 +229,11 @@ void Boss::Damage(void)
 
 void Boss::Death(void)
 {
+	unit_.pos_.y--;
+	GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 100);
+	if (unit_.pos_.y < (DEFAULT_POS.y - 180)) {
+		unit_.isAlive_ = false;
+	}
 }
 #pragma endregion 
 
@@ -216,7 +241,7 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return (ATTACK)GetRand((int)ATTACK::BALL - 1);
+	return ATTACK::SLAP; /* (ATTACK)GetRand((int)ATTACK::BALL - 1);*/
 }
 
 void Boss::AttackLoad(void)
@@ -255,25 +280,39 @@ void Boss::AttackDraw(void)
 
 void Boss::AttackRelease(void)
 {
-	//右手の開放
-	if (slap_)
-	{
-		slap_->Release();
-		delete slap_;
-		slap_ = nullptr;
-	}
+	//右手の解放
+	Utility::SafeDeleteInstance(slap_);
 
-	if (rotaHnad_) {
-		rotaHnad_->Release();
-		delete rotaHnad_;
-		rotaHnad_ = nullptr;
-	}
+	// 回転手解放
+	Utility::SafeDeleteInstance(rotaHnad_);
+
+	//if (slap_)
+	//{
+	//	slap_->Release();
+	//	delete slap_;
+	//	slap_ = nullptr;
+	//}
+
+	//if (rotaHnad_) {
+	//	rotaHnad_->Release();
+	//	delete rotaHnad_;
+	//	rotaHnad_ = nullptr;
+	//}
 
 }
 #pragma endregion 
 
 void Boss::UIDraw(void)
 {
+
+	DrawBar(
+		(Application::SCREEN_SIZE_X / 10) * 2,
+		(Application::SCREEN_SIZE_Y / 10) * 9,
+		(Application::SCREEN_SIZE_X / 10) * 8,
+		(Application::SCREEN_SIZE_Y / 10) * 8 + 100,
+		unit_.hp_, HP_MAX,
+		RGB(255, 100, 100),
+		RGB(0, 0, 0));
 
 #ifdef _DEBUG
 
@@ -286,14 +325,7 @@ void Boss::UIDraw(void)
 
 	DrawFormatString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0xffffff, "BossHP(%i)", unit_.hp_);
 
-	DrawBar(
-		(Application::SCREEN_SIZE_X / 10) * 2,
-		(Application::SCREEN_SIZE_Y / 10) * 9,
-		(Application::SCREEN_SIZE_X / 10) * 8,
-		(Application::SCREEN_SIZE_Y / 10) * 8 + 60,
-		unit_.hp_, HP_MAX,
-		RGB(255, 0, 255),
-		RGB(0, 0, 0));
+
 
 #endif // _DEBUG
 }

@@ -148,14 +148,17 @@ void HandSlap::Fall(void)
         counter_ = COUNT_DOWN;
     }
 
-    if (voiceLevel_ > 4000) {
+    if (voiceLevel_ > 3000) {
         state_ = HAND_STATE::STOP;
+        GameScene::HitStop(10);
+        GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);
     }
 }
 
 void HandSlap::Stop(void)
 {
     unit_.pos_.y += 30;
+    unit_.angle_.z += Utility::Deg2RadF(30);
     if (unit_.pos_.y > 5000) {
         end_ = true;
     }

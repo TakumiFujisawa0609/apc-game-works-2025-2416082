@@ -55,12 +55,15 @@ void ArmBase::SubUpdate(void)
 	unit_.isAlive_ = (cnt_ > 0);
 
 
+#ifdef _DEBUG
+
 	if (CheckHitKey(KEY_INPUT_0)) {
 		AddArmScale({ -0.05, -0.05, -0.05 });
 	}
 	if (CheckHitKey(KEY_INPUT_9)) {
-		AddBoneScale(4,{ 0.05, 0.05, 0.05 });
+		AddBoneScale(4, { 0.05, 0.05, 0.05 });
 	}
+#endif // _DEBUG
 }
 
 void ArmBase::SubDraw(void)
@@ -88,6 +91,8 @@ void ArmBase::OnCollision(UnitBase* other)
 
 void ArmBase::UIDraw(void)
 {
+
+#ifdef _DEBUG
 	auto& input = InputManager::GetInstance();
 	int frameNum = MV1GetFrameNum(unit_.model_);
 
@@ -116,6 +121,7 @@ void ArmBase::UIDraw(void)
 			"Frame %d : %s", idx, name ? name : "(null)");
 		y += 16;
 	}
+#endif // _DEBUG
 }
 
 void ArmBase::SetAttackTime(int collTime)

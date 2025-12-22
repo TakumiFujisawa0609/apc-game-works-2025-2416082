@@ -79,38 +79,51 @@ bool MicInput::Init(int sampleRate, int bufSize, int bufferCount)
 
 void MicInput::Start()
 {
-    // 録音開始
-    if (hWaveIn_) waveInStart(hWaveIn_);
+    if (!hWaveIn_) return;
+
+    isClosing_ = false;
+    isRunning_ = true;
+
+    waveInStart(hWaveIn_);
 }
+
 
 void MicInput::Stop()
 {
-    if (hWaveIn_)
-    {
-        // 録音停止
-        waveInStop(hWaveIn_);
+    if (!hWaveIn_) return;
 
-        for (auto& hdr : headers_)
+    // コールバックを止める合図
+    isRunning_ = false;
+    isClosing_ = true;
+
+    // 入力停止
+    waveInStop(hWaveIn_);
+    waveInReset(hWaveIn_);   // ← これ超重要（キューを空にする）
+
+    // ヘッダ解除
+    for (auto& hdr : headers_)
+    {
+        if (hdr.dwFlags & WHDR_PREPARED)
         {
-            // バッファの解放
             waveInUnprepareHeader(hWaveIn_, &hdr, sizeof(WAVEHDR));
         }
-
-        // 入力デバイスを閉じる
-        waveInClose(hWaveIn_);
-        hWaveIn_ = nullptr;
     }
 
+    waveInClose(hWaveIn_);
+    hWaveIn_ = nullptr;
+
+    // ---- waveOut ----
     if (hWaveOut_)
     {
-        // バッファの解放
-        waveOutUnprepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
-
-        // 出力デバイスを閉じる
+        if (WaveOutHdr_.dwFlags & WHDR_PREPARED)
+        {
+            waveOutUnprepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+        }
         waveOutClose(hWaveOut_);
         hWaveOut_ = nullptr;
     }
 }
+
 
 void MicInput::Update()
 {
@@ -162,6 +175,8 @@ void CALLBACK MicInput::WaveInProc(HWAVEIN hwi, UINT msg, DWORD_PTR instance, DW
 
 void MicInput::OnBufferDone(WAVEHDR* hdr)
 {
+    if (!isRunning_ || isClosing_) return;
+
     // 音量計算
     long sum = 0;
     short* data = (short*)hdr->lpData;
@@ -169,13 +184,13 @@ void MicInput::OnBufferDone(WAVEHDR* hdr)
     level_ = static_cast<int>(sum / bufferSize_);
 
     // ノイズ除去（小さい音は無視）
-    const int threshold = MIN_MIC_LEVEL;
-    if (level_ < threshold) 
-    {
-        // 無音/ノイズ扱い
-        waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));
-        return;
-    }
+    //const int threshold = MIN_MIC_LEVEL;
+    //if (level_ < threshold) 
+    //{
+    //    // 無音/ノイズ扱い
+    //    waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));
+    //    return;
+    //}
 
     // ===== バンドパスフィルタ =====
     float RC_low = 1.0 / (2 * M_PI * MAX_HZ);

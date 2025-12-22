@@ -128,7 +128,7 @@ public:
 	static T* ClassNew(T*& ptr, Args&&... args);
 
 	template<typename T>
-	static void SafeDelete(T*& ptr);
+	static void SafeDeleteInstance(T*& ptr);
 
 #pragma region イージング
 	static float QuadInOut(float time, float totaltime, float start, float end);
@@ -157,7 +157,7 @@ inline T* Utility::ClassNew(T*& ptr, Args && ...args)
 /// <typeparam name="T">インスタンスの型</typeparam>
 /// <param name="ptr">解放したいクラスのインスタンス</param>
 template<typename T>
-void Utility::SafeDelete(T*& ptr) {
+void Utility::SafeDeleteInstance(T*& ptr) {
 	if (ptr) {
 		ptr->Release();
 		delete ptr;

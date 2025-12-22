@@ -51,15 +51,6 @@ public:
 		MAX,
 	};
 
-	enum MUSCLE_LEVEL
-	{
-		LOW,
-		NORMAL,
-		BIG,
-
-		MAX
-	};
-
 #pragma region 定数定義
 
 	static constexpr int HP_MAX = 100;
@@ -102,7 +93,7 @@ public:
 		{ 0.03f, 0.03f, 0.03f }
 	}; 
 
-	static constexpr VECTOR DOWN_MUSCLE = { -0.003f,-0.003f,-0.003f };	//常時筋肉が減るため、減らし続ける用の値
+	static constexpr VECTOR DOWN_MUSCLE = { -0.005f,-0.005f,-0.005f };	//常時筋肉が減るため、減らし続ける用の値
 
 
 
@@ -151,8 +142,6 @@ public:
 	void SetDamage(int damage);
 
 	int GetVoiceLevel(void) const;
-
-	const MUSCLE_LEVEL GetMuscleLevel(void) const { return muscleLevel_; }
 
 	// 腕クラスのインスタンスのゲット関数
 	LeftArm* GetLeftArm(void) { return leftArm_; }
@@ -204,10 +193,6 @@ private:
 
 	// 現在のコンボ
 	CONBO conbo_;
-
-	// 筋肉の大崎を三段階に分ける用に用意しました
-	MUSCLE_LEVEL muscleLevel_;
-
 #pragma endregion
 
 #pragma region 変数
@@ -230,8 +215,6 @@ private:
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
-
-	int hpFrameImg_;
 
 #pragma endregion
 

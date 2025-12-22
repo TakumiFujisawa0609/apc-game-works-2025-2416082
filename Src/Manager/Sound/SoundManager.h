@@ -18,10 +18,12 @@ public:
 		NON=-1,
 
 		TITLE_BGM,
+		GAME_BGM,
 
 		PLAYER_BIG_ATTACK,
 		PLAYER_SMALL_ATTACK,
 		HIT,
+		GOGOGO,
 
 		MAX,
 	};

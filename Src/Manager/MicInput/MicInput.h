@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <vector>
+#include <atomic>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -51,4 +52,7 @@ private:
     // 出力用ヘッダ（再利用）
     WAVEHDR WaveOutHdr_{};
     short* outBuffer_ = nullptr;
+
+    std::atomic<bool> isRunning_ = false;
+    std::atomic<bool> isClosing_ = false;
 };

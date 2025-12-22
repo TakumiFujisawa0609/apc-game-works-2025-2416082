@@ -18,6 +18,10 @@ void Camera::Init()
         { MODE::BOSS_DEATH,    &Camera::BossDeathCamera     },
     };
 
+    deathTimer_ = 0.0f;
+    radius_ = 30.0f;
+    height_ = 10.0f;
+
     mode_ = MODE::PLAYER_FOLLOW;
 }
 
@@ -31,11 +35,21 @@ void Camera::Update()
 
 void Camera::Apply()
 {
-    SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
+    switch (mode_)
+    {
+    case Camera::PLAYER_FOLLOW:
+        SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
+        break;
+    case Camera::BOSS_DEATH:
+        SetCameraPositionAndTarget_UpVecY(camPos_, *targetBossPos_);
+        break;
+    default:
+        break;
+    }
 
     SetUseLighting(false);
 
-    SetUseLighting(TRUE);
+    SetUseLighting(true);
 }
 
 void Camera::MouseMoveCamera(void)
@@ -112,5 +126,13 @@ void Camera::PlayerFollowCamera(void)
 
 void Camera::BossDeathCamera(void)
 {
+    deathTimer_ += 1.0f / 60.0f;
 
+    const float baseRadius = 1000.0f;   // Å© â°ãóó£ÇÇµÇ¡Ç©ÇËéÊÇÈ
+    const float baseHeight = 200.0f;   // Å© è„Ç©ÇÁå©â∫ÇÎÇ∑
+
+    const VECTOR offset = VGet(0.0f, baseHeight, -baseRadius);
+    camPos_ = VAdd(bossPos_, offset);
+    // É{ÉXíçéã
 }
+

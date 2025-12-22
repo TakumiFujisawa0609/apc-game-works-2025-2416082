@@ -10,6 +10,8 @@ public:
 
 	static constexpr float CAMERA_PLAYER_POS = 300.0f;
 
+	static constexpr VECTOR LOCAL_POS = { 0.0f, 400.0f, -800.0f };
+
 	enum MODE
 	{
 		PLAYER_FOLLOW,
@@ -29,6 +31,7 @@ public:
 	void SetTarget(const VECTOR* player, const VECTOR* boss) { targetPlayerPos_ = player; targetBossPos_ = boss; }
 	VECTOR GetAngle(void) { return angle_; }
 
+	void SetBossDeathCamera(void) { mode_ = MODE::BOSS_DEATH; }
 
 private:
 
@@ -48,7 +51,10 @@ private:
 	const VECTOR* targetPlayerPos_;
 	const VECTOR* targetBossPos_;
 
-	const VECTOR LOCAL_POS = { 0.0f, 300.0f, -500.0f };
+	VECTOR bossPos_;     // ボスの位置
+	float  deathTimer_;  // 演出用タイマー
+	float  radius_;      // カメラ距離
+	float  height_;      // 高さ
 
 	void MouseMoveCamera(void);
 	void PadMoveCamera();

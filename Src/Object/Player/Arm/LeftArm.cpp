@@ -51,7 +51,7 @@ void LeftArm::SubDraw(void)
 {
 	if (!unit_.isAlive_) { return; }
 
-	DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xfff000, 0xfff000, false);
+	//DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xfff000, 0xfff000, false);
 
 	ArmBase::SubDraw();
 }

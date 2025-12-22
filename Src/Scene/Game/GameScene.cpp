@@ -5,6 +5,7 @@
 
 #include "../../Manager/Input/InputManager.h"
 #include "../../Manager/Input/KeyManager.h"
+#include "../../Manager/Sound/SoundManager.h"
 
 #include "../../Application/Application.h"
 #include "../../scene/SceneManager/SceneManager.h"
@@ -88,6 +89,9 @@ void GameScene::Load(void)
 		collision_->AddEnemy(enemy);
 	}
 	// -------------------------------------------
+
+	SoundManager& sound = SoundManager::GetIns();
+	sound.Load(SOUND::GAME_BGM);
 }
 
 void GameScene::Init(void)
@@ -101,6 +105,8 @@ void GameScene::Init(void)
 	SetMouseDispFlag(false);
 
 	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos(),&boss_->GetUnit().pos_);
+
+	SoundManager::GetIns().Play(SOUND::GAME_BGM, false, 120, true, true);
 
 #pragma region 画面演出
 	// ヒットストップカウンターの初期化
@@ -136,7 +142,9 @@ void GameScene::Update(void)
 		scene.PushScene(std::make_shared<PauseScene>());
 	}
 
-	
+	if (boss_->GetState() == Boss::STATE::DEATH) {
+		camera.SetBossDeathCamera();
+	}
 
 	if (!boss_->GetUnit().isAlive_) {
 		this->Release();
@@ -216,14 +224,19 @@ void GameScene::Release(void)
 		collision_ = nullptr;
 	}
 
-	Utility::SafeDelete(player_);
-	Utility::SafeDelete(boss_);
-	Utility::SafeDelete(enemy_);
-	Utility::SafeDelete(stage_);
-	Utility::SafeDelete(skyDome_);
+	Utility::SafeDeleteInstance(player_);
+	Utility::SafeDeleteInstance(boss_);
+	Utility::SafeDeleteInstance(enemy_);
+	Utility::SafeDeleteInstance(stage_);
+	Utility::SafeDeleteInstance(skyDome_);
 
 	DeleteGraph(mainScreen_);
  	Camera::DeleteInstance();
+
+	SoundManager& sound = SoundManager::GetIns();
+
+	sound.AllStop();
+	sound.Delete(SOUND::GAME_BGM);
 }
 
 void GameScene::Shake(ShakeKinds kinds, ShakeSize size, int time)

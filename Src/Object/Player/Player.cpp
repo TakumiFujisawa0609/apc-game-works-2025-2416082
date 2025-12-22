@@ -8,6 +8,8 @@
 #include "../../Manager/Sound/SoundManager.h"
 #include "../../Manager/MicInput/MicInput.h"
 
+#include "../../Scene/Game/GameScene.h"
+
 #include "../Camera/Camera.h"
 
 #include "../Boss/Boss.h"
@@ -40,8 +42,6 @@ void Player::SubLoad(void)
    // モデルのロード
    unit_.model_ = MV1LoadModel((playerModelPath + "Player1.mv1").c_str());
 
-   hpFrameImg_ = LoadGraph("Data/Image/PlayerUI/HP_Frame.png");
-
 #pragma region クラスの定義
 
    // アニメーションクラス
@@ -59,7 +59,7 @@ void Player::SubLoad(void)
 
 #pragma endregion
 
-   // アニメーションのロード--------------------------------
+   // モデルモーションのロード--------------------------------
    using T = ANIM_TYPE;
 
    // モーション追加のラムダ関数
@@ -67,6 +67,7 @@ void Player::SubLoad(void)
        animation_->Add((int)type, speed, (playerModelPath + "Animation/" + path + ".mv1").c_str());
        };
 
+   // モーションの追加
    for (int i = 0; i < static_cast<int>(T::MAX); i++) {
        motionAdd(static_cast<T>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
    }
@@ -110,7 +111,6 @@ void Player::SubInit(void)
 
     state_ = STATE::IDLE;
     conbo_ = CONBO::CONBO1;
-    muscleLevel_ = MUSCLE_LEVEL::LOW;
 
     // 腕の初期化
     leftArm_->Init();
@@ -129,17 +129,6 @@ void Player::SubUpdate(void)
     if (state_ != STATE::ATTACK) {
         isAttacked_ = false;
     }
-
-    if (GetMuscleRatio(4) <= 0.03f) {
-        muscleLevel_ = MUSCLE_LEVEL::LOW;
-    }
-    else if (GetMuscleRatio(4) <= 0.7f) {
-        muscleLevel_ = MUSCLE_LEVEL::NORMAL;
-    }
-    else  if (GetMuscleRatio(4) <= 1.0f) {
-        muscleLevel_ = MUSCLE_LEVEL::BIG;
-    }
-   
 
     // ステージとの当たり判定を無理やりやってる処理
     StageCollision();
@@ -642,8 +631,9 @@ void Player::ParamInit(void)
 void Player::VoiceUpMuscle(void)
 {
     // マイクレベル（音量）が4000より高いとき、筋肉を増やす
-    if (mic_->GetPlayGameLevel() > 4000) {
-        AddBoneScale(4, { 0.01f,0.01f,0.01f });
+    if (mic_->GetPlayGameLevel() > 3000) {
+        AddBoneScale(4, { 0.07f,0.07f,0.07f });
+        GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
     }
 
     // 平常時筋肉は減り続ける
