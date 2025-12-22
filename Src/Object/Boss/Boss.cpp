@@ -104,11 +104,6 @@ void Boss::SubDraw(void)
 	slap_->MarkerDraw();
 
 	UIDraw();
-
-	SetFontSize(128);
-	DrawFormatString(0, 0, 0xffffff, "%i", voiceLevel_);
-	SetFontSize(16);
-
 }
 
 void Boss::SubRelease(void)
@@ -309,9 +304,9 @@ void Boss::UIDraw(void)
 		(Application::SCREEN_SIZE_X / 10) * 2,
 		(Application::SCREEN_SIZE_Y / 10) * 9,
 		(Application::SCREEN_SIZE_X / 10) * 8,
-		(Application::SCREEN_SIZE_Y / 10) * 8 + 100,
+		(Application::SCREEN_SIZE_Y / 10) * 8 + 120,
 		unit_.hp_, HP_MAX,
-		RGB(255, 100, 100),
+		RGB(50, 50, 255),
 		RGB(0, 0, 0));
 
 #ifdef _DEBUG

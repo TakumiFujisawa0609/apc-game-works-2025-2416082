@@ -160,6 +160,9 @@ void MicInput::VoiceLevelDraw(void)
             true
         );
     }
+
+    // 音量確認用
+    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", level_);
 }
 
 // ===== コールバック =====

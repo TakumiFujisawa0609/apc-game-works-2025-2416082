@@ -176,8 +176,6 @@ private:
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
-	// 筋肉ゲージの初期化
-	void MuscleGaugeDraw(void);
 private:
 
 	// インスタンス----------------------------------------

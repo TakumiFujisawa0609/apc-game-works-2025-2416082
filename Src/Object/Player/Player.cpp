@@ -59,18 +59,18 @@ void Player::SubLoad(void)
 
 #pragma endregion
 
-   // モデルモーションのロード--------------------------------
-   using T = ANIM_TYPE;
+   // モデルアニメーションのロード--------------------------------
 
-   // モーション追加のラムダ関数
-   auto motionAdd = [&](T type, float speed, std::string path) {
+   // アニメーション追加のラムダ関数
+   auto AnimationAdd = [&](ANIM_TYPE type, float speed, std::string path) {
        animation_->Add((int)type, speed, (playerModelPath + "Animation/" + path + ".mv1").c_str());
        };
 
-   // モーションの追加
-   for (int i = 0; i < static_cast<int>(T::MAX); i++) {
-       motionAdd(static_cast<T>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
+   // アニメーションの追加
+   for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
+       AnimationAdd(static_cast<ANIM_TYPE>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
    }
+
    // -------------------------------------------------------
 
     // 音声のロード-----------------------------------------
@@ -255,8 +255,6 @@ void Player::UIDraw(void)
     //HP描画
     HpDraw();
     rightArm_->UIDraw();
-    MuscleGaugeDraw();
-
 
 #ifdef _DEBUG
     DebugDraw();
@@ -751,10 +749,6 @@ void Player::DebugDraw(void)
     VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
-
-    // 音量確認用
-    int volume = mic_->GetLevel();
-    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", volume);
 }
 
 void Player::SetMatrix(void)
@@ -827,11 +821,6 @@ void Player::StageCollision(void)
         unit_.pos_.x = nx * STAGE_COLLISION_RADIUS_INSIDE;
         unit_.pos_.z = nz * STAGE_COLLISION_RADIUS_INSIDE;
     }
-}
-
-void Player::MuscleGaugeDraw(void)
-{
-
 }
 
 
