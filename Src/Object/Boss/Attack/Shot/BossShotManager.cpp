@@ -1,6 +1,11 @@
 #include "BossShotManager.h"
 
-BossShotManager::BossShotManager()
+#include "BossShot.h"
+
+BossShotManager::BossShotManager(VECTOR bossPos, const VECTOR& targetPos) :
+	bossPos_(bossPos),
+	targetPos_(targetPos)
+	
 {
 }
 
@@ -8,26 +13,28 @@ BossShotManager::~BossShotManager()
 {
 }
 
-void BossShotManager::SubLoad(void)
+void BossShotManager::Load(void)
 {
+	Utility::ClassNew(shot_, bossPos_, targetPos_)->Load();
 }
 
-void BossShotManager::SubInit(void)
+void BossShotManager::Init(void)
 {
+	shot_->Init();
 }
 
-void BossShotManager::SubUpdate(void)
+void BossShotManager::Update(void)
 {
+	shot_->Update();
 }
 
-void BossShotManager::SubDraw(void)
+void BossShotManager::Draw(void)
 {
+	shot_->Draw();
 }
 
-void BossShotManager::SubRelease(void)
+void BossShotManager::Release(void)
 {
+	Utility::SafeDeleteInstance(shot_);
 }
 
-void BossShotManager::OnCollision(UnitBase* other)
-{
-}

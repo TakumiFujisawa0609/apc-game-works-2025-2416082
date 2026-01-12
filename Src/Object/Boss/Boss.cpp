@@ -11,6 +11,8 @@
 
 #include "Attack/Hand/HandSlap.h"
 #include "Attack/Hand/RotateHand.h"
+#include "Attack/Shot/BossShot.h"
+#include "Attack/Shot/BossShotManager.h"
 
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
@@ -81,11 +83,6 @@ void Boss::SubUpdate(void)
 	Invi();
 
 #ifdef _DEBUG
-	//if (CheckHitKey(KEY_INPUT_UP)) { unit_.pos_.z += 5; }
-	//if (CheckHitKey(KEY_INPUT_DOWN)) { unit_.pos_.z -= 5; }
-	//if (CheckHitKey(KEY_INPUT_RIGHT)) { unit_.pos_.x += 5; }
-	//if (CheckHitKey(KEY_INPUT_LEFT)) { unit_.pos_.x -= 5; }
-
 	if (CheckHitKey(KEY_INPUT_P)) { state_ = STATE::DEATH; }
 #endif // _DEBUG
 
@@ -209,6 +206,12 @@ void Boss::Attack(void)
 		}
 		break;
 
+	case ATTACK::SHOT:
+		shotManager_->Update();
+		if (shotManager_->GetShot()->End()) {
+			attackState_ = ATTACK::NON;
+		}
+
 	default:
 		break;
 	}
@@ -236,7 +239,7 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::SLAP; /* (ATTACK)GetRand((int)ATTACK::BALL - 1);*/
+	return ATTACK::SHOT; /* (ATTACK)GetRand((int)ATTACK::BALL - 1);*/
 }
 
 void Boss::AttackLoad(void)
@@ -244,6 +247,7 @@ void Boss::AttackLoad(void)
 	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
 	Utility::ClassNew(rotaHnad_, unit_.pos_);
+	Utility::ClassNew(shotManager_, unit_.pos_, target_)->Load();
 }
 
 void Boss::AttackInit(void)
@@ -258,7 +262,8 @@ void Boss::AttackInit(void)
 	case Boss::ATTACK::ROTA_HAND:
 		rotaHnad_->Init();
 		break;
-	case Boss::ATTACK::BALL:
+	case Boss::ATTACK::SHOT:
+		shotManager_->Init();
 		break;
 	case Boss::ATTACK::MAX:
 		break;
@@ -271,6 +276,7 @@ void Boss::AttackDraw(void)
 {
 	slap_->Draw();
 	rotaHnad_->Draw();
+	shotManager_->Draw();
 }
 
 void Boss::AttackRelease(void)
@@ -281,19 +287,7 @@ void Boss::AttackRelease(void)
 	// ‰ñ“]Žè‰ð•ú
 	Utility::SafeDeleteInstance(rotaHnad_);
 
-	//if (slap_)
-	//{
-	//	slap_->Release();
-	//	delete slap_;
-	//	slap_ = nullptr;
-	//}
-
-	//if (rotaHnad_) {
-	//	rotaHnad_->Release();
-	//	delete rotaHnad_;
-	//	rotaHnad_ = nullptr;
-	//}
-
+	Utility::SafeDeleteInstance(shotManager_);
 }
 #pragma endregion 
 

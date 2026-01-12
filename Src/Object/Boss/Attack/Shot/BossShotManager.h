@@ -2,25 +2,25 @@
 
 #include "../../../UnitBase.h"
 
-class BossShotManager : public UnitBase
+class BossShot;
+
+class BossShotManager
 {
 public:
 
-	BossShotManager();
-	~BossShotManager() override;
+	BossShotManager(VECTOR bossPos, const VECTOR& targetPos);
+	~BossShotManager();
 
-	void OnCollision(UnitBase* other) override;
+	void Load(void);
+	void Init(void);
+	void Update(void);
+	void Draw(void);
+	void Release(void);
 
-	bool End(void) { return end_; }
-
-protected:
-	void SubLoad(void) override;
-	void SubInit(void) override;
-	void SubUpdate(void) override;
-	void SubDraw(void) override;
-	void SubRelease(void) override;
+	BossShot* GetShot(void) { return shot_; }
 private:
+	BossShot* shot_;
 
-	bool end_;
-
+	VECTOR bossPos_;
+	const VECTOR& targetPos_;
 };

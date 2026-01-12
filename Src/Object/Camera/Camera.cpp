@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include <math.h>
+#include <EffekseerForDXLib.h>
 
 #include "../../Application/Application.h"
 
@@ -47,9 +48,12 @@ void Camera::Apply()
         break;
     }
 
-    SetUseLighting(false);
+    // DXライブラリのカメラとEffekseerのカメラを同期する
+    Effekseer_Sync3DSetting();
 
-    SetUseLighting(true);
+    //SetUseLighting(false);
+
+    //SetUseLighting(true);
 }
 
 void Camera::MouseMoveCamera(void)

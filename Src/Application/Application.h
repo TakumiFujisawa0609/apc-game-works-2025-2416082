@@ -57,6 +57,9 @@ private:
 	// Application copy = *Application::GetInstance();
 	// Application copied(*Application::GetInstance());
 	// Application moved = std::move(*Application::GetInstance());
+
+	void InitEffekseer(void);
+
 private:
 
 	// 静的インスタンス

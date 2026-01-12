@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <cmath>
+#include <EffekseerForDXLib.h>
 
 #include "../../Application/Application.h"
 
@@ -25,7 +26,8 @@ Player::Player() :
     animation_(nullptr),
     mic_(nullptr),
     leftArm_(nullptr),
-    rightArm_(nullptr)
+    rightArm_(nullptr),
+    effectSoutPlayid_(0)
 {
 }
 
@@ -70,13 +72,22 @@ void Player::SubLoad(void)
    for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
        AnimationAdd(static_cast<ANIM_TYPE>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
    }
-
    // -------------------------------------------------------
 
-    // 音声のロード-----------------------------------------
-    SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
-    SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
-    // -----------------------------------------------------
+   // 音声のロード-----------------------------------------
+   SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
+   SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
+   // -----------------------------------------------------
+
+   // effekseerのロード---------------------------------------
+   
+   effectSoutId_ = LoadEffekseerEffect(
+       "Data/Effekseer/Shout.efkefc"
+   );
+
+   effectSoutPlayid_ = PlayEffekseer3DEffect(effectSoutId_);
+
+   // -------------------------------------------------------
 }
 
 //初期化処理
@@ -162,6 +173,16 @@ void Player::SubUpdate(void)
 
 #pragma endregion
 
+    static int p = 0;
+    static int n = 0;
+
+    p = n;
+    n = CheckHitKey(KEY_INPUT_L);
+
+    if (p == 0 && n == 1)
+    {
+        effectSoutPlayid_ = PlayEffekseer3DEffect(effectSoutId_);
+    }
 }
 
 // 描画処理
@@ -171,6 +192,24 @@ void Player::SubDraw(void)
 
     // プレイヤーの描画
     SetMatrix();
+
+
+
+    // その後に各種設定
+    float SCALE = 10.0f;
+    SetScalePlayingEffekseer3DEffect(
+        effectSoutPlayid_, SCALE, SCALE, SCALE);
+
+    VECTOR angles = { 0.0f, DX_PI_F, 0.0f };
+    SetRotationPlayingEffekseer3DEffect(
+        effectSoutPlayid_, angles.x, angles.y, angles.z);
+
+    SetPosPlayingEffekseer3DEffect(
+        effectSoutPlayid_,
+        unit_.pos_.x,
+        unit_.pos_.y,
+        unit_.pos_.z
+);
 
     // 腕に関する描画処理
     leftArm_->Draw();
@@ -183,32 +222,28 @@ void Player::SubDraw(void)
 void Player::SubRelease(void)
 {
     //アニメーション
-    if (animation_)
-    {
+    if (animation_) {
         animation_->Release();
         delete animation_;
         animation_ = nullptr;
     }
 
     // 左腕
-    if (leftArm_)
-    {
+    if (leftArm_) {
         leftArm_->Release();
         delete leftArm_;
         leftArm_ = nullptr;
     }
 
     // 右腕
-    if (rightArm_)
-    {
+    if (rightArm_) {
         rightArm_->Release();
         delete rightArm_;
         rightArm_ = nullptr;
     }
 
     // マイクインプット
-    if (mic_)
-    {
+    if (mic_) {
         mic_->Stop();
         delete mic_;
         mic_ = nullptr;
@@ -216,6 +251,9 @@ void Player::SubRelease(void)
 
     // モデルの解放
     MV1DeleteModel(unit_.model_);
+
+    // エフェクトの解放
+    DeleteEffekseerEffect(effectSoutId_);
 
     // サウンドの開放
     for (int i = 0; i < (int)SOUND::MAX; i++) {

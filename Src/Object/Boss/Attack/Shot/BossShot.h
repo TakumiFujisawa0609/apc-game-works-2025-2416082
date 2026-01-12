@@ -5,10 +5,12 @@ class BossShot : public UnitBase
 {
 public:
 
-	BossShot();
+	BossShot(VECTOR bossPos, const VECTOR& targetPos);
 	~BossShot() override;
 
 	void OnCollision(UnitBase* other) override;
+
+	bool End(void) { return isEnd_; }
 
 protected:
 	void SubLoad(void) override;
@@ -17,5 +19,8 @@ protected:
 	void SubDraw(void) override;
 	void SubRelease(void) override;
 private:
+	bool isEnd_;
 
+	VECTOR bossPos_;
+	const VECTOR& targetPos_;
 };

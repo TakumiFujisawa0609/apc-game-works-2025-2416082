@@ -19,6 +19,8 @@
 
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Boss/Attack/Hand/HandSlap.h"
+#include "../../Object/Boss/Attack/Shot/BossShot.h"
+#include "../../Object/Boss/Attack/Shot/BossShotManager.h"
 
 #include "../../Object/Enemy/EnemyManager/EnemyManager.h"
 #include "../../Object/Enemy/EnemyBase.h"
@@ -71,7 +73,7 @@ void GameScene::Load(void)
 	Utility::ClassNew(collision_);
 	ObjNewAndLoad(player_);
 	ObjNewAndLoad(boss_, player_->GetUnit().pos_);
-	ObjNewAndLoad(enemy_, player_->GetUnit().pos_);
+	//ObjNewAndLoad(enemy_, player_->GetUnit().pos_);
 	ObjNewAndLoad(stage_);
 	ObjNewAndLoad(skyDome_);
 	// -------------------------------------------------------------------------------------
@@ -80,14 +82,15 @@ void GameScene::Load(void)
 	// “–‚½‚è”»’èƒNƒ‰ƒX‚Éî•ñ‚ð“n‚·-------------
 	collision_->AddEnemy(boss_);
 	collision_->AddEnemy(boss_->GetRightHand());
+	collision_->AddEnemy(boss_->GetBossShotManager()->GetShot());
 
 	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
 	collision_->AddObject(player_->GetRightArm());
 
-	for (auto& enemy : enemy_->GetEnemy()) {
-		collision_->AddEnemy(enemy);
-	}
+	//for (auto& enemy : enemy_->GetEnemy()) {
+	//	collision_->AddEnemy(enemy);
+	//}
 	// -------------------------------------------
 
 	SoundManager& sound = SoundManager::GetIns();
@@ -99,7 +102,7 @@ void GameScene::Init(void)
 	player_->Init();
 	boss_->Init();
 	stage_->Init();
-	enemy_->Init();
+	//enemy_->Init();
 	skyDome_->Init();
 
 	SetMouseDispFlag(false);
@@ -164,7 +167,7 @@ void GameScene::Update(void)
 	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
 	boss_->SetVoiceLevel(player_->GetVoiceLevel());
 
-	enemy_->Update();
+	//enemy_->Update();
 
 	stage_->Update();
 
@@ -191,7 +194,7 @@ void GameScene::Draw(void)
 
 	stage_->Draw();
 	player_->Draw();
-	enemy_->Draw();
+	//enemy_->Draw();
 	boss_->Draw();
 #ifdef _DEBUG
 	//grid_->Draw()
@@ -226,7 +229,7 @@ void GameScene::Release(void)
 
 	Utility::SafeDeleteInstance(player_);
 	Utility::SafeDeleteInstance(boss_);
-	Utility::SafeDeleteInstance(enemy_);
+	//Utility::SafeDeleteInstance(enemy_);
 	Utility::SafeDeleteInstance(stage_);
 	Utility::SafeDeleteInstance(skyDome_);
 

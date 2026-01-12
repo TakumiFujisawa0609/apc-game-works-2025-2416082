@@ -5,6 +5,7 @@
 
 class HandSlap;
 class RotateHand;
+class BossShotManager;
 
 class Boss : public UnitBase
 {
@@ -37,7 +38,7 @@ public:
 
 		SLAP,
 		ROTA_HAND,
-		BALL,
+		SHOT,
 
 		MAX
 	};
@@ -50,6 +51,7 @@ public:
 	void OnCollision(UnitBase* other) override;
 
 	HandSlap* GetRightHand(void) { return slap_; }
+	BossShotManager* GetBossShotManager(void) { return shotManager_; }
 
 	void SetMuscleRatio(const float ratio) { playerMuscleRatio_ = ratio; }
 	void SetVoiceLevel(const float voiceLevel) { voiceLevel_ = voiceLevel; }
@@ -65,6 +67,7 @@ protected:
 private:
 	HandSlap* slap_;
 	RotateHand* rotaHnad_;
+	BossShotManager* shotManager_;
 
 	// ボスの手用のモデルハンドル
 	int handModel_;

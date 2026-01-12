@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 
 #include <DxLib.h>
+#include <EffekseerForDXLib.h>
 
 #include "../../Manager/Loading/Loading.h"
 
@@ -97,6 +98,9 @@ void SceneManager::Update(void)
 	{
 		// 現在のシーンの更新
 		scenes_.back()->Update();
+
+		// Effekseerにより再生中のエフェクトを更新する
+		UpdateEffekseer3D();
 	}
 }
 
@@ -117,12 +121,18 @@ void SceneManager::Draw(void)
 		{
 			scene->Draw();
 		}
+
+		// Effekseerにより再生中のエフェクトを描画する
+		DrawEffekseer3D();
 	}
 
 #ifdef _DEBUG
+
+	// 残存しているシーンの数
 	SetFontSize(32);
-	DrawFormatString(0, 32, 0xffffff, "%i", SceneManager::GetInstance().GetSceneSize());
+	DrawFormatString(0, 32, 0xffffff, "現在のシーンの残存数は%i個", SceneManager::GetInstance().GetSceneSize());
 	SetFontSize(16);
+
 #endif // _DEBUG
 }
 
