@@ -125,32 +125,30 @@ void Boss::SetMatrix(void)
 	// 行列の作成
 	MATRIX mat = MGetIdent();
 
-	// 行列に向きの適用
-	Utility::MatrixRotMult(mat, unit_.angle_);
-
 	// モデルの向きを修正
+	Utility::MatrixRotMult(mat, unit_.angle_);
 	MATRIX localMat = MGetIdent();
 	Utility::MatrixRotMult(localMat, LOCAL_ANGLE);
 
-	// 合体
+	// 向き修正した行列と合成
 	mat = MMult(localMat, mat);
 
 	// スケール情報を合成
 	mat = MMult(MGetScale(unit_.scale_), mat);
 
-	// ワールド座標をゲット
+	// ワールド座標を適用
 	VECTOR worldPos = VTransform(offset, mat);
-
 	VECTOR pos = VAdd(worldPos, unit_.pos_);
 	Utility::MatrixPosMult(mat, pos);
 
-	// モデルに行列の適用
+	// モデルに行列の情報を渡す
 	// モデルの描画
 	MV1SetMatrix(unit_.model_, mat);
 }
 
 void Boss::ToDeath(void)
 {
+	// ボスのHPが0以下になったらDEATHに遷移
 	if (unit_.hp_ <= 0) {
 		unit_.hp_ = 0;
 		state_ = STATE::DEATH;
@@ -165,8 +163,8 @@ void Boss::LookTarget(void)
 
 	float rotationSpeed = Utility::Deg2RadF(1.0f);
 	float deltaAngle = targetAngleY - unit_.angle_.y;
-	while (deltaAngle > DX_PI_F) deltaAngle -= 2 * 3.14159f;
-	while (deltaAngle < -DX_PI_F) deltaAngle += 2 * 3.14159f;
+	while (deltaAngle > DX_PI_F) deltaAngle -= 2 * DX_PI_F;
+	while (deltaAngle < -DX_PI_F) deltaAngle += 2 * DX_PI_F;
 
 	if (fabsf(deltaAngle) < rotationSpeed) {
 		unit_.angle_.y = targetAngleY;
@@ -179,6 +177,7 @@ void Boss::LookTarget(void)
 #pragma region ステート処理
 void Boss::Attack(void)
 {
+	// 現在がどの攻撃かを見る
 	switch (attackState_)
 	{
 	case ATTACK::NON:
@@ -202,14 +201,14 @@ void Boss::Attack(void)
 	case ATTACK::ROTA_HAND:
 		rotaHnad_->Update();
 		if (rotaHnad_->IsEnd()) {
-			attackState_ = ATTACK::NON;
+			attackState_ = ATTACK::NON;	// 終了したら戻る
 		}
 		break;
 
 	case ATTACK::SHOT:
 		shotManager_->Update();
 		if (shotManager_->GetShot()->End()) {
-			attackState_ = ATTACK::NON;
+			attackState_ = ATTACK::NON;	// 終了したら戻る
 		}
 
 	default:
@@ -227,6 +226,7 @@ void Boss::Damage(void)
 
 void Boss::Death(void)
 {
+	// ボスの死亡演出
 	unit_.pos_.y--;
 	GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 100);
 	if (unit_.pos_.y < (DEFAULT_POS.y - 180)) {
@@ -244,9 +244,10 @@ Boss::ATTACK Boss::AttackLottery(void)
 
 void Boss::AttackLoad(void)
 {
+	// 攻撃関連のロード
 	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
-	Utility::ClassNew(rotaHnad_, unit_.pos_);
+	Utility::ClassNew(rotaHnad_, unit_.pos_)->Load();
 	Utility::ClassNew(shotManager_, unit_.pos_, target_)->Load();
 }
 
@@ -287,13 +288,14 @@ void Boss::AttackRelease(void)
 	// 回転手解放
 	Utility::SafeDeleteInstance(rotaHnad_);
 
+	// ボスショット解放
 	Utility::SafeDeleteInstance(shotManager_);
 }
 #pragma endregion 
 
 void Boss::UIDraw(void)
 {
-
+	// ボスのHPバーの描画
 	DrawBar(
 		(Application::SCREEN_SIZE_X / 10) * 2,
 		(Application::SCREEN_SIZE_Y / 10) * 9,
@@ -323,10 +325,13 @@ void Boss::OnCollision(UnitBase* other)
 {
 	if (unit_.inviciCounter_ > 0) return;
 
+	// 当たり判定
 	int damage = 0;
 	if (dynamic_cast<LeftArm*>(other) || dynamic_cast<RightArm*>(other)) {
 		SoundManager::GetIns().Play(SOUND::HIT, true);
 		unit_.inviciCounter_ = INVI_TIME;
+		
+		// プレイヤーの筋肉の大きさに応じて、食らうダメージを変える
 		if (playerMuscleRatio_ >= 0.0f) {
 			if (playerMuscleRatio_ > 0.6f) damage = 25;
 			else if (playerMuscleRatio_ > 0.4f) damage = 15;

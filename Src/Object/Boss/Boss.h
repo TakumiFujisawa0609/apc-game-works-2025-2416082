@@ -12,18 +12,19 @@ class Boss : public UnitBase
 public:
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
 
-	static constexpr float RADIUS = 250.0f;
-	static constexpr VECTOR SCALE = { 5.0f,5.0f,5.0f };
-	static constexpr float HALF_LEN = 300.0f;
+	static constexpr float RADIUS = 250.0f;				// 半径の大きさ
+	static constexpr VECTOR SCALE = { 5.0f,5.0f,5.0f };	// 拡大率
+	static constexpr float HALF_LEN = 300.0f;			// カプセルの上と下の円の中心同士の長さの半分の大きさ
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 600.0f, 0.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 600.0f, 0.0f };	// ボスの初期位置
+		
+	static constexpr int HP_MAX = 300;		// 最大HP
 
-	static constexpr int HP_MAX = 300;
+	static constexpr int INVI_TIME = 30;	// 攻撃を食らったときの無敵時間
 
-	static constexpr int INVI_TIME = 30;
+	static constexpr int NEXT_ATTACK_TIME = 120;	// 攻撃終了後、次の攻撃までのクールタイム	
 
-	static constexpr int NEXT_ATTACK_TIME = 120;
-
+	// ステート管理用の列挙
 	enum class STATE
 	{
 		IDLE,
@@ -32,6 +33,7 @@ public:
 		DEATH,
 	};
 
+	// 攻撃管理用の列挙
 	enum class ATTACK
 	{
 		NON,
@@ -46,8 +48,10 @@ public:
 	Boss(const VECTOR& target);
 	~Boss() override;
 
+	// UI描画
 	void UIDraw(void);
 
+	// 当たり判定処理
 	void OnCollision(UnitBase* other) override;
 
 	HandSlap* GetRightHand(void) { return slap_; }
