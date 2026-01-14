@@ -17,7 +17,7 @@ public:
 	void Draw(void);
 	void Release(void);
 
-	BossShot* GetShot(void) { return shot_; }
+ 	BossShot* GetShot(void) { return shot_; }
 private:
 	BossShot* shot_;
 

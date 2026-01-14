@@ -28,13 +28,41 @@ void BossShot::SubInit(void)
 	unit_.scale_ = Utility::VECTOR_ONE;
 	unit_.angle_ = Utility::VECTOR_ONE;
 
+    unit_.isAlive_ = true;
 	isEnd_ = false;
+
+    state_ = STATE::MOVE;
+
+    StateAdd(static_cast<int>(STATE::WAIT), [this](void) {Wait(); });
+    StateAdd(static_cast<int>(STATE::MOVE), [this](void) {Move(); });
 }
 
 void BossShot::SubUpdate(void)
 {
     if (isEnd_) return;
 
+    
+
+    StateUpdate(static_cast<int>(state_));
+
+}
+
+void BossShot::SubDraw(void)
+{
+    if (!unit_.isAlive_) { return; }
+	DrawSphere3D(unit_.pos_, unit_.para_.radius, 10, 0xff5555, 0xff5555, true);
+}
+
+void BossShot::SubRelease(void)
+{
+}
+
+void BossShot::Wait(void)
+{
+}
+
+void BossShot::Move(void)
+{
     // ˆÚ“®‘¬“x
     float speed = 10.0f;
 
@@ -45,7 +73,8 @@ void BossShot::SubUpdate(void)
     dir.z = targetPos_.z - unit_.pos_.z;
 
     // ‹——£‚ðŒvŽZ
-    float dist = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+
+    float dist = Utility::VLength(dir);//sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
 
     if (dist < speed)
     {
@@ -63,22 +92,12 @@ void BossShot::SubUpdate(void)
         unit_.pos_.y += dir.y * speed;
         unit_.pos_.z += dir.z * speed;
     }
-
-}
-
-void BossShot::SubDraw(void)
-{
-    if (isEnd_) { return; }
-	DrawSphere3D(unit_.pos_, unit_.para_.radius, 0, 0xffffff, 0xffffff, true);
-}
-
-void BossShot::SubRelease(void)
-{
 }
 
 void BossShot::OnCollision(UnitBase* other)
 {
     if (dynamic_cast<Player*>(other)) {
         isEnd_ = true;
+        unit_.isAlive_ = false;
     }
 }

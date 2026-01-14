@@ -239,7 +239,7 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::SHOT; /* (ATTACK)GetRand((int)ATTACK::BALL - 1);*/
+	return ATTACK::SHOT; /* (ATTACK)GetRand((int)ATTACK::MAX - 1);*/
 }
 
 void Boss::AttackLoad(void)

@@ -16,6 +16,7 @@
 #include "../Boss/Boss.h"
 #include "../Boss/Attack/Hand/HandSlap.h"
 #include "../Boss/Attack/Hand/RotateHand.h"
+#include "../Boss/Attack/Shot/BossShot.h"
 
 #include "Arm/LeftArm.h"
 #include "Arm/RightArm.h"
@@ -276,12 +277,15 @@ void Player::OnCollision(UnitBase* other)
     {
         if (hand->isHit()) { return; }
         SetDamage(10);
+        GameScene::Shake();
         return;
     }
 
-    if (dynamic_cast<RotateHand*>(other))
+    if (dynamic_cast<RotateHand*>(other) ||
+        dynamic_cast<BossShot*>(other))
     {
         SetDamage(10);
+        GameScene::Shake();
         return;
     }
 

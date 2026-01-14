@@ -196,17 +196,9 @@ void GameScene::Draw(void)
 	player_->Draw();
 	//enemy_->Draw();
 	boss_->Draw();
-#ifdef _DEBUG
-	//grid_->Draw()
-
-	SetFontSize(32);
-	DrawString(0, 0, "ƒQ[ƒ€", 0xffffff);
-	SetFontSize(16);
-#endif // _DEBUG
 
 	//UI‚Ì•`‰æ
 	player_->UIDraw();
-
 	boss_->UIDraw();
 
 #pragma endregion

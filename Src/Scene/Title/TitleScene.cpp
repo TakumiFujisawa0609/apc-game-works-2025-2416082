@@ -39,7 +39,7 @@ void TitleScene::Load(void)
 	SoundManager::GetIns().Load(SOUND::TITLE_BGM);
 
 	animation_ = new AnimationController(unit_.model_);
-	animation_->Add((int)(ANIM_TYPE::IDLE), 30, "Data/Model/Player/Animation/Idle.mv1");	//タイトル用のプレイヤーに使うアイドルアニメーション
+	animation_->Add((int)(ANIM_TYPE::IDLE), 30, "Data/Model/Player/Animation/Idle1.mv1");	//タイトル用のプレイヤーに使うアイドルアニメーション
 	animation_->Add((int)(ANIM_TYPE::ATTACK), 60, "Data/Model/Player/Animation/Punching.mv1");	//タイトル用のプレイヤーに使う攻撃アニメーション
 
 	mic_ = new MicInput();

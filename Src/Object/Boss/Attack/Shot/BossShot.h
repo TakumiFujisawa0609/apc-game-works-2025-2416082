@@ -5,6 +5,14 @@ class BossShot : public UnitBase
 {
 public:
 
+	enum class STATE
+	{
+		WAIT,
+		MOVE,
+
+		MAX
+	};
+
 	BossShot(VECTOR bossPos, const VECTOR& targetPos);
 	~BossShot() override;
 
@@ -19,6 +27,12 @@ protected:
 	void SubDraw(void) override;
 	void SubRelease(void) override;
 private:
+
+	STATE state_;
+
+	void Wait(void);
+	void Move(void);
+
 	bool isEnd_;
 
 	VECTOR bossPos_;
