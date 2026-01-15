@@ -22,7 +22,7 @@ void BossShot::SubInit(void)
 	unit_.para_.colliShape = CollisionShape::SPHERE;
 	unit_.para_.colliType = CollisionType::ENEMY;
 
-    unit_.para_.radius = 300;
+    unit_.para_.radius = RADIUS;
 
 	unit_.pos_ = bossPos_;
 	unit_.scale_ = Utility::VECTOR_ONE;
@@ -41,10 +41,7 @@ void BossShot::SubUpdate(void)
 {
     if (isEnd_) return;
 
-    
-
     StateUpdate(static_cast<int>(state_));
-
 }
 
 void BossShot::SubDraw(void)
@@ -63,9 +60,6 @@ void BossShot::Wait(void)
 
 void BossShot::Move(void)
 {
-    // 移動速度
-    float speed = 10.0f;
-
     // 現在位置からターゲットへのベクトル（成分ごと）
     VECTOR dir;
     dir.x = targetPos_.x - unit_.pos_.x;
@@ -73,10 +67,9 @@ void BossShot::Move(void)
     dir.z = targetPos_.z - unit_.pos_.z;
 
     // 距離を計算
+    float dist = Utility::VLength(dir);
 
-    float dist = Utility::VLength(dir);//sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-
-    if (dist < speed)
+    if (dist < MOVE_SPEED)
     {
         // ターゲットに到達
         unit_.pos_ = targetPos_;
@@ -88,9 +81,9 @@ void BossShot::Move(void)
         dir.y /= dist;
         dir.z /= dist;
 
-        unit_.pos_.x += dir.x * speed;
-        unit_.pos_.y += dir.y * speed;
-        unit_.pos_.z += dir.z * speed;
+        unit_.pos_.x += dir.x * MOVE_SPEED;
+        unit_.pos_.y += dir.y * MOVE_SPEED;
+        unit_.pos_.z += dir.z * MOVE_SPEED;
     }
 }
 

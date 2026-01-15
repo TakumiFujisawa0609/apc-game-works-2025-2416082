@@ -47,6 +47,4 @@ void Stage::SubRelease(void)
 	DeleteGraph(tex);
 }
 
-void Stage::OnCollision(UnitBase* other)
-{
-}
+void Stage::OnCollision(UnitBase* other){}
