@@ -17,6 +17,10 @@ public:
 	{
 		NON=-1,
 
+		// プレイヤー
+		PLAYER_BIG_ATTACK,
+		PLAYER_SMALL_ATTACK,
+
 		// システム音声
 		SE_SYSTEM_BUTTON,
 		SE_SYSTEM_SELECT,

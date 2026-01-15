@@ -124,7 +124,7 @@ protected:
 		for (auto c : collider_) {
 			if (!c) continue;
 			if (auto* ptr = dynamic_cast<T*>(c)) {
-				if (c->GetTag() == tag || tag == TAG::NON) { out.push_back(ptr); }
+				if (c->GetTag() == tag || tag == TAG::NON) { out.emplace_back(ptr); }
 			}
 		}
 		return out;
@@ -134,7 +134,7 @@ protected:
 	void ColliderCreate(ColliderBase* newClass) {
 		collider_.emplace_back(newClass);
 		collider_.back()->SetTransformPtr(&trans_);
-		collider_.back()->SetDynamicFlg((dynamicFlg_) ? true : false);
+		collider_.back()->SetDynamicFlg(dynamicFlg_);
 		collider_.back()->SetPushFlg(pushFlg_);
 		collider_.back()->SetPushWeight(pushWeight_);
 		collider_.back()->SetOnCollisionFunc([this](const ColliderBase& collider) { this->OnCollision(collider); });

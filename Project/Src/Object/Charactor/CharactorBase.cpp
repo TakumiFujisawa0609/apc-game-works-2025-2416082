@@ -117,3 +117,19 @@ void CharactorBase::AddAnimation(int index, float speed, const char* filePath)
 {
 	anime_->Add(index, speed, filePath);
 }
+
+void CharactorBase::DrawBar(float sX, float sY, float eX, float eY, int hp, int maxHp, COLORREF color, COLORREF frameColor, COLORREF backColor, float frameSize)
+{
+	DrawBoxAA(sX, sY, eX, eY, frameColor, true);
+
+	sX += frameSize;
+	sY += frameSize;
+	eX -= frameSize;
+	eY -= frameSize;
+
+	DrawBoxAA(sX, sY, eX, eY, backColor, true);
+
+	float oneSize = ((float)(eX - sX) / (float)maxHp);
+
+	DrawBoxAA(sX, sY, sX + (oneSize * hp), eY, color, true);
+}

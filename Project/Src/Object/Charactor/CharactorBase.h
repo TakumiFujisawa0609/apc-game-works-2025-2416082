@@ -118,4 +118,13 @@ protected:
 		if (!isInviEffect_) { DEFAULT_COLOR.clear(); }
 	}
 
+	void DrawBar(
+		float sX, float sY, float eX, float eY,
+		int hp, int maxHp,
+		COLORREF color,
+		COLORREF frameColor = RGB(255, 255, 255),
+		COLORREF backColor = RGB(0, 0, 0),
+		float frameSize = 3.0f
+	);
+
 };

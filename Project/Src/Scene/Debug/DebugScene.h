@@ -20,8 +20,11 @@ public:
 	}
 	~DebugScene() = default;
 
-	void Load(void)override { Camera::GetIns().ChangeModeFree(Utility::Deg2RadF(2.0f), 10.0f, Camera::GetIns().GetPos(), Camera::GetIns().GetAngle()); }
-	void Init(void) override { Smng::GetIns().AllStop(); }
+	void Load(void)override {}
+	void Init(void) override {
+		Camera::GetIns().ChangeModeFree(Utility::Deg2RadF(2.0f), 10.0f, Camera::GetIns().GetPos(), Camera::GetIns().GetAngle());
+		Smng::GetIns().AllStop();
+	}
 	void Update(void) override {
 
 		if (KEY::GetIns().GetInfo(KEY_TYPE::DEBUG_MODE_TOPUPDATE).now) { TopUpdate(); Smng::GetIns().PausePlay(); }

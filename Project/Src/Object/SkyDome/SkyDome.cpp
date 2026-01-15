@@ -2,7 +2,7 @@
 
 void SkyDome::Load(void)
 {
-	trans_.Load("SkyDome/Skydome");
+	trans_.Load("Stage/Skydome");
 	trans_.scale = SCALE;
 }
 

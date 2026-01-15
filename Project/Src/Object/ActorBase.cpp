@@ -55,9 +55,7 @@ void ActorBase::Draw(void)
 	if (!isDraw_) { return; }
 
 	// ƒ‚ƒfƒ‹‚Ì•`‰æ
-	if (!isAlphaDraw_) {
-		trans_.Draw(); 
-	}
+	if (!isAlphaDraw_) { trans_.Draw(); }
 }
 
 void ActorBase::AlphaDraw(void)

@@ -20,5 +20,5 @@ private:
 	const float SCALE = 30.0f;
 
 	// ç¿ïW
-	const Vector3 POS = { 1000.0f,0.0f,1000.0f };
+	const Vector3 POS = { 0.0f,0.0f,0.0f };
 };

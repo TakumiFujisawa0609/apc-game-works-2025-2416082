@@ -14,22 +14,15 @@ public:
 		NON = -1,
 		
 		PLAYER,
-		PLAYER_PUNCH,
-		PLAYER_GOUGE,
-		PLAYER_THROWING,
+		PLAYER_KNUCKLE_LEFT,
+		PLAYER_KNUCKLE_RIGHT,
 
 		BOSS,
-
-		GOLEM_ATTACK_FALL,
-		GOLEM_ATTACK_PSYCHOROCK,
-		GOLEM_ATTACK_STONE,
-		GOLEM_ATTACK_WALL,
+		BOSS_HANDSLAP,
+		BOSS_ROTATEHAND,
+		BOSS_SHOT,
 
 		ENEMY,
-
-		STAGE,
-
-		SPHERE_DEBUG_OBJECT,
 	};
 
 	// 形状列挙型定義
@@ -41,7 +34,6 @@ public:
 		CAPSULE,
 		BOX,
 		MODEL,
-		VOXEL,
 	};
 
 	/// <summary>
@@ -50,9 +42,10 @@ public:
 	/// <param name="type">当たり判定タイプ</param>
 	/// <param name="enoughDistance">判定スキップに十分な距離　-1.0fで未設定とし、距離による判定スキップを行わない（引数省略で-1.0f）</param>
 	/// <param name="pos">相対座標（引数省略で{0.0f,0.0f,0.0f}）</param>
-	ColliderBase(TAG type, float enoughDistance = -1.0f, Vector3 pos = { 0.0f, 0.0f, 0.0f }) :
+	ColliderBase(TAG type, float enoughDistance = -1.0f, const Vector3& pos = { 0.0f, 0.0f, 0.0f }, bool localPosTrans = true) :
 		trans_(nullptr),
 		pos_(pos),
+		localPosTrans_(localPosTrans),
 		enoughDistance_(enoughDistance),
 		judgeFlg_(true),
 		dynamicFlg_(true),
@@ -81,10 +74,10 @@ public:
 
 #pragma region 各ゲット関数
 	// コライダー座標（モデル制御情報の座標がそのままコライダーの座標とは限らない為、計算済みの座標を取得する関数を用意）
-	Vector3 GetPos(void)const { return (trans_->pos + trans_->VTrans(pos_)); }
+	Vector3 GetPos(void)const { return (trans_->pos + ((localPosTrans_) ? trans_->VTrans(pos_) : pos_)); }
 
 	// 1フレーム前のコライダー座標（モデル制御情報の座標がそのままコライダーの座標とは限らない為、計算済みの座標を取得する関数を用意）
-	Vector3 GetPrevPos(void)const { return (trans_->prevPos + trans_->VTrans(pos_)); }
+	Vector3 GetPrevPos(void)const { return (trans_->prevPos + ((localPosTrans_) ? trans_->VTrans(pos_) : pos_)); }
 
 	// モデル制御情報を直接取得
 	const Transform& GetTransform(void)const { return *trans_; }
@@ -140,7 +133,10 @@ private:
 	Transform* trans_;
 	
 	// モデル制御情報の座標からの相対座標
-	Vector3 pos_;
+	const Vector3& pos_;
+
+	// 
+	bool localPosTrans_;
 
 	// 絶対に当たらない距離（判定時早期リターン用）
 	float enoughDistance_;

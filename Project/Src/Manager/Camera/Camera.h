@@ -97,6 +97,9 @@ public:
 		if (mode == MODE::FOLLOW_AUTO) { lookAtYangle = &trans.angle.y; }
 	}
 
+	// ’Ç]ƒ‚[ƒh‚Ì‚Æ‚«‚Ì‘Š‘ÎÀ•W‚ð“r’†‚Å•ÏX‚·‚éB’Ç]ƒ‚[ƒh = FOLLOW_REMOTE / FOLLOW_AUTO
+	void FollowToLookAtDiffChange(const Vector3& lookAtDiff = Vector3(0, 0, -400)) { this->lookAtDiff = lookAtDiff; }
+
 	// ’Ç](Ž©“®‘€ì)ƒ‚[ƒh‚Ì‚Æ‚«‚ÌŽ‹–ì‚ÉŠÜ‚ß‚é‘ÎÛ•¨‚ð“r’†‚Å•ÏX‚·‚éB’Ç](Ž©“®‘€ì)ƒ‚[ƒh = FOLLOW_AUTO
 	void FollowAutoToLookTargetChange(const Vector3* lookTarget) { if (mode == MODE::FOLLOW_AUTO) { this->lookTarget = lookTarget; } }
 

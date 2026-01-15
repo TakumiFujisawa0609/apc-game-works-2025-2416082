@@ -19,26 +19,18 @@ void CollisionManager::Add(ColliderBase* collider)
 
 		//プレイヤー系
 	case TAG::PLAYER:
-	case TAG::PLAYER_PUNCH:
-	case TAG::PLAYER_GOUGE:
-	case TAG::PLAYER_THROWING:
+	case TAG::PLAYER_KNUCKLE_LEFT:
+	case TAG::PLAYER_KNUCKLE_RIGHT:
 		playerColliders_.emplace_back(collider);
 		break;
 
 		// エネミー系
 	case TAG::BOSS:
-
 	case TAG::ENEMY:
-
-	case TAG::GOLEM_ATTACK_FALL:
-	case TAG::GOLEM_ATTACK_PSYCHOROCK:
-	case TAG::GOLEM_ATTACK_STONE:
 		enemyColliders_.emplace_back(collider);
 		break;
 
 		// ステージ系
-	case TAG::STAGE:
-	case TAG::GOLEM_ATTACK_WALL:
 		stageColliders_.emplace_back(collider);
 		break;
 

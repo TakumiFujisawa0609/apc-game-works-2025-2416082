@@ -33,6 +33,7 @@ public:
 
 		// 回避
 		PLAYER_EVASION,
+		PLAYER_ROWLING,
 
 		// 通常攻撃（パンチ）
 		PLAYER_ATTACK,

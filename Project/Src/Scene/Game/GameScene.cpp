@@ -15,6 +15,7 @@
 #include"Pause/GamePauseh.h"
 
 #include"../../Object/SkyDome/SkyDome.h"
+#include"../../Object/Charactor/Player/Player.h"
 
 #include"../Debug/DebugScene.h"
 
@@ -60,7 +61,7 @@ void GameScene::Load(void)
 
 	// オブジェクト生成（生成の順番がそのまま(更新/描画)順）
 	ObjAdd(new SkyDome());
-
+	ObjAdd(new Player());
 
 #pragma region ゲームシーンで使用するサウンドをロード
 
@@ -76,6 +77,7 @@ void GameScene::Init(void)
 	for (ActorBase*& obj : objects_) { obj->Init(); }
 
 	// カメラ設定
+	Camera::GetIns().ChangeModeFollowRemote(&(ObjSerch<Player>().back()->GetTrans().pos));
 	//Camera::GetIns().ChangeModeFollowAuto(ObjSerch<Player>().back()->GetTrans(), &(ObjSerch<Boss>().back()->GetTrans().pos));
 }
 
@@ -119,7 +121,7 @@ void GameScene::Update(void)
 	if (KEY::GetIns().GetInfo(KEY_TYPE::DEBUG_MODE_SWITCH).down) {
 		SceneManager::GetIns().PushScene(
 			std::make_shared<DebugScene>(
-				[this](void) { /*Camera::GetIns().ChangeModeFollowAuto(ObjSerch<Player>().back()->GetTrans(), &(ObjSerch<Boss>().back()->GetTrans().pos));*/ },
+				[this](void) { Camera::GetIns().ChangeModeFollowRemote(&(ObjSerch<Player>().back()->GetTrans().pos)); },
 				[this](void) { this->Update(); }
 			)
 		);

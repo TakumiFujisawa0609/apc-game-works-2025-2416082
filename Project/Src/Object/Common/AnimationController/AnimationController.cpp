@@ -75,12 +75,10 @@ void AnimationController::Update(void)
 	}
 	else {
 		if (playAnim_.step > playAnim_.totalTime)playAnim_.step = playAnim_.totalTime;
-
 	}
 
 	// アニメーション設定
 	MV1SetAttachAnimTime(modelId_, playAnim_.attachNo, playAnim_.step);
-
 }
 
 

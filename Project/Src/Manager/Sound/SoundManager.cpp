@@ -105,6 +105,9 @@ void SoundManager::Init(void)
 	}
 
 	// 使用するデータのパスを入れておく("Data/Sound/～～"←ここから先のパス)
+	sounds_[SOUND::PLAYER_BIG_ATTACK].path_ = "Player/Button.mp3";
+	sounds_[SOUND::PLAYER_SMALL_ATTACK].path_ = "Player/Button.mp3";
+
 	sounds_[SOUND::SE_SYSTEM_BUTTON].path_ = "Common/Button.mp3";
 	sounds_[SOUND::SE_SYSTEM_SELECT].path_ = "Common/Select.mp3";
 }

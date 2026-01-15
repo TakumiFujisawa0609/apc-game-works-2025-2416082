@@ -5,8 +5,8 @@
 class BoxCollider : public ColliderBase
 {
 public:
-	BoxCollider(TAG type, Vector3 size, float enoughDistance = -1.0f, Vector3 pos = { 0.0f, 0.0f, 0.0f }) :
-		ColliderBase(type, enoughDistance, pos),
+	BoxCollider(TAG type, Vector3 size, float enoughDistance = -1.0f, Vector3 pos = { 0.0f, 0.0f, 0.0f }, bool localPosTrans = true) :
+		ColliderBase(type, enoughDistance, pos, localPosTrans),
 		size_(size)
 	{
 		SetShape(SHAPE::BOX);

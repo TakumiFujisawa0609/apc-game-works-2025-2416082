@@ -131,7 +131,6 @@ public:
 	static MATRIX MatrixAllMultZYX(const std::initializer_list<Vector3>& vecs);
 #pragma endregion
 
-
 	static VECTOR Minus(const VECTOR& v) { return { -v.x,-v.y,-v.z }; }
 
 	// s—ñ‚ð‚Â‚©‚Á‚½ƒ‚ƒfƒ‹‚ÌÀ•W‚ÆŒü‚«‚ÌƒZƒbƒg
@@ -147,4 +146,25 @@ public:
 static Vector3 VTransform(const Vector3& v, const MATRIX& m) {
 	if (v == 0.0f) { return Vector3(); }
 	return Vector3(VTransform(v.ToVECTOR(), m));
+}
+
+// Šp“x‚ð -ƒÎ ` +ƒÎ ‚É³‹K‰»
+static float NormalizeAngle(float rad)
+{
+	while (rad > DX_PI)
+	{
+		rad -= DX_TWO_PI;
+	}
+	while (rad < -DX_PI)
+	{
+		rad += DX_TWO_PI;
+	}
+	return rad;
+}
+
+// Šp“x‚ÌüŒ`•âŠÔ(í‚ÉÅ’ZŒo˜H)
+static float LerpAngle(float from, float to, float t)
+{
+	float diff = NormalizeAngle(to - from); // Å’ZŒo˜H‚ÌŠp“x·‚ðŒvŽZ
+	return from + diff * t; // ·•ª‚¾‚¯•âŠÔ‚µ‚Ä‘«‚·
 }
