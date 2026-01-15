@@ -148,7 +148,7 @@ void HandSlap::Fall(void)
         counter_ = COUNT_DOWN;
     }
 
-    if (voiceLevel_ > 3000) {
+    if (voiceLevel_ > 2500) {
         state_ = HAND_STATE::STOP;
         GameScene::HitStop(10);
         GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);

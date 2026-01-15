@@ -248,7 +248,7 @@ void Boss::AttackLoad(void)
 	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
 	Utility::ClassNew(rotaHnad_, unit_.pos_)->Load();
-	Utility::ClassNew(shotManager_, unit_.pos_, target_)->Load();
+	Utility::ClassNew(shotManager_, unit_, target_)->Load();
 }
 
 void Boss::AttackInit(void)

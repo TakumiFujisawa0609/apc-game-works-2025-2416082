@@ -2,8 +2,8 @@
 
 #include "BossShot.h"
 
-BossShotManager::BossShotManager(VECTOR bossPos, const VECTOR& targetPos) :
-	bossPos_(bossPos),
+BossShotManager::BossShotManager(const Base& boss, const VECTOR& targetPos) :
+	boss_(boss),
 	targetPos_(targetPos)
 	
 {
@@ -15,7 +15,10 @@ BossShotManager::~BossShotManager()
 
 void BossShotManager::Load(void)
 {
-	Utility::ClassNew(shot_, bossPos_, targetPos_)->Load();
+	int modelId = MV1LoadModel("Data/Model/Boss/FireBall/FireBall.mv1");
+
+	Utility::ClassNew(shot_, modelId, boss_, targetPos_)->Load();
+
 }
 
 void BossShotManager::Init(void)

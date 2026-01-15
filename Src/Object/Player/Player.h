@@ -72,8 +72,8 @@ public:
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
 	    // 移動範囲制限（外側）
-    static constexpr float STAGE_COLLISION_RADIUS_OUTSIDE = 2300.0f;  // 最大半径
-	static constexpr float STAGE_COLLISION_RADIUS_INSIDE = 450.0f;  // 最大半径
+    static constexpr float STAGE_COLL_RAD_OUTSIDE = 2050.0f;  // 最大半径
+	static constexpr float STAGE_COLL_RAD_INSIDE = 450.0f;  // 最大半径
 
 
 

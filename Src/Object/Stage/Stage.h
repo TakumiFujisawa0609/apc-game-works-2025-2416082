@@ -5,7 +5,7 @@ class Stage : public UnitBase
 {
 public:
 
-	static constexpr VECTOR DEFAULT_POS = { 1000.0f,3200.0f,0.0f };
+	static constexpr VECTOR DEFAULT_POS = { 900.0f,3200.0f,0.0f };
 	static constexpr VECTOR SCALE = { 100.0f,150.0f,100.0f };
 
 	Stage();

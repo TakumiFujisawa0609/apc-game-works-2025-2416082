@@ -845,23 +845,23 @@ void Player::StageCollision(void)
     float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
 
     //　移動範囲制限（外側）
-    if (distance > STAGE_COLLISION_RADIUS_OUTSIDE)
+    if (distance > STAGE_COLL_RAD_OUTSIDE)
     {
         // 原点からの方向ベクトルを正規化して外側の円に制限
         float nx = unit_.pos_.x / distance;
         float nz = unit_.pos_.z / distance;
-        unit_.pos_.x = nx * STAGE_COLLISION_RADIUS_OUTSIDE;
-        unit_.pos_.z = nz * STAGE_COLLISION_RADIUS_OUTSIDE;
+        unit_.pos_.x = nx * STAGE_COLL_RAD_OUTSIDE;
+        unit_.pos_.z = nz * STAGE_COLL_RAD_OUTSIDE;
     }
 
     // 移動範囲制限（内側）
-    if (distance < STAGE_COLLISION_RADIUS_INSIDE)
+    if (distance < STAGE_COLL_RAD_INSIDE)
     {
         // 原点からの方向ベクトルを正規化して内側の円に制限
         float nx = unit_.pos_.x / distance;
         float nz = unit_.pos_.z / distance;
-        unit_.pos_.x = nx * STAGE_COLLISION_RADIUS_INSIDE;
-        unit_.pos_.z = nz * STAGE_COLLISION_RADIUS_INSIDE;
+        unit_.pos_.x = nx * STAGE_COLL_RAD_INSIDE;
+        unit_.pos_.z = nz * STAGE_COLL_RAD_INSIDE;
     }
 }
 

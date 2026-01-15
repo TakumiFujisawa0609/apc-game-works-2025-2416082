@@ -8,7 +8,7 @@ class BossShotManager
 {
 public:
 
-	BossShotManager(VECTOR bossPos, const VECTOR& targetPos);
+	BossShotManager(const Base& boss, const VECTOR& targetPos);
 	~BossShotManager();
 
 	void Load(void);
@@ -19,8 +19,11 @@ public:
 
  	BossShot* GetShot(void) { return shot_; }
 private:
+
+	const int SHOT_MAX = 3;
+
 	BossShot* shot_;
 
-	VECTOR bossPos_;
+	const Base& boss_;
 	const VECTOR& targetPos_;
 };
