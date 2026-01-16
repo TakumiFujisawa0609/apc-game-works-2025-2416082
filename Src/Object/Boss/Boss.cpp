@@ -57,7 +57,8 @@ void Boss::SubInit(void)
 	isAttackEnd_ = false;
 
 	state_ = STATE::ATTACK;
-	attackState_ = ATTACK::NON;
+
+	AttackLottery();
 
 	AttackInit();
 
@@ -239,7 +240,7 @@ void Boss::Death(void)
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::SHOT; /* (ATTACK)GetRand((int)ATTACK::MAX - 1);*/
+	return ATTACK::SLAP; /* (ATTACK)GetRand((int)ATTACK::MAX - 1);*/
 }
 
 void Boss::AttackLoad(void)

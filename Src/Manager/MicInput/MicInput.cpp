@@ -25,7 +25,7 @@ MicInput::~MicInput()
     }
     buffers_.clear();
     
-    if (outBuffer_) delete[] outBuffer_;
+    //if (outBuffer_) delete[] outBuffer_;
 }
 
 bool MicInput::Init(int sampleRate, int bufSize, int bufferCount)
@@ -51,12 +51,12 @@ bool MicInput::Init(int sampleRate, int bufSize, int bufferCount)
     }
 
     // 出力デバイスを開く
-    if (waveOutOpen(&hWaveOut_, WAVE_MAPPER, &wf, 0, 0, CALLBACK_NULL) != MMSYSERR_NOERROR)
-    {
-        waveInClose(hWaveIn_);
-        hWaveIn_ = nullptr;    
-        return false;
-    }
+    //if (waveOutOpen(&hWaveOut_, WAVE_MAPPER, &wf, 0, 0, CALLBACK_NULL) != MMSYSERR_NOERROR)
+    //{
+    //    waveInClose(hWaveIn_);
+    //    hWaveIn_ = nullptr;    
+    //    return false;
+    //}
 
     // バッファを用意
     buffers_.resize(bufferCount_);
@@ -73,7 +73,7 @@ bool MicInput::Init(int sampleRate, int bufSize, int bufferCount)
         waveInAddBuffer(hWaveIn_, &headers_[i], sizeof(WAVEHDR));         // デバイスに登録
     }
 
-    outBuffer_ = new short[bufferSize_];
+    //outBuffer_ = new short[bufferSize_];
     return true;
 }
 
@@ -113,15 +113,15 @@ void MicInput::Stop()
     hWaveIn_ = nullptr;
 
     // ---- waveOut ----
-    if (hWaveOut_)
-    {
-        if (WaveOutHdr_.dwFlags & WHDR_PREPARED)
-        {
-            waveOutUnprepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
-        }
-        waveOutClose(hWaveOut_);
-        hWaveOut_ = nullptr;
-    }
+    //if (hWaveOut_)
+    //{
+    //    if (WaveOutHdr_.dwFlags & WHDR_PREPARED)
+    //    {
+    //        waveOutUnprepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+    //    }
+    //    waveOutClose(hWaveOut_);
+    //    hWaveOut_ = nullptr;
+    //}
 }
 
 
@@ -187,13 +187,13 @@ void MicInput::OnBufferDone(WAVEHDR* hdr)
     level_ = static_cast<int>(sum / bufferSize_);
 
     // ノイズ除去（小さい音は無視）
-    //const int threshold = MIN_MIC_LEVEL;
-    //if (level_ < threshold) 
-    //{
-    //    // 無音/ノイズ扱い
-    //    waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));
-    //    return;
-    //}
+    const int threshold = MIN_MIC_LEVEL;
+    if (level_ < threshold) 
+    {
+        // 無音/ノイズ扱い
+        waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));
+        return;
+    }
 
     // ===== バンドパスフィルタ =====
     float RC_low = 1.0 / (2 * M_PI * MAX_HZ);
@@ -219,12 +219,12 @@ void MicInput::OnBufferDone(WAVEHDR* hdr)
     }
 
     //ループバック再生
-    memcpy(outBuffer_, data, bufferSize_ * sizeof(short));
-    WaveOutHdr_.lpData = (LPSTR)outBuffer_;
-    WaveOutHdr_.dwBufferLength = bufferSize_ * sizeof(short);
-    WaveOutHdr_.dwFlags = 0;
-    waveOutPrepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
-    waveOutWrite(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+    //memcpy(outBuffer_, data, bufferSize_ * sizeof(short));
+    //WaveOutHdr_.lpData = (LPSTR)outBuffer_;
+    //WaveOutHdr_.dwBufferLength = bufferSize_ * sizeof(short);
+    //WaveOutHdr_.dwFlags = 0;
+    //waveOutPrepareHeader(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
+    //waveOutWrite(hWaveOut_, &WaveOutHdr_, sizeof(WAVEHDR));
 
     // 再度録音バッファとして登録
     waveInAddBuffer(hWaveIn_, hdr, sizeof(WAVEHDR));

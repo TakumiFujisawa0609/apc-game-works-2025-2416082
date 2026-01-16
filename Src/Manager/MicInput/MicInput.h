@@ -39,7 +39,7 @@ private:
 private:
 
     HWAVEIN hWaveIn_ = nullptr;         // マイク入力デバイス
-    HWAVEOUT hWaveOut_ = nullptr;       // スピーカー出力デバイス
+    //HWAVEOUT hWaveOut_ = nullptr;       // スピーカー出力デバイス
 
     int sampleRate_ = 44100;
     int bufferSize_ = 512;
@@ -51,7 +51,7 @@ private:
 
     // 出力用ヘッダ（再利用）
     WAVEHDR WaveOutHdr_{};
-    short* outBuffer_ = nullptr;
+    //short* outBuffer_ = nullptr;
 
     std::atomic<bool> isRunning_ = false;
     std::atomic<bool> isClosing_ = false;

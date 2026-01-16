@@ -19,6 +19,7 @@ GameOver::~GameOver()
 
 void GameOver::Load(void)
 {
+	image_ = LoadGraph("Data/Image/GameOver/GameOver.png");
 }
 void GameOver::Init(void)
 {
@@ -27,19 +28,16 @@ void GameOver::Update(void)
 {
 	auto& input = InputManager::GetInstance();
 
-
-	// どれかのキーが「押された瞬間」なら遷移
-		if (input.IsTrgDown(KEY_INPUT_SPACE)) {
-			SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
-			return;
+	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
+		SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
+		return;
 	}
 }
 void GameOver::Draw(void)
 {
-	SetFontSize(32);
-	DrawString(0, 0, "ゲームオーバー", 0xffffff);
-	SetFontSize(16);
+	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, image_, true);
 }
 void GameOver::Release(void)
 {
+	DeleteGraph(image_);
 }
