@@ -7,7 +7,11 @@
 
 HandSlap::HandSlap(int model, const VECTOR& target, const int& voiceLevel) :
     target_(target),
-    voiceLevel_(voiceLevel)
+    voiceLevel_(voiceLevel),
+    end_(false),
+    state_(STATE::WAIT),
+    counter_(0),
+    fallSpeed_(0.0f)
 {
     unit_.model_ = model;
 }
@@ -28,9 +32,7 @@ void HandSlap::SubInit(void)
 
     unit_.angle_ = { Utility::Deg2RadF(-90.0f), Utility::Deg2RadF(90.0f), 0.0f};
 
-    unit_.para_.radius = 200.0f;
-
-    unit_.para_.size = COLLISION_SIZE;
+    unit_.para_.size = SIZE;
     unit_.scale_ = SCALE;
 
 	unit_.isAlive_ = true;
@@ -42,15 +44,14 @@ void HandSlap::SubInit(void)
 
     counter_ = COUNT_DOWN;
 
-    StateAdd((int)HAND_STATE::WAIT, [this](void) { Wait(); });
-    StateAdd((int)HAND_STATE::FALL, [this](void) { Fall(); });
-    StateAdd((int)HAND_STATE::STOP, [this](void) { Stop(); });
-    StateAdd((int)HAND_STATE::END,  [this](void) { End();  });
+    StateAdd((int)STATE::WAIT, [this](void) { Wait(); });
+    StateAdd((int)STATE::FALL, [this](void) { Fall(); });
+    StateAdd((int)STATE::STOP, [this](void) { Stop(); });
+    StateAdd((int)STATE::END,  [this](void) { End();  });
 
-    state_ = HAND_STATE::WAIT;
+    state_ = STATE::WAIT;
 
     end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
-    isHit_ = false;     // プレイヤーに当たったらそれ以降true
 
     fallSpeed_ = 0.0f;
 }
@@ -104,84 +105,82 @@ void HandSlap::SubRelease(void)
     MV1DeleteModel(unit_.model_);
 }
 
-void HandSlap::MarkerDraw(void)
+void HandSlap::LinesDraw(void)
 {
     if (!unit_.isAlive_) { return; }
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
 
-    // 待ち状態の時に予測専を出す
-    if (state_ == HAND_STATE::WAIT) {
-        float radius = 300.0f;
-        int color = 0xff0000;
-
-        DrawCapsule3D(target_, unit_.pos_, radius, 1, color, color, true);
-    }
-    
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-    if (state_ == HAND_STATE::WAIT) {
+    if (state_ == STATE::WAIT) {
         SetFontSize(128);
         DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来る!\n叫ぶんだ！！！", 0xffffff);
         SetFontSize(0);
     }
 }
 
+// 待機状態
 void HandSlap::Wait(void)
 {
-    counter_--;
+    // 手がプレイヤーの頭上で待機
     unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
+    counter_--;
 
-    if (CheckHitKey(KEY_INPUT_L) || counter_ <= 0) {
+    // 時間がたったら落下状態に遷移
+    if (counter_ <= 0) {
         counter_ = 0;
-        state_ = HAND_STATE::FALL;
+        state_ = STATE::FALL;
     }
 }
 
+// 落下状態
 void HandSlap::Fall(void)
 {
     fallSpeed_ += GRAVITY;
     unit_.pos_.y -= fallSpeed_;
+
+    // 落下して地面に着地、終了処理に遷移
     if (unit_.pos_.y <= 0) {
         unit_.pos_.y = 0;
         GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
-        state_ = HAND_STATE::END;
+        state_ = STATE::END;
         counter_ = COUNT_DOWN;
     }
 
+    // プレイヤーのボイスが一定以上なら吹っ飛ぶ
     if (voiceLevel_ > 2500) {
-        state_ = HAND_STATE::STOP;
+        state_ = STATE::STOP;
         GameScene::HitStop(10);
         GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);
     }
 }
 
+// 吹っ飛び状態
 void HandSlap::Stop(void)
 {
     unit_.pos_.y += 30;
     unit_.angle_.z += Utility::Deg2RadF(30);
+
     if (unit_.pos_.y > 5000) {
         end_ = true;
     }
 }
 
+// 終了処理
 void HandSlap::End(void)
 {
     counter_--;
+
     if (counter_ <= 0) {
         counter_ = 0;
 
-        isHit_ = true;
         end_ = true;
     }
 }
 
 void HandSlap::OnCollision(UnitBase* other)
 {
-    if (end_ || isHit_) { return; }
+    if (end_) { return; }
 
 	if (auto* player = dynamic_cast<Player*>(other)) {
 
-        isHit_ = true;
 	}
 }
 

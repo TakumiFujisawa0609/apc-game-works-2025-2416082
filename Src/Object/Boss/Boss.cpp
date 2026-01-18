@@ -99,7 +99,7 @@ void Boss::SubDraw(void)
 
 	MV1DrawModel(unit_.model_);
 
-	slap_->MarkerDraw();
+	slap_->LinesDraw();
 
 	UIDraw();
 }

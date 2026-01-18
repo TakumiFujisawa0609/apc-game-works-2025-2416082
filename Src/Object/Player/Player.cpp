@@ -275,7 +275,7 @@ void Player::OnCollision(UnitBase* other)
 
     if (HandSlap* hand = dynamic_cast<HandSlap*>(other))
     {
-        if (hand->isHit()) { return; }
+        if (hand->GetState() == HandSlap::STATE::END) { return; }
         SetDamage(10);
         GameScene::Shake();
         return;

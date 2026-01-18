@@ -7,7 +7,7 @@ class HandSlap : public UnitBase
 {
 public:
 
-	enum class HAND_STATE
+	enum class STATE
 	{
 		WAIT,
 		FALL,
@@ -22,7 +22,7 @@ public:
 
 	static constexpr float FALL_SPEED = 20.0f;
 
-	static constexpr VECTOR COLLISION_SIZE = { 800.0f, 500.0f, 100.0f };
+	static constexpr VECTOR SIZE = { 800.0f, 500.0f, 100.0f };
 	static constexpr float OFFSET_Y = 800.0f;
 	static constexpr int COUNT_DOWN = 120.0f;
 	static constexpr float GRAVITY = 3.0f;
@@ -33,16 +33,18 @@ public:
 	void OnCollision(UnitBase* other) override;
 
 	const bool isEnd(void) { return end_; }
-	const bool isHit(void) { return isHit_; }
 
-	void MarkerDraw(void);
-protected:
+	const STATE GetState(void) { return state_; }
+
+	void LinesDraw(void);
+
+private:
+
 	void SubLoad(void) override;
 	void SubInit(void) override;
 	void SubUpdate(void) override;
 	void SubDraw(void) override;
 	void SubRelease(void) override;
-private:
 
 #pragma region ハンドの状態管理用関数
 	void Wait(void);
@@ -51,10 +53,9 @@ private:
 	void End(void);
 #pragma endregion 
 
-	HAND_STATE state_;
+	STATE state_;
 
 	bool end_;	// 終了判定(true : 終了 / false : 攻撃中)
-	bool isHit_;	// プレイヤーに当たったらそれ以降true
 
 	int counter_;
 	float fallSpeed_;
