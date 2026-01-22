@@ -13,7 +13,7 @@ class RightArm;
 
 class Player : public UnitBase
 {
-public:
+private:
 
 	// プレイヤーのステート管理
 	enum class STATE
@@ -117,6 +117,9 @@ public:
 	// --------------------------------------------------------
 #pragma endregion
 
+public:
+
+
 	Player();
 	~Player() override;
 
@@ -147,13 +150,14 @@ public:
 	LeftArm* GetLeftArm(void) { return leftArm_; }
 	RightArm* GetRightArm(void) { return rightArm_; }
 
-protected:
+
+private:
+
 	void SubLoad(void) override;		// 最初に呼び出す関数
 	void SubInit(void) override;		// 初期化処理
 	void SubUpdate(void) override;		// 更新処理
 	void SubDraw(void) override;		// 描画処理
-	void SubRelease(void) override;	// 解放処理
-private:
+	void SubRelease(void) override;		// 解放処理
 
 	// プレイヤー情報の初期化
 	void ParamInit(void);
@@ -232,10 +236,7 @@ private:
 	void Attack(void);	// 攻撃中
 	void Roll(void);	// 回避中
 	void Death(void);	// 死にました
-#pragma endregion
 
-
-#pragma region 状態遷移関係
 	// 状態遷移用の関数
 	void StateManager(void);
 

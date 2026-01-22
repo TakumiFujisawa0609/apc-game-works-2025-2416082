@@ -11,7 +11,11 @@ static constexpr int MIN_MIC_LEVEL = 2000;
 static constexpr float MAX_HZ = 3400.0f;
 static constexpr float MIN_HZ = 300.0f;
 
-MicInput::MicInput() {}
+MicInput::MicInput() :
+    SpeedLineImage_(-1)
+{
+    SpeedLineImage_ = LoadGraph("Data/Image/Player/SpeedLine.jpg");
+}
 
 MicInput::~MicInput()
 {
@@ -24,6 +28,8 @@ MicInput::~MicInput()
         delete[] buf;
     }
     buffers_.clear();
+
+    DeleteGraph(SpeedLineImage_);
     
     //if (outBuffer_) delete[] outBuffer_;
 }
@@ -163,6 +169,8 @@ void MicInput::VoiceLevelDraw(void)
 
     // 音量確認用
     DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", level_);
+
+    DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, SpeedLineImage_, true);
 }
 
 // ===== コールバック =====
