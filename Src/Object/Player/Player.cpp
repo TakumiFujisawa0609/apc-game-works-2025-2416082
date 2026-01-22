@@ -298,12 +298,10 @@ void Player::UIDraw(void)
     HpDraw();
     rightArm_->UIDraw();
 
-#ifdef _DEBUG
     DebugDraw();
 
     // 現在の筋肉の割合（ratio）
     mic_->VoiceLevelDraw();
-#endif 
 }
 
 // 立ち止まっているときの処理
@@ -768,7 +766,7 @@ void Player::SetMoveVec(void)
 //デバック用描画
 void Player::DebugDraw(void)
 {
-    auto& input = InputManager::GetInstance();
+#ifdef _DEBUG
 
     // プレイヤーのステートをデバッグ表示用
     switch (state_)
@@ -791,6 +789,8 @@ void Player::DebugDraw(void)
     VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
     DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, 0x0f0f0f, 0x0f0f0f, false);
+
+#endif // _DEBUG
 }
 
 void Player::SetMatrix(void)

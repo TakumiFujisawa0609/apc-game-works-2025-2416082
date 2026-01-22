@@ -11,7 +11,11 @@ static constexpr int MIN_MIC_LEVEL = 2000;
 static constexpr float MAX_HZ = 3400.0f;
 static constexpr float MIN_HZ = 300.0f;
 
-MicInput::MicInput() {}
+MicInput::MicInput() :
+    SpeedLineImage_(-1)
+{
+    SpeedLineImage_ = LoadGraph("Data/Image/Player/SpeedLine.jpg");
+}
 
 MicInput::~MicInput()
 {
@@ -24,6 +28,8 @@ MicInput::~MicInput()
         delete[] buf;
     }
     buffers_.clear();
+
+    DeleteGraph(SpeedLineImage_);
     
     //if (outBuffer_) delete[] outBuffer_;
 }
@@ -146,10 +152,10 @@ void MicInput::VoiceLevelDraw(void)
     VECTOR startPos = { 0, Application::SCREEN_SIZE_Y - 50 };
 
     int level = level_;
-    level /= 10;   
+    level /= 10;
 
     // 一定の音量を超えたら赤く描画する
-    int color = (level > 400) ? 0xbb0000 : 0x0000bb;    
+    int color = (level > 350) ? 0xbb0000 : 0x0000bb;    
     for (int i = 0; i < level; i++) {
 
         DrawBox(
@@ -162,7 +168,7 @@ void MicInput::VoiceLevelDraw(void)
     }
 
     // 音量確認用
-    DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", level_);
+    //DrawFormatString(0, 0, 0xffffff, "入力された音量(%i)", level_);
 }
 
 // ===== コールバック =====

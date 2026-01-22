@@ -81,7 +81,6 @@ void ArmBase::OnCollision(UnitBase* other)
 
 	if (dynamic_cast<Boss*>(other))
 	{
-		//AddArmScale(BONE_UP);
 		isHit_ = true;
 		return;
 	}
@@ -92,6 +91,9 @@ void ArmBase::OnCollision(UnitBase* other)
 void ArmBase::UIDraw(void)
 {
 
+
+
+	// プレイヤーのモデルのフレーム番号のデバッグ描画
 #ifdef _DEBUG
 	auto& input = InputManager::GetInstance();
 	int frameNum = MV1GetFrameNum(unit_.model_);
@@ -107,9 +109,9 @@ void ArmBase::UIDraw(void)
 		frameScrollIndex_++;
 		if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
 	}
-	// ===== 画面に描画 =====
+
 	int y = 200;
-	const int maxLines = 20; // 一度に表示する行数
+	const int maxLines = 20; 
 
 	for (int i = 0; i < maxLines; i++)
 	{
@@ -130,19 +132,8 @@ void ArmBase::SetAttackTime(int collTime)
 	cnt_ = collTime;
 }
 
-
-
 void ArmBase::AddArmScale(VECTOR scale)
 {
 	AddBoneScale(LEFT_ARM_INDEX, scale);
 	AddBoneScale(RIGHT_ARM_INDEX, scale);
-
-	//// 行列からスケール成分を抽出
-	//float currentScale[3];
-	//for (int i = 0; i < 3; i++) {
-	//    currentScale[i] = VSize(VGet(mat.m[i][0], mat.m[i][1], mat.m[i][2]));
-	//}
-
-	//// スケール加算
-	//VECTOR newScale = VAdd(scale, { currentScale[0], currentScale[1], currentScale[2] });
 }

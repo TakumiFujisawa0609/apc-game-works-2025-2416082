@@ -38,6 +38,8 @@ private:
 
 private:
 
+    int SpeedLineImage_;
+
     HWAVEIN hWaveIn_ = nullptr;         // マイク入力デバイス
     //HWAVEOUT hWaveOut_ = nullptr;       // スピーカー出力デバイス
 
