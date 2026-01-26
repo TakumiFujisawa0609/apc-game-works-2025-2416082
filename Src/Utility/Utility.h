@@ -134,6 +134,19 @@ public:
 	static float QuadInOut(float time, float totaltime, float start, float end);
 
 #pragma endregion 
+
+	static bool IsHitCircle(
+		const VECTOR& posA, float radiusA,
+		const VECTOR& posB, float radiusB)
+	{
+		float dx = posA.x - posB.x;
+		float dz = posA.z - posB.z; // 3D‚È‚çy‚¶‚á‚È‚­z‚ðŽg‚¤‚±‚Æ‘½‚¢
+
+		float distSq = dx * dx + dz * dz;
+		float radiusSum = radiusA + radiusB;
+
+		return distSq <= radiusSum * radiusSum;
+	}
 };
 
 /// <summary>
@@ -164,4 +177,6 @@ void Utility::SafeDeleteInstance(T*& ptr) {
 		ptr = nullptr;
 	}
 }
+
+
 

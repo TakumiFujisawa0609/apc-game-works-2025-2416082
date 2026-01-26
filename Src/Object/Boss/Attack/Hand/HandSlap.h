@@ -38,6 +38,8 @@ public:
 
 	void LinesDraw(void);
 
+	bool ChanceNow(void);
+
 private:
 
 	void SubLoad(void) override;
@@ -49,7 +51,7 @@ private:
 #pragma region ハンドの状態管理用関数
 	void Wait(void);
 	void Fall(void);
-	void Stop(void);
+	void Fly(void);
 	void End(void);
 #pragma endregion 
 
@@ -57,7 +59,9 @@ private:
 
 	bool end_;	// 終了判定(true : 終了 / false : 攻撃中)
 
-	int counter_;
+	bool isHit_;
+
+	int attackCounter_;
 	float fallSpeed_;
 
 	const VECTOR& target_;

@@ -14,8 +14,10 @@ void Camera::Init()
 {
     angle_ = Utility::VECTOR_ZERO;
 
+
     modeFuncs_ = {
-        { MODE::PLAYER_FOLLOW, &Camera::PlayerFollowCamera },
+        { MODE::PLAYER_FOLLOW, &Camera::PlayerFollowCamera  },
+        { MODE::PLAYER_DEATH,  &Camera::PlayerDeathCamera   },
         { MODE::BOSS_DEATH,    &Camera::BossDeathCamera     },
     };
 
@@ -23,7 +25,7 @@ void Camera::Init()
     radius_ = 30.0f;
     height_ = 10.0f;
 
-    mode_ = MODE::PLAYER_FOLLOW;
+    mode_ = MODE::PLAYER_DEATH;
 }
 
 void Camera::Update()
@@ -44,9 +46,14 @@ void Camera::Apply()
     case Camera::BOSS_DEATH:
         SetCameraPositionAndTarget_UpVecY(camPos_, *targetBossPos_);
         break;
+    case Camera::PLAYER_DEATH:
+        SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
+        break;
     default:
         break;
     }
+
+    SetCameraPositionAndAngle(camPos_, angle_.x, angle_.y, angle_.z);
 
     // DXライブラリのカメラとEffekseerのカメラを同期する
     Effekseer_Sync3DSetting();
@@ -128,15 +135,41 @@ void Camera::PlayerFollowCamera(void)
     camPos_ = VAdd(*targetPlayerPos_, rotatePos);
 }
 
-void Camera::BossDeathCamera(void)
+void Camera::PlayerDeathCamera(void)
 {
+    // --- タイマー更新（60FPS想定） ---
     deathTimer_ += 1.0f / 60.0f;
 
-    const float baseRadius = 1000.0f;   // ← 横距離をしっかり取る
-    const float baseHeight = 200.0f;   // ← 上から見下ろす
+    // --- 基本パラメータ ---
+    const float startRadius = 1000.0f;    // 初期距離
+    const float startHeight = 200.0f;     // 初期高さ
+    const float rotationSpeedDegPerSec = 30.0f;  // Y軸回転速度（°/秒）
+    const float zoomOutSpeed = 50.0f;     // ズームアウト速度（ユニット/秒）
+    const float riseSpeed = 20.0f;        // 上昇速度（ユニット/秒）
+
+    // --- カメラ位置計算 ---
+    float currentRadius = startRadius + zoomOutSpeed * deathTimer_;
+    float currentHeight = startHeight + riseSpeed * deathTimer_;
+
+    VECTOR offset = VGet(0.0f, currentHeight, -currentRadius);
+    camPos_ = VAdd(*targetPlayerPos_, offset);
+
+    // --- Y軸回転（ラジアン換算） ---
+    angle_.y += Utility::Deg2RadF(rotationSpeedDegPerSec) * (1.0f / 60.0f);
+
+    // --- Optional: ターゲット方向を常にプレイヤーに向ける ---
+    VECTOR dir = VSub(*targetPlayerPos_, camPos_);
+    angle_.x = atanf(dir.y / sqrtf(dir.x * dir.x + dir.z * dir.z));
+    angle_.z = 0.0f; // ロールはなし
+}
+
+
+void Camera::BossDeathCamera(void)
+{
+    const float baseRadius = 1000.0f;  
+    const float baseHeight = 200.0f;   
 
     const VECTOR offset = VGet(0.0f, baseHeight, -baseRadius);
     camPos_ = VAdd(bossPos_, offset);
-    // ボス注視
 }
 

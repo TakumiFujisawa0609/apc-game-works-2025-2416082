@@ -15,6 +15,7 @@ public:
 	enum MODE
 	{
 		PLAYER_FOLLOW,
+		PLAYER_DEATH,
 		BOSS_DEATH,
 	};
 
@@ -60,5 +61,6 @@ private:
 	void PadMoveCamera();
 
 	void PlayerFollowCamera(void);
+	void PlayerDeathCamera(void);
 	void BossDeathCamera(void);
 };

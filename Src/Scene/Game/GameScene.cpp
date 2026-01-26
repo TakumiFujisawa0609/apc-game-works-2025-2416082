@@ -134,7 +134,6 @@ void GameScene::Update(void)
 	// 画面演出更新
 	if (ScreenProduction()) { return; }
 
-
 #pragma region オブジェクト更新処理
 
 	SceneManager& scene = SceneManager::GetInstance();

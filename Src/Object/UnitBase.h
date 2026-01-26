@@ -95,4 +95,5 @@ protected:
 
 	// 無敵処理(派生先の更新処理で呼び出す用)
 	void Invi(void);
+
 };

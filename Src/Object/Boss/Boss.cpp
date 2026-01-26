@@ -307,18 +307,11 @@ void Boss::UIDraw(void)
 		RGB(0, 0, 0));
 
 #ifdef _DEBUG
-
-	// ^‚ñ’†‚ÌÀ•W‚©‚ç”¼•ª‚Ì‘å‚«‚³•ªAŒ¸Y‚Æ‰ÁZ
 	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 
 	//“–‚½‚è”»’è‚Ì”ÍˆÍ‚ğ‰Â‹‰»
 	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
-
-	DrawFormatString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0xffffff, "BossHP(%i)", unit_.hp_);
-
-
-
 #endif // _DEBUG
 }
 

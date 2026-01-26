@@ -222,26 +222,15 @@ void Player::SubDraw(void)
 // 解放処理
 void Player::SubRelease(void)
 {
+
     //アニメーション
-    if (animation_) {
-        animation_->Release();
-        delete animation_;
-        animation_ = nullptr;
-    }
+    Utility::SafeDeleteInstance(animation_);
 
     // 左腕
-    if (leftArm_) {
-        leftArm_->Release();
-        delete leftArm_;
-        leftArm_ = nullptr;
-    }
+    Utility::SafeDeleteInstance(leftArm_);
 
     // 右腕
-    if (rightArm_) {
-        rightArm_->Release();
-        delete rightArm_;
-        rightArm_ = nullptr;
-    }
+    Utility::SafeDeleteInstance(rightArm_);
 
     // マイクインプット
     if (mic_) {
@@ -500,18 +489,20 @@ void Player::StateManager(void)
     {
     case Player::STATE::IDLE:
         DoMove();
-        DoAttack();
+        //DoAttack();
         DoRoll();
         break;
     case Player::STATE::MOVE:
         DoIdle();
-        DoAttack();
+        //DoAttack();
         DoRoll();
         break;
     case Player::STATE::ATTACK:
         
         break;
     case Player::STATE::DEATH:
+        break;
+    default:
         break;
     }
 }

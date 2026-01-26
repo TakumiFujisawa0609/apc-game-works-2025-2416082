@@ -9,8 +9,9 @@ HandSlap::HandSlap(int model, const VECTOR& target, const int& voiceLevel) :
     target_(target),
     voiceLevel_(voiceLevel),
     end_(false),
+    isHit_(false),
     state_(STATE::WAIT),
-    counter_(0),
+    attackCounter_(0),
     fallSpeed_(0.0f)
 {
     unit_.model_ = model;
@@ -40,20 +41,22 @@ void HandSlap::SubInit(void)
     // ターゲットの真上に配置
     unit_.pos_ = VGet(target_.x, target_.y + OFFSET_Y, target_.z);
     
-    unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
-
-    counter_ = COUNT_DOWN;
-
+    // ステート管理用関数======================================
     StateAdd((int)STATE::WAIT, [this](void) { Wait(); });
     StateAdd((int)STATE::FALL, [this](void) { Fall(); });
-    StateAdd((int)STATE::STOP, [this](void) { Stop(); });
+    StateAdd((int)STATE::STOP, [this](void) { Fly(); });
     StateAdd((int)STATE::END,  [this](void) { End();  });
+    // ========================================================
 
-    state_ = STATE::WAIT;
+    state_ = STATE::WAIT;   // 状態の初期化
 
     end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
 
-    fallSpeed_ = 0.0f;
+    isHit_ = false;     // 攻撃が当たったかどうか
+
+    fallSpeed_ = 0.0f;  // 落ちる速度
+
+    attackCounter_ = COUNT_DOWN;  // 攻撃中の処理用変数の初期化
 }
 
 void HandSlap::SubUpdate(void)
@@ -116,16 +119,26 @@ void HandSlap::LinesDraw(void)
     }
 }
 
+bool HandSlap::ChanceNow(void)
+{
+    if (Utility::IsHitCircle(unit_.pos_, 15, target_, 15) &&
+        isHit_ == false) {
+        GameScene::Slow(10);
+        return true;
+    }
+    return false;
+}
+
 // 待機状態
 void HandSlap::Wait(void)
 {
     // 手がプレイヤーの頭上で待機
     unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
-    counter_--;
+    attackCounter_--;
 
     // 時間がたったら落下状態に遷移
-    if (counter_ <= 0) {
-        counter_ = 0;
+    if (attackCounter_ <= 0) {
+        attackCounter_ = 0;
         state_ = STATE::FALL;
     }
 }
@@ -141,24 +154,52 @@ void HandSlap::Fall(void)
         unit_.pos_.y = 0;
         GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
         state_ = STATE::END;
-        counter_ = COUNT_DOWN;
+        attackCounter_ = COUNT_DOWN;
     }
 
-    // プレイヤーのボイスが一定以上なら吹っ飛ぶ
-    if (voiceLevel_ > 2500) {
-        state_ = STATE::STOP;
-        GameScene::HitStop(10);
-        GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);
+    if (ChanceNow() == true) {
+        // プレイヤーのボイスが一定以上なら吹っ飛ぶ
+        if (voiceLevel_ > 2500) {
+            state_ = STATE::STOP;
+            GameScene::HitStop(10);
+            GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);
+        }
     }
 }
 
 // 吹っ飛び状態
-void HandSlap::Stop(void)
+void HandSlap::Fly(void)
 {
-    unit_.pos_.y += 30;
+    // 上方向への速度
+    const float upSpeed = 30.0f;
+
+    // プレイヤーから手までのベクトル
+    VECTOR dir = VSub(unit_.pos_, target_);
+    // Y軸は上方向なのでXZ平面だけで計算
+    dir.y = 0.0f;
+
+    // 正規化して単位ベクトルに
+    float length = sqrtf(dir.x * dir.x + dir.z * dir.z);
+    if (length > 0.0f) {
+        dir.x /= length;
+        dir.z /= length;
+    }
+
+    // 飛ぶ距離を掛ける（スピード）
+    float flySpeed = 50.0f; // 好きなスピードに調整
+    dir.x *= flySpeed;
+    dir.z *= flySpeed;
+
+    // 位置更新
+    unit_.pos_.x += dir.x;
+    unit_.pos_.z += dir.z;
+    unit_.pos_.y += upSpeed;
+
+    // 回転（演出用）
     unit_.angle_.z += Utility::Deg2RadF(30);
 
-    if (unit_.pos_.y > 5000) {
+    // 上限に到達したら終了
+    if (unit_.pos_.y > 4000.0f) {
         end_ = true;
     }
 }
@@ -166,10 +207,10 @@ void HandSlap::Stop(void)
 // 終了処理
 void HandSlap::End(void)
 {
-    counter_--;
+    attackCounter_--;
 
-    if (counter_ <= 0) {
-        counter_ = 0;
+    if (attackCounter_ <= 0) {
+        attackCounter_ = 0;
 
         end_ = true;
     }
@@ -180,7 +221,7 @@ void HandSlap::OnCollision(UnitBase* other)
     if (end_) { return; }
 
 	if (auto* player = dynamic_cast<Player*>(other)) {
-
+        isHit_ = true;
 	}
 }
 
