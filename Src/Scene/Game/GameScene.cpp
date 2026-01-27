@@ -29,6 +29,7 @@
 #include "../../Object/SkyDome/SkyDome.h"
 
 #include "../Title/TitleScene.h"
+#include "../GameClear/GameClear.h"
 #include "../../Scene/PauseScene/PauseScene.h"
 
 int GameScene::hitStop_ = 0;
@@ -73,11 +74,9 @@ void GameScene::Load(void)
 	Utility::ClassNew(collision_);
 	ObjNewAndLoad(player_);
 	ObjNewAndLoad(boss_, player_->GetUnit().pos_);
-	//ObjNewAndLoad(enemy_, player_->GetUnit().pos_);
 	ObjNewAndLoad(stage_);
 	ObjNewAndLoad(skyDome_);
 	// -------------------------------------------------------------------------------------
-
 
 	// 当たり判定クラスに情報を渡す-------------
 	collision_->AddEnemy(boss_);
@@ -88,9 +87,6 @@ void GameScene::Load(void)
  	collision_->AddObject(player_->GetLeftArm());
 	collision_->AddObject(player_->GetRightArm());
 
-	//for (auto& enemy : enemy_->GetEnemy()) {
-	//	collision_->AddEnemy(enemy);
-	//}
 	// -------------------------------------------
 
 	SoundManager& sound = SoundManager::GetIns();
@@ -102,7 +98,6 @@ void GameScene::Init(void)
 	player_->Init();
 	boss_->Init();
 	stage_->Init();
-	//enemy_->Init();
 	skyDome_->Init();
 
 	SetMouseDispFlag(false);
@@ -136,48 +131,12 @@ void GameScene::Update(void)
 
 #pragma region オブジェクト更新処理
 
-	SceneManager& scene = SceneManager::GetInstance();
-	InputManager& input = InputManager::GetInstance();
-	Camera& camera = Camera::GetInstance();
+	// 次のシーンに移る処理
+	if (ToSceneUpdate()) { return; }	
 
-	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
-		scene.PushScene(std::make_shared<PauseScene>());
-	}
-
-	if (boss_->GetState() == Boss::STATE::DEATH) {
-		camera.SetBossDeathCamera();
-	}
-
-	if (!boss_->GetUnit().isAlive_) {
-		this->Release();
-		scene.JumpScene(SCENE_ID::TITLE);
-		return;
-	}
-
-	if (!player_->GetUnit().isAlive_) {
-		this->Release();
-		scene.JumpScene(SCENE_ID::OVER);
-		return;
-	}
-
-	player_->Update();
-
-	boss_->Update();
-	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
-	boss_->SetVoiceLevel(player_->GetVoiceLevel());
-
-	//enemy_->Update();
-
-	stage_->Update();
-
-	skyDome_->Update();
-
-	// 当たり判定
-	collision_->Check();
-	camera.Update();
+	ObjectUpdate();
 
 #pragma endregion
-
 }
 
 void GameScene::Draw(void)
@@ -279,4 +238,50 @@ Vector2I GameScene::ShakePoint(void)
 	}
 
 	return ret;
+}
+
+// オブジェクトの更新処理
+void GameScene::ObjectUpdate(void)
+{
+	// プレイヤー
+	player_->Update();
+
+	// ボス
+	boss_->Update();
+	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
+	boss_->SetVoiceLevel(player_->GetVoiceLevel());
+
+	// ステージ
+	stage_->Update();
+	skyDome_->Update();
+
+	// 当たり判定
+	collision_->Check();
+	Camera::GetInstance().Update();
+}
+
+// 次のシーンに移る処理
+bool GameScene::ToSceneUpdate(void)
+{
+	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
+		SceneManager::GetInstance().PushScene(std::make_shared<PauseScene>());
+	}
+
+	if (boss_->GetState() == Boss::STATE::DEATH) {
+		Camera::GetInstance().SetBossDeathCamera();
+	}
+
+	if (!boss_->GetUnit().isAlive_) {
+		this->Release();
+		SceneManager::GetInstance().JumpScene(SCENE_ID::CLEAR);
+		return true;
+	}
+
+	if (!player_->GetUnit().isAlive_) {
+		this->Release();
+		SceneManager::GetInstance().JumpScene(SCENE_ID::OVER);
+		return true;
+	}
+
+	return false;
 }

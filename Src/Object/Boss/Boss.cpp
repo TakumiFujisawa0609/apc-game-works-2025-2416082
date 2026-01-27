@@ -246,7 +246,6 @@ Boss::ATTACK Boss::AttackLottery(void)
 void Boss::AttackLoad(void)
 {
 	// UŒ‚ŠÖ˜A‚Ìƒ[ƒh
-	handModel_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
 	Utility::ClassNew(rotaHnad_, unit_.pos_)->Load();
 	Utility::ClassNew(shotManager_, unit_, target_)->Load();

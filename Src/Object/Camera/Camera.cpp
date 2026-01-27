@@ -14,7 +14,6 @@ void Camera::Init()
 {
     angle_ = Utility::VECTOR_ZERO;
 
-
     modeFuncs_ = {
         { MODE::PLAYER_FOLLOW, &Camera::PlayerFollowCamera  },
         { MODE::PLAYER_DEATH,  &Camera::PlayerDeathCamera   },
@@ -25,7 +24,7 @@ void Camera::Init()
     radius_ = 30.0f;
     height_ = 10.0f;
 
-    mode_ = MODE::PLAYER_DEATH;
+    mode_ = MODE::PLAYER_FOLLOW;
 }
 
 void Camera::Update()
@@ -53,7 +52,7 @@ void Camera::Apply()
         break;
     }
 
-    SetCameraPositionAndAngle(camPos_, angle_.x, angle_.y, angle_.z);
+    //SetCameraPositionAndAngle(camPos_, angle_.x, angle_.y, angle_.z);
 
     // DXライブラリのカメラとEffekseerのカメラを同期する
     Effekseer_Sync3DSetting();

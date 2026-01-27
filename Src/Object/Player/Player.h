@@ -218,11 +218,6 @@ private:
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
 
-	// 叫ぶときのエフェクトのハンドル用変数
-	int effectSoutId_;
-
-	int effectSoutPlayid_;
-
 #pragma endregion
 
 #pragma region 筋肉関係

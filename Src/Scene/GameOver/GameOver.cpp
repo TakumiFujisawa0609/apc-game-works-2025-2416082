@@ -2,10 +2,10 @@
 
 #include<DxLib.h>
 
+#include "../../Manager/Input/KeyManager.h"
+#include"../SceneManager/SceneManager.h"
 #include"../../Application/Application.h"
 
-#include"../SceneManager/SceneManager.h"
-#include"../../Manager/Input/InputManager.h"
 #include"../../Utility/Utility.h"
 
 
@@ -26,12 +26,13 @@ void GameOver::Init(void)
 }
 void GameOver::Update(void)
 {
-	auto& input = InputManager::GetInstance();
-
-	if (input.IsTrgDown(KEY_INPUT_SPACE)) {
+	if (KeyManager::GetIns().GetInfo(KEY_TYPE::ENTER).down) {
 		SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
 		return;
 	}
+
+
+
 }
 void GameOver::Draw(void)
 {

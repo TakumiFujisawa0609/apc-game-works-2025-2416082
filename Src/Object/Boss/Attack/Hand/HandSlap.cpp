@@ -5,59 +5,52 @@
 
 #include "../../../../Scene/Game/GameScene.h"
 
-HandSlap::HandSlap(int model, const VECTOR& target, const int& voiceLevel) :
-    target_(target),
-    voiceLevel_(voiceLevel),
-    end_(false),
+HandSlap::HandSlap(const VECTOR& player, const VECTOR& boss, const int& voiceLevel) :
+    AttackBase(player, boss, voiceLevel),
     isHit_(false),
     state_(STATE::WAIT),
-    attackCounter_(0),
     fallSpeed_(0.0f)
 {
-    unit_.model_ = model;
 }
 
 HandSlap::~HandSlap()
 {
 }
 
-void HandSlap::SubLoad(void)
+void HandSlap::DefaultInit(void)
 {
+    unit_.para_.colliShape = CollisionShape::OBB;
+    unit_.para_.colliType = CollisionType::ENEMY;
 
-}
-
-void HandSlap::SubInit(void)
-{
-	unit_.para_.colliShape = CollisionShape::OBB;
-	unit_.para_.colliType = CollisionType::ENEMY;
-
-    unit_.angle_ = { Utility::Deg2RadF(-90.0f), Utility::Deg2RadF(90.0f), 0.0f};
+    unit_.angle_ = { Utility::Deg2RadF(-90.0f), Utility::Deg2RadF(90.0f), 0.0f };
 
     unit_.para_.size = SIZE;
     unit_.scale_ = SCALE;
 
-	unit_.isAlive_ = true;
+    unit_.isAlive_ = true;
 
     // ターゲットの真上に配置
-    unit_.pos_ = VGet(target_.x, target_.y + OFFSET_Y, target_.z);
-    
+    unit_.pos_ = VGet(player_.x, player_.y + OFFSET_Y, player_.z);
+
     // ステート管理用関数======================================
     StateAdd((int)STATE::WAIT, [this](void) { Wait(); });
     StateAdd((int)STATE::FALL, [this](void) { Fall(); });
     StateAdd((int)STATE::STOP, [this](void) { Fly(); });
-    StateAdd((int)STATE::END,  [this](void) { End();  });
+    StateAdd((int)STATE::END, [this](void) { End();  });
     // ========================================================
 
     state_ = STATE::WAIT;   // 状態の初期化
 
-    end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
+    attack_.end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
 
     isHit_ = false;     // 攻撃が当たったかどうか
 
     fallSpeed_ = 0.0f;  // 落ちる速度
 
-    attackCounter_ = COUNT_DOWN;  // 攻撃中の処理用変数の初期化
+    attack_.attackCounter_ = COUNT_DOWN;  // 攻撃中の処理用変数の初期化
 }
+
+
 
 void HandSlap::SubUpdate(void)
 {
@@ -68,20 +61,34 @@ void HandSlap::SubUpdate(void)
     Invi();
 }
 
-void HandSlap::SubDraw(void)
+
+void HandSlap::LinesDraw(void)
 {
-    if (end_ || !unit_.isAlive_) return;
+    if (!unit_.isAlive_) { return; }
 
-    MATRIX mat = MGetIdent();
+    if (state_ == STATE::WAIT) {
+        SetFontSize(128);
+        DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来る!\n叫ぶんだ！！！", 0xffffff);
+        SetFontSize(0);
+    }
+}
 
-    mat = MMult(MGetScale(unit_.scale_), mat);
+bool HandSlap::ChanceNow(void)
+{
+    if (Utility::IsHitCircle(unit_.pos_, 20, target_, 15) &&
+        isHit_ == false) {
+        GameScene::Slow(10);
+        return true;
+    }
+    return false;
+}
 
-    Utility::MatrixRotMult(mat, unit_.angle_);
-    Utility::MatrixPosMult(mat, unit_.pos_);
+void HandSlap::DefaultUpdate(void)
+{
+}
 
-    // モデル描画
-    MV1SetMatrix(unit_.model_, mat);
-
+void HandSlap::DebugDraw(void)
+{
 #ifdef _DEBUG
 
     //DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xff00ff, 0xff00ff, false);
@@ -98,35 +105,6 @@ void HandSlap::SubDraw(void)
     );
 
 #endif
-
-    if (!unit_.isAlive_ && end_) { return; }
-    MV1DrawModel(unit_.model_);
-}
-
-void HandSlap::SubRelease(void)
-{   
-    MV1DeleteModel(unit_.model_);
-}
-
-void HandSlap::LinesDraw(void)
-{
-    if (!unit_.isAlive_) { return; }
-
-    if (state_ == STATE::WAIT) {
-        SetFontSize(128);
-        DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来る!\n叫ぶんだ！！！", 0xffffff);
-        SetFontSize(0);
-    }
-}
-
-bool HandSlap::ChanceNow(void)
-{
-    if (Utility::IsHitCircle(unit_.pos_, 15, target_, 15) &&
-        isHit_ == false) {
-        GameScene::Slow(10);
-        return true;
-    }
-    return false;
 }
 
 // 待機状態
@@ -170,38 +148,65 @@ void HandSlap::Fall(void)
 // 吹っ飛び状態
 void HandSlap::Fly(void)
 {
-    // 上方向への速度
-    const float upSpeed = 30.0f;
+    // 現在位置からターゲットへのベクトル（成分ごと）
+    VECTOR dir;
+    dir = VSub(boss, unit_.pos_);
+    //dir.x = targetPos_.x - unit_.pos_.x;
+    //dir.y = targetPos_.y - unit_.pos_.y;
+    //dir.z = targetPos_.z - unit_.pos_.z;
 
-    // プレイヤーから手までのベクトル
-    VECTOR dir = VSub(unit_.pos_, target_);
-    // Y軸は上方向なのでXZ平面だけで計算
-    dir.y = 0.0f;
+    // 距離を計算
+    float dist = Utility::VLength(dir);
 
-    // 正規化して単位ベクトルに
-    float length = sqrtf(dir.x * dir.x + dir.z * dir.z);
-    if (length > 0.0f) {
-        dir.x /= length;
-        dir.z /= length;
+    if (dist < MOVE_SPEED)
+    {
+        // ターゲットに到達
+        unit_.pos_ = targetPos_;
+    }
+    else
+    {
+        // 正規化して速度分移動
+        dir.x /= dist;
+        dir.y /= dist;
+        dir.z /= dist;
+
+        unit_.pos_.x += dir.x * MOVE_SPEED;
+        unit_.pos_.y += dir.y * MOVE_SPEED;
+        unit_.pos_.z += dir.z * MOVE_SPEED;
     }
 
-    // 飛ぶ距離を掛ける（スピード）
-    float flySpeed = 50.0f; // 好きなスピードに調整
-    dir.x *= flySpeed;
-    dir.z *= flySpeed;
+    //// 上方向への速度
+    //const float upSpeed = 30.0f;
 
-    // 位置更新
-    unit_.pos_.x += dir.x;
-    unit_.pos_.z += dir.z;
-    unit_.pos_.y += upSpeed;
+    //// プレイヤーから手までのベクトル
+    //VECTOR dir = VSub(unit_.pos_, target_);
+    //// Y軸は上方向なのでXZ平面だけで計算
+    //dir.y = 0.0f;
 
-    // 回転（演出用）
-    unit_.angle_.z += Utility::Deg2RadF(30);
+    //// 正規化して単位ベクトルに
+    //float length = sqrtf(dir.x * dir.x + dir.z * dir.z);
+    //if (length > 0.0f) {
+    //    dir.x /= length;
+    //    dir.z /= length;
+    //}
 
-    // 上限に到達したら終了
-    if (unit_.pos_.y > 4000.0f) {
-        end_ = true;
-    }
+    //// 飛ぶ距離を掛ける（スピード）
+    //float flySpeed = 50.0f; // 好きなスピードに調整
+    //dir.x *= flySpeed;
+    //dir.z *= flySpeed;
+
+    //// 位置更新
+    //unit_.pos_.x += dir.x;
+    //unit_.pos_.z += dir.z;
+    //unit_.pos_.y += upSpeed;
+
+    //// 回転（演出用）
+    //unit_.angle_.z += Utility::Deg2RadF(30);
+
+    //// 上限に到達したら終了
+    //if (unit_.pos_.y > 4000.0f) {
+    //    end_ = true;
+    //}
 }
 
 // 終了処理

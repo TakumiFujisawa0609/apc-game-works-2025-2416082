@@ -5,10 +5,11 @@
 
 #include "../../Manager/Loading/Loading.h"
 
-#include"../Title/TitleScene.h"
-#include"../Game/GameScene.h"
-#include"../GameOver/GameOver.h"
-#include"../PauseScene/PauseScene.h"
+#include "../Title/TitleScene.h"
+#include "../Game/GameScene.h"
+#include "../GameClear/GameClear.h"
+#include "../GameOver/GameOver.h"
+#include "../PauseScene/PauseScene.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
 
@@ -184,6 +185,9 @@ void SceneManager::ChangeScene(SCENE_ID scene)
 	case SCENE_ID::GAME:
 		ChangeScene(std::make_shared<GameScene>());
 		break;
+	case SCENE_ID::CLEAR:
+		ChangeScene(std::make_shared<GameClear>());
+		break;
 	case SCENE_ID::OVER:
 		ChangeScene(std::make_shared<GameOver>());
 		break;
@@ -209,6 +213,9 @@ void SceneManager::PushScene(SCENE_ID scene)
 		break;
 	case SCENE_ID::GAME:
 		PushScene(std::make_shared<GameScene>());
+		break;
+	case SCENE_ID::CLEAR:
+		PushScene(std::make_shared<GameClear>());
 		break;
 	case SCENE_ID::OVER:
 		PushScene(std::make_shared<GameOver>());
@@ -245,6 +252,9 @@ void SceneManager::JumpScene(SCENE_ID scene)
 		break;
 	case SCENE_ID::GAME:
 		JumpScene(std::make_shared<GameScene>());
+		break;
+	case SCENE_ID::CLEAR:
+		JumpScene(std::make_shared<GameClear>());
 		break;
 	case SCENE_ID::OVER:
 		JumpScene(std::make_shared<GameOver>());

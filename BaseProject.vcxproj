@@ -140,6 +140,7 @@
     <ClCompile Include="Src\Manager\Animation\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\Input\KeyManager.cpp" />
     <ClCompile Include="Src\Manager\MicInput\MicInput.cpp" />
+    <ClCompile Include="Src\Object\Boss\Attack\AttackBase.cpp" />
     <ClCompile Include="Src\Object\Boss\Attack\Hand\RotateHand.cpp" />
     <ClCompile Include="Src\Object\Boss\Attack\Shot\BossShot.cpp" />
     <ClCompile Include="Src\Object\Boss\Attack\Shot\BossShotManager.cpp" />
@@ -162,6 +163,7 @@
     <ClCompile Include="Src\Object\Stage\Stage.cpp" />
     <ClCompile Include="Src\Object\UnitBase.cpp" />
     <ClCompile Include="Src\Scene\Event\ShoutEvent\ShoutEvent.cpp" />
+    <ClCompile Include="Src\Scene\GameClear\GameClear.cpp" />
     <ClCompile Include="Src\Scene\GameOver\GameOver.cpp" />
     <ClCompile Include="Src\Scene\Game\GameScene.cpp" />
     <ClCompile Include="Src\Scene\PauseScene\PauseScene.cpp" />
@@ -175,6 +177,8 @@
     <ClInclude Include="Src\Manager\Animation\AnimationController.h" />
     <ClInclude Include="Src\Manager\Input\KeyManager.h" />
     <ClInclude Include="Src\Manager\MicInput\MicInput.h" />
+    <ClInclude Include="Src\Object\Base.h" />
+    <ClInclude Include="Src\Object\Boss\Attack\AttackBase.h" />
     <ClInclude Include="Src\Object\Boss\Attack\Hand\RotateHand.h" />
     <ClInclude Include="Src\Object\Boss\Attack\Shot\BossShot.h" />
     <ClInclude Include="Src\Object\Boss\Attack\Shot\BossShotManager.h" />
@@ -197,6 +201,7 @@
     <ClInclude Include="Src\Object\Stage\Stage.h" />
     <ClInclude Include="Src\Object\UnitBase.h" />
     <ClInclude Include="Src\Scene\Event\ShoutEvent\ShoutEvent.h" />
+    <ClInclude Include="Src\Scene\GameClear\GameClear.h" />
     <ClInclude Include="Src\Scene\GameOver\GameOver.h" />
     <ClInclude Include="Src\Scene\Game\GameScene.h" />
     <ClInclude Include="Src\Scene\PauseScene\PauseScene.h" />

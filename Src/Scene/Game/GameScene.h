@@ -84,6 +84,10 @@ private:
 	Vector2I ShakePoint(void);
 	//---------------------------------
 #pragma endregion
+
+	void ObjectUpdate(void);	// オブジェクトの更新処理
+
+	bool ToSceneUpdate(void);	// 次のシーンに移る処理
 };
 
 using ShakeKinds = GameScene::ShakeKinds;

@@ -27,8 +27,7 @@ Player::Player() :
     animation_(nullptr),
     mic_(nullptr),
     leftArm_(nullptr),
-    rightArm_(nullptr),
-    effectSoutPlayid_(0)
+    rightArm_(nullptr)
 {
 }
 
@@ -80,15 +79,6 @@ void Player::SubLoad(void)
    SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
    // -----------------------------------------------------
 
-   // effekseerのロード---------------------------------------
-   
-   effectSoutId_ = LoadEffekseerEffect(
-       "Data/Effekseer/Shout.efkefc"
-   );
-
-   effectSoutPlayid_ = PlayEffekseer3DEffect(effectSoutId_);
-
-   // -------------------------------------------------------
 }
 
 //初期化処理
@@ -174,16 +164,6 @@ void Player::SubUpdate(void)
 
 #pragma endregion
 
-    static int p = 0;
-    static int n = 0;
-
-    p = n;
-    n = CheckHitKey(KEY_INPUT_L);
-
-    if (p == 0 && n == 1)
-    {
-        effectSoutPlayid_ = PlayEffekseer3DEffect(effectSoutId_);
-    }
 }
 
 // 描画処理
@@ -193,24 +173,6 @@ void Player::SubDraw(void)
 
     // プレイヤーの描画
     SetMatrix();
-
-
-
-    // その後に各種設定
-    float SCALE = 10.0f;
-    SetScalePlayingEffekseer3DEffect(
-        effectSoutPlayid_, SCALE, SCALE, SCALE);
-
-    VECTOR angles = { 0.0f, DX_PI_F, 0.0f };
-    SetRotationPlayingEffekseer3DEffect(
-        effectSoutPlayid_, angles.x, angles.y, angles.z);
-
-    SetPosPlayingEffekseer3DEffect(
-        effectSoutPlayid_,
-        unit_.pos_.x,
-        unit_.pos_.y,
-        unit_.pos_.z
-);
 
     // 腕に関する描画処理
     leftArm_->Draw();
@@ -222,7 +184,6 @@ void Player::SubDraw(void)
 // 解放処理
 void Player::SubRelease(void)
 {
-
     //アニメーション
     Utility::SafeDeleteInstance(animation_);
 
@@ -241,9 +202,6 @@ void Player::SubRelease(void)
 
     // モデルの解放
     MV1DeleteModel(unit_.model_);
-
-    // エフェクトの解放
-    DeleteEffekseerEffect(effectSoutId_);
 
     // サウンドの開放
     for (int i = 0; i < (int)SOUND::MAX; i++) {

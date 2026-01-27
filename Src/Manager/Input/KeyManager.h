@@ -21,9 +21,8 @@ public:
 	{
 		NON=-1,
 		
+		ENTER,
 
-
-		// ƒVƒXƒeƒ€‘€ì
 		GAME_END,
 
 		MAX,

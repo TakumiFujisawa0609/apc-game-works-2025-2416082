@@ -100,9 +100,10 @@ void BossShot::Move(void)
 {
     // 現在位置からターゲットへのベクトル（成分ごと）
     VECTOR dir;
-    dir.x = targetPos_.x - unit_.pos_.x;
-    dir.y = targetPos_.y - unit_.pos_.y;
-    dir.z = targetPos_.z - unit_.pos_.z;
+    dir = VSub(targetPos_, unit_.pos_);
+    //dir.x = targetPos_.x - unit_.pos_.x;
+    //dir.y = targetPos_.y - unit_.pos_.y;
+    //dir.z = targetPos_.z - unit_.pos_.z;
 
     // 距離を計算
     float dist = Utility::VLength(dir);

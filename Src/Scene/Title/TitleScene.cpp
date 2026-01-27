@@ -71,8 +71,6 @@ void TitleScene::Init(void)
 			0.0f
 		);
 	}
-
-	//SoundManager::GetIns().Play(SOUND::TITLE_BGM, true, 155, true, true);
 }
 
 // 更新処理
@@ -83,17 +81,13 @@ void TitleScene::Update(void)
 	InputManager& input = InputManager::GetInstance();
 	SceneManager& scene = SceneManager::GetInstance();
 
-	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
+	if (KEY::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
 		Application::GetInstance().GameEnd();
 		SoundManager::GetIns().Stop(SOUND::TITLE_BGM);
 	}
 
 	// どれかのキーが「押された瞬間」なら遷移
-	if (input.IsTrgDown(KEY_INPUT_SPACE) || 
-		input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1,InputManager::JOYPAD_BTN::TOP) ||
-		input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN)||
-		input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::RIGHT) ||
-		input.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::LEFT)) {
+	if (KEY::GetIns().GetInfo(KEY_TYPE::ENTER).down) {
 		isStart_ = true;
 	}
 	if (isStart_) {

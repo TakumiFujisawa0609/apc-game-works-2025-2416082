@@ -1,9 +1,9 @@
 #pragma once
-#include "../../../UnitBase.h"
+#include "../AttackBase.h"
 
 #include "../../../Player/Player.h"
 
-class HandSlap : public UnitBase
+class HandSlap : public AttackBase
 {
 public:
 
@@ -27,12 +27,14 @@ public:
 	static constexpr int COUNT_DOWN = 120.0f;
 	static constexpr float GRAVITY = 3.0f;
 
-	HandSlap(int model, const VECTOR& target, const int& voiceLevel);
+	HandSlap(const VECTOR& player, const VECTOR& boss, const int& voiceLevel);
 	~HandSlap() override;
+
+	void DefaultInit(void) override;
 
 	void OnCollision(UnitBase* other) override;
 
-	const bool isEnd(void) { return end_; }
+	const bool isEnd(void) { return attack_.end_; }
 
 	const STATE GetState(void) { return state_; }
 
@@ -42,11 +44,9 @@ public:
 
 private:
 
-	void SubLoad(void) override;
-	void SubInit(void) override;
-	void SubUpdate(void) override;
-	void SubDraw(void) override;
-	void SubRelease(void) override;
+	void DefaultUpdate(void) override;
+
+	void DebugDraw(void) override;
 
 #pragma region ハンドの状態管理用関数
 	void Wait(void);
@@ -57,14 +57,8 @@ private:
 
 	STATE state_;
 
-	bool end_;	// 終了判定(true : 終了 / false : 攻撃中)
-
 	bool isHit_;
 
-	int attackCounter_;
 	float fallSpeed_;
 
-	const VECTOR& target_;
-
-	const int& voiceLevel_;
 };

@@ -13,7 +13,6 @@ enum class CollisionType { NON = -2, ALLY/*–¡•û*/, ENEMY/*“G*/ };
 struct Base
 {
 
-
 	struct {
 		CollisionShape colliShape = CollisionShape::NON;
 		CollisionType colliType = CollisionType::NON;
