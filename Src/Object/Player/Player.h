@@ -187,6 +187,7 @@ private:
 	MicInput* mic_;						// マイクインプットクラス
 	LeftArm* leftArm_;					// 左腕クラス
 	RightArm* rightArm_;				// 右腕クラス
+
 	// -----------------------------------------------------
 	
 #pragma region 列挙型定義

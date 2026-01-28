@@ -10,12 +10,6 @@ class AttackBase : public UnitBase
 {
 public:
 
-	enum class PARRY
-	{
-		YES,
-		NO
-	};
-
 	AttackBase(const VECTOR& boss, const VECTOR& player, const int& voiceLevel);
 	~AttackBase() override;
 
@@ -25,34 +19,26 @@ public:
 	void SubDraw() override;
 	void SubRelease() override;
 
+	// 攻撃が終わったかどうか
 	bool IsEnd(void) { return attack_.end_; }
 
-
+	// 跳ね返せるかどうか
+	virtual bool IsChanceNow(void) = 0;
 
 private:
 
+	// パリィしたときの更新処理
 	void ParryUpdate(void);
 
 protected:
 
-	//virtual void DefaultLoad(void) = 0;
-
 	virtual void DefaultInit(void) = 0;
-
 	virtual void DefaultUpdate(void) = 0;
-	
 	virtual void DebugDraw(void) = 0;
 
+	// 攻撃のパラメータ
 	struct AttackInfo
 	{
-		// モデルのハンドル
-		int modelId_ = -1;
-
-		// 座標・アングル・スケール
-		VECTOR pos_ = Utility::VECTOR_ZERO;
-		VECTOR angle_ = Utility::VECTOR_ZERO;
-		VECTOR scale_ = Utility::VECTOR_ONE;
-
 		// 攻撃用のカウンタ
 		int attackCounter_ = 0;
 

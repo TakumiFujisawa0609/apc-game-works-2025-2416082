@@ -6,6 +6,7 @@
 class HandSlap;
 class RotateHand;
 class BossShotManager;
+class AttackBase;
 
 class Boss : public UnitBase
 {
@@ -73,6 +74,8 @@ private:
 	RotateHand* rotaHnad_;
 	BossShotManager* shotManager_;
 
+	std::vector<AttackBase*> attacks_;
+
 	// ボスの手用のモデルハンドル
 	int handModel_;
 
@@ -87,7 +90,7 @@ private:
 
 	int color1;
 
-	const VECTOR& target_;
+	const VECTOR& player_;
 	int voiceLevel_;
 
 	void SetMatrix(void);

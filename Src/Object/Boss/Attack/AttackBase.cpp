@@ -19,10 +19,15 @@ void AttackBase::SubLoad()
 
 void AttackBase::SubInit()
 {
+    unit_.isAlive_ = true;
+    attack_.end_ = false;       // I—¹”»’è(true : I—¹ / false : UŒ‚’†)
+
+    DefaultInit();
 }
 
 void AttackBase::SubUpdate()
 {
+    DefaultUpdate();
 }
 
 void AttackBase::SubDraw()

@@ -9,6 +9,7 @@
 
 #include "../../Manager/Sound/SoundManager.h"
 
+#include "Attack/AttackBase.h"
 #include "Attack/Hand/HandSlap.h"
 #include "Attack/Hand/RotateHand.h"
 #include "Attack/Shot/BossShot.h"
@@ -18,7 +19,7 @@
 #include "../Player/Arm/RightArm.h"
 
 Boss::Boss(const VECTOR& target) :
-	target_(target),
+	player_(target),
 	playerMuscleRatio_()
 {
 }
@@ -159,7 +160,7 @@ void Boss::ToDeath(void)
 void Boss::LookTarget(void)
 {
 	//target_ ‚Ì•ûŒü‚ÉŒü‚­
-	VECTOR dir = VSub(target_, unit_.pos_);
+	VECTOR dir = VSub(player_, unit_.pos_);
 	float targetAngleY = atan2f(dir.x, dir.z);
 
 	float rotationSpeed = Utility::Deg2RadF(1.0f);
@@ -246,9 +247,16 @@ Boss::ATTACK Boss::AttackLottery(void)
 void Boss::AttackLoad(void)
 {
 	// UŒ‚ŠÖ˜A‚Ìƒ[ƒh
-	Utility::ClassNew(slap_, handModel_, target_, voiceLevel_)->Load();
+	attacks_.reserve(10);
+	attacks_.emplace_back(new HandSlap(unit_.pos_, player_, voiceLevel_));
+	
+	for (AttackBase*& attack : attacks_)
+	{
+		attack->Load();
+	}
+
 	Utility::ClassNew(rotaHnad_, unit_.pos_)->Load();
-	Utility::ClassNew(shotManager_, unit_, target_)->Load();
+	Utility::ClassNew(shotManager_, unit_, player_)->Load();
 }
 
 void Boss::AttackInit(void)

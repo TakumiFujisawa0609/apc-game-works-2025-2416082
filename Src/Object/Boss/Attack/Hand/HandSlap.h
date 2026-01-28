@@ -26,8 +26,8 @@ public:
 	static constexpr float OFFSET_Y = 800.0f;
 	static constexpr int COUNT_DOWN = 120.0f;
 	static constexpr float GRAVITY = 3.0f;
-
-	HandSlap(const VECTOR& player, const VECTOR& boss, const int& voiceLevel);
+	
+	HandSlap(const VECTOR& boss, const VECTOR& player, const int& voiceLevel);
 	~HandSlap() override;
 
 	void DefaultInit(void) override;
@@ -40,7 +40,8 @@ public:
 
 	void LinesDraw(void);
 
-	bool ChanceNow(void);
+	// ’µ‚Ë•Ô‚¹‚é‚©‚Ç‚¤‚©
+	bool IsChanceNow(void) override;
 
 private:
 

@@ -5,12 +5,13 @@
 
 #include "../../../../Scene/Game/GameScene.h"
 
-HandSlap::HandSlap(const VECTOR& player, const VECTOR& boss, const int& voiceLevel) :
-    AttackBase(player, boss, voiceLevel),
+HandSlap::HandSlap(const VECTOR& boss, const VECTOR& player, const int& voiceLevel) :
+    AttackBase(boss, player, voiceLevel),
     isHit_(false),
     state_(STATE::WAIT),
     fallSpeed_(0.0f)
 {
+    unit_.model_ = MV1LoadModel("Data/Model/Boss/hand.mv1");
 }
 
 HandSlap::~HandSlap()
@@ -27,8 +28,6 @@ void HandSlap::DefaultInit(void)
     unit_.para_.size = SIZE;
     unit_.scale_ = SCALE;
 
-    unit_.isAlive_ = true;
-
     // ターゲットの真上に配置
     unit_.pos_ = VGet(player_.x, player_.y + OFFSET_Y, player_.z);
 
@@ -41,20 +40,20 @@ void HandSlap::DefaultInit(void)
 
     state_ = STATE::WAIT;   // 状態の初期化
 
-    attack_.end_ = false;       // 終了判定(true : 終了 / false : 攻撃中)
-
     isHit_ = false;     // 攻撃が当たったかどうか
 
     fallSpeed_ = 0.0f;  // 落ちる速度
 
     attack_.attackCounter_ = COUNT_DOWN;  // 攻撃中の処理用変数の初期化
+
+    player_;
 }
 
 
 
-void HandSlap::SubUpdate(void)
+void HandSlap::DefaultUpdate(void)
 {
-    if (end_) { return; }
+    if (attack_.end_) { return; }
 
     StateUpdate(static_cast<int>(state_));
 
@@ -73,18 +72,14 @@ void HandSlap::LinesDraw(void)
     }
 }
 
-bool HandSlap::ChanceNow(void)
+bool HandSlap::IsChanceNow(void)
 {
-    if (Utility::IsHitCircle(unit_.pos_, 20, target_, 15) &&
+    if (Utility::IsHitCircle(unit_.pos_, 20, player_, 15) &&
         isHit_ == false) {
         GameScene::Slow(10);
         return true;
     }
     return false;
-}
-
-void HandSlap::DefaultUpdate(void)
-{
 }
 
 void HandSlap::DebugDraw(void)
@@ -111,12 +106,12 @@ void HandSlap::DebugDraw(void)
 void HandSlap::Wait(void)
 {
     // 手がプレイヤーの頭上で待機
-    unit_.pos_ = { target_.x, target_.y + OFFSET_Y, target_.z };
-    attackCounter_--;
+    unit_.pos_ = { player_.x, player_.y + OFFSET_Y, player_.z };
+    attack_.attackCounter_--;
 
     // 時間がたったら落下状態に遷移
-    if (attackCounter_ <= 0) {
-        attackCounter_ = 0;
+    if (attack_.attackCounter_ <= 0) {
+        attack_.attackCounter_ = 0;
         state_ = STATE::FALL;
     }
 }
@@ -132,10 +127,10 @@ void HandSlap::Fall(void)
         unit_.pos_.y = 0;
         GameScene::Shake(ShakeKinds::ROUND, ShakeSize::BIG, 60);
         state_ = STATE::END;
-        attackCounter_ = COUNT_DOWN;
+        attack_.attackCounter_ = COUNT_DOWN;
     }
 
-    if (ChanceNow() == true) {
+    if (IsChanceNow() == true) {
         // プレイヤーのボイスが一定以上なら吹っ飛ぶ
         if (voiceLevel_ > 2500) {
             state_ = STATE::STOP;
@@ -150,18 +145,19 @@ void HandSlap::Fly(void)
 {
     // 現在位置からターゲットへのベクトル（成分ごと）
     VECTOR dir;
-    dir = VSub(boss, unit_.pos_);
+    dir = VSub(boss_, unit_.pos_);
     //dir.x = targetPos_.x - unit_.pos_.x;
     //dir.y = targetPos_.y - unit_.pos_.y;
     //dir.z = targetPos_.z - unit_.pos_.z;
 
     // 距離を計算
     float dist = Utility::VLength(dir);
+    float MOVE_SPEED = 10.0f;
 
     if (dist < MOVE_SPEED)
     {
         // ターゲットに到達
-        unit_.pos_ = targetPos_;
+        unit_.pos_ = player_;
     }
     else
     {
@@ -212,18 +208,18 @@ void HandSlap::Fly(void)
 // 終了処理
 void HandSlap::End(void)
 {
-    attackCounter_--;
+    attack_.attackCounter_--;
 
-    if (attackCounter_ <= 0) {
-        attackCounter_ = 0;
+    if (attack_.attackCounter_ <= 0) {
+        attack_.attackCounter_ = 0;
 
-        end_ = true;
+        attack_.end_ = true;
     }
 }
 
 void HandSlap::OnCollision(UnitBase* other)
 {
-    if (end_) { return; }
+    if (attack_.end_) { return; }
 
 	if (auto* player = dynamic_cast<Player*>(other)) {
         isHit_ = true;
