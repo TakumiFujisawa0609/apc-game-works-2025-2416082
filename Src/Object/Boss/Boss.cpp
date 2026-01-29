@@ -308,6 +308,15 @@ void Boss::OnCollision(UnitBase* other)
 {
 	if (unit_.inviciCounter_ > 0) return;
 
+	if (dynamic_cast<ArmBase*>(other)) {
+		SoundManager::GetIns().Play(SOUND::HIT, true);
+
+		unit_.hp_ -= 10;
+
+		GameScene::Shake(ShakeKinds::HIG, ShakeSize::SMALL, 15);
+		GameScene::HitStop(5);
+	}
+
 	// other が AttackBase か確認
 	if (auto* attack = dynamic_cast<AttackBase*>(other)) {
 		// パリィされていなければボスに当たらない
@@ -316,7 +325,7 @@ void Boss::OnCollision(UnitBase* other)
 		// ボスに当たる処理
 		SoundManager::GetIns().Play(SOUND::HIT, true);
 		unit_.hp_ -= 30;
-		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 15);
+		GameScene::Shake(ShakeKinds::HIG, ShakeSize::SMALL, 15);
 		GameScene::HitStop(5);
 	}
 }

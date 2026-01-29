@@ -50,7 +50,6 @@ void Player::SubLoad(void)
    Utility::ClassNew(animation_, unit_.model_);
 
    // É}ÉCÉN
-   //Utility::ClassNew(mic_);
    mic_ = new MicInput();
 
    // ç∂òr
@@ -453,12 +452,12 @@ void Player::StateManager(void)
     {
     case Player::STATE::IDLE:
         DoMove();
-        //DoAttack();
+        DoAttack();
         DoRoll();
         break;
     case Player::STATE::MOVE:
         DoIdle();
-        //DoAttack();
+        DoAttack();
         DoRoll();
         break;
     case Player::STATE::ATTACK:

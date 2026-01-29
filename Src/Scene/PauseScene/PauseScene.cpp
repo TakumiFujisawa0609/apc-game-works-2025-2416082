@@ -2,6 +2,7 @@
 #include <DxLib.h>
 #include "../SceneManager/SceneManager.h"
 #include "../../Manager/Input/InputManager.h"
+#include "../../Manager/Input/KeyManager.h"
 #include "../../Application/Application.h"
 
 void PauseScene::Update()
@@ -15,7 +16,7 @@ void PauseScene::Update()
         next_ = NEXT_SCENE::END;
     }
 
-    if (CheckHitKey(KEY_INPUT_SPACE) || CheckHitKey(KEY_INPUT_RETURN))
+    if (KeyManager::GetIns().GetInfo(KEY_TYPE::ENTER).down)
     {
         auto& scene = SceneManager::GetInstance();
         switch (next_)
