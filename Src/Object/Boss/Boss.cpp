@@ -11,9 +11,8 @@
 
 #include "Attack/AttackBase.h"
 #include "Attack/Hand/HandSlap.h"
-#include "Attack/Hand/RotateHand.h"
 #include "Attack/Shot/BossShot.h"
-#include "Attack/Shot/BossShotManager.h"
+#include "Attack/Star/Star.h"
 
 #include "../Player/Arm/LeftArm.h"
 #include "../Player/Arm/RightArm.h"
@@ -28,18 +27,28 @@ Boss::~Boss()
 {
 }
 
+// 最初の一回しか呼ばれない処理
 void Boss::SubLoad(void)
 {
+	// ボスのモデルのロード
 	unit_.model_ = MV1LoadModel("Data/Model/Boss/BossHead.mv1");
 
+	// 音声のロード
 	SoundManager::GetIns().Load(SOUND::HIT);
 	SoundManager::GetIns().Load(SOUND::GOGOGO);
 
+	// 攻撃のロード
 	AttackLoad();
+
+	// ステートの登録
+	StateAdd((int)STATE::IDLE, [this](void) { Idle();  });
+	StateAdd((int)STATE::ATTACK, [this](void) { Attack(); });
+	StateAdd((int)STATE::DEATH, [this](void) { Death();  });
 }
 
 void Boss::SubInit(void)
 {
+	// ボスの情報の初期化	
 	unit_.para_.colliShape = CollisionShape::CAPSULE;
 
 	unit_.para_.radius = RADIUS / 3 * 4;
@@ -51,20 +60,16 @@ void Boss::SubInit(void)
 	unit_.angle_ = LOCAL_ANGLE;
 
 	unit_.isAlive_ = true;
-
-	color1 = 0xfff000;
-
+	
+	// 攻撃関係の初期化
 	isAttackInit_ = false;
 	isAttackEnd_ = false;
 
-	state_ = STATE::ATTACK;
+	state_ = STATE::IDLE;
 
-	AttackLottery();
+    attackState_ = AttackLottery();
 
 	AttackInit();
-
-	StateAdd((int)STATE::ATTACK, [this](void) {Attack(); });
-	StateAdd((int)STATE::DEATH, [this](void)  {Death();  });
 }
 
 void Boss::SubUpdate(void)
@@ -100,8 +105,6 @@ void Boss::SubDraw(void)
 
 	MV1DrawModel(unit_.model_);
 
-	slap_->LinesDraw();
-
 	UIDraw();
 }
 
@@ -121,7 +124,6 @@ void Boss::SubRelease(void)
 
 void Boss::SetMatrix(void)
 {
-
 	VECTOR offset = { 0.0f, -150.0f, 0.0f };
 
 	// 行列の作成
@@ -179,47 +181,27 @@ void Boss::LookTarget(void)
 #pragma region ステート処理
 void Boss::Attack(void)
 {
-	// 現在がどの攻撃かを見る
-	switch (attackState_)
-	{
-	case ATTACK::NON:
-		attackCounter_++;
-		if (attackCounter_ > NEXT_ATTACK_TIME)
-		{
-			attackCounter_ = 0;
-			// 次の攻撃を抽選
-			attackState_ = AttackLottery();
-			AttackInit();
-		}
-		break;
+	int idx = (int)attackState_;
 
-	case ATTACK::SLAP:
-		slap_->Update();
-		if (slap_->isEnd()) {
-			attackState_ = ATTACK::NON; // 終了したら戻る
-		}
-		break;
-
-	case ATTACK::ROTA_HAND:
-		rotaHnad_->Update();
-		if (rotaHnad_->IsEnd()) {
-			attackState_ = ATTACK::NON;	// 終了したら戻る
-		}
-		break;
-
-	case ATTACK::SHOT:
-		shotManager_->Update();
-		if (shotManager_->GetShot()->End()) {
-			attackState_ = ATTACK::NON;	// 終了したら戻る
-		}
-
-	default:
-		break;
+	attacks_[idx]->Update();
+	if (attacks_[idx]->IsEnd() == true) {
+		state_ = STATE::IDLE;
 	}
 }
 
 void Boss::Idle(void)
 {
+	attackCounter_++;
+	if (attackCounter_ > NEXT_ATTACK_TIME)
+	{
+		attackCounter_ = 0;
+
+		// 次の攻撃を抽選
+		state_ = STATE::ATTACK;
+		attackState_ = AttackLottery();
+		AttackInit();
+		return;
+	}
 }
 
 void Boss::Damage(void)
@@ -237,11 +219,22 @@ void Boss::Death(void)
 }
 #pragma endregion 
 
+
 #pragma region 攻撃関係
 
 Boss::ATTACK Boss::AttackLottery(void)
 {
-	return ATTACK::SLAP; /* (ATTACK)GetRand((int)ATTACK::MAX - 1);*/
+	if (attackTable_.empty()) return ATTACK::STAR;
+
+	ATTACK nextAttack = attackTable_[attackTableIndex_];
+
+	// 次回のためにインデックスを進める
+	attackTableIndex_++;
+	if (attackTableIndex_ >= attackTable_.size()) {
+		attackTableIndex_ = 0; // ループさせたい場合
+	}
+
+	return nextAttack;
 }
 
 void Boss::AttackLoad(void)
@@ -249,55 +242,40 @@ void Boss::AttackLoad(void)
 	// 攻撃関連のロード
 	attacks_.reserve(10);
 	attacks_.emplace_back(new HandSlap(unit_.pos_, player_, voiceLevel_));
-	
+	attacks_.emplace_back(new BossShot(unit_, player_, voiceLevel_));
+	attacks_.emplace_back(new Star(unit_.pos_, player_, voiceLevel_));
+
 	for (AttackBase*& attack : attacks_)
 	{
 		attack->Load();
 	}
-
-	Utility::ClassNew(rotaHnad_, unit_.pos_)->Load();
-	Utility::ClassNew(shotManager_, unit_, player_)->Load();
 }
 
 void Boss::AttackInit(void)
 {
-	switch (attackState_)
-	{
-	case Boss::ATTACK::NON:
-		break;
-	case Boss::ATTACK::SLAP:
-		slap_->Init();
-		break;
-	case Boss::ATTACK::ROTA_HAND:
-		rotaHnad_->Init();
-		break;
-	case Boss::ATTACK::SHOT:
-		shotManager_->Init();
-		break;
-	case Boss::ATTACK::MAX:
-		break;
-	default:
-		break;
-	}
+	// 攻撃テーブルの設定（順番に攻撃）
+	attackTable_ = {
+		ATTACK::SLAP,
+		ATTACK::SLAP,
+		ATTACK::SHOT,
+		ATTACK::STAR,
+		ATTACK::SHOT
+	};
+
+	attacks_[(int)attackState_]->Init();
 }
 
 void Boss::AttackDraw(void)
 {
-	slap_->Draw();
-	rotaHnad_->Draw();
-	shotManager_->Draw();
+	attacks_[(int)attackState_]->Draw();
 }
 
 void Boss::AttackRelease(void)
 {
 	//右手の解放
-	Utility::SafeDeleteInstance(slap_);
-
-	// 回転手解放
-	Utility::SafeDeleteInstance(rotaHnad_);
-
-	// ボスショット解放
-	Utility::SafeDeleteInstance(shotManager_);
+	for (AttackBase*& attack : attacks_) {
+		Utility::SafeDeleteInstance(attack);
+	}
 }
 #pragma endregion 
 
@@ -313,12 +291,16 @@ void Boss::UIDraw(void)
 		RGB(50, 50, 255),
 		RGB(0, 0, 0));
 
+	attacks_[(int)attackState_]->UIDraw();
+
 #ifdef _DEBUG
 	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 
+	int color = 0xfff000;
+
 	//当たり判定の範囲を可視化
-	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color1, color1, false);
+	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color, color, false);
 #endif // _DEBUG
 }
 
@@ -326,22 +308,21 @@ void Boss::OnCollision(UnitBase* other)
 {
 	if (unit_.inviciCounter_ > 0) return;
 
-	// 当たり判定
-	int damage = 0;
-	if (dynamic_cast<LeftArm*>(other) || dynamic_cast<RightArm*>(other)) {
-		SoundManager::GetIns().Play(SOUND::HIT, true);
-		unit_.inviciCounter_ = INVI_TIME;
-		
-		// プレイヤーの筋肉の大きさに応じて、食らうダメージを変える
-		if (playerMuscleRatio_ >= 0.0f) {
-			if (playerMuscleRatio_ > 0.6f) damage = 25;
-			else if (playerMuscleRatio_ > 0.4f) damage = 15;
-			else damage = 10;
+	// other が AttackBase か確認
+	if (auto* attack = dynamic_cast<AttackBase*>(other)) {
+		// パリィされていなければボスに当たらない
+		if (!attack->GetAttackInfo().isParried_) return;
 
-			unit_.hp_ -= damage;
-			GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 15);
-			GameScene::HitStop(5);
-		}
-		return;
+		// ボスに当たる処理
+		SoundManager::GetIns().Play(SOUND::HIT, true);
+		unit_.hp_ -= 30;
+		GameScene::Shake(ShakeKinds::DIAG, ShakeSize::SMALL, 15);
+		GameScene::HitStop(5);
 	}
 }
+
+const std::vector<AttackBase*> Boss::GetAttackIns(void)
+{
+	return attacks_;
+}
+

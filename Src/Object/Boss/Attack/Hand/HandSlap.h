@@ -11,11 +11,19 @@ public:
 	{
 		WAIT,
 		FALL,
-		STOP,
 		END,
 
 		MAX
 	};
+
+	HandSlap(const VECTOR& boss, const VECTOR& player, const int& voiceLevel);
+	~HandSlap() override;
+
+	void OnCollision(UnitBase* other) override;
+
+	const STATE GetState(void) { return state_; }
+
+private:
 
 	static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };
 	static constexpr VECTOR LOCAL_POS = { 400.0f, 100.0f, -100.0f };
@@ -26,33 +34,17 @@ public:
 	static constexpr float OFFSET_Y = 800.0f;
 	static constexpr int COUNT_DOWN = 120.0f;
 	static constexpr float GRAVITY = 3.0f;
-	
-	HandSlap(const VECTOR& boss, const VECTOR& player, const int& voiceLevel);
-	~HandSlap() override;
-
-	void DefaultInit(void) override;
-
-	void OnCollision(UnitBase* other) override;
-
-	const bool isEnd(void) { return attack_.end_; }
-
-	const STATE GetState(void) { return state_; }
-
-	void LinesDraw(void);
-
-	// 跳ね返せるかどうか
-	bool IsChanceNow(void) override;
 
 private:
 
+	void DefaultLoad(void) override;
+	void ParamInit(void) override;
 	void DefaultUpdate(void) override;
+	void DefaultDraw(void) override;
 
-	void DebugDraw(void) override;
-
-#pragma region ハンドの状態管理用関数
+#pragma region ハンドの状態管理関係
 	void Wait(void);
 	void Fall(void);
-	void Fly(void);
 	void End(void);
 #pragma endregion 
 

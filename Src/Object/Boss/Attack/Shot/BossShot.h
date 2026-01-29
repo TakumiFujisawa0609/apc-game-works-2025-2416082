@@ -1,11 +1,9 @@
 #pragma once
-#include "../../../UnitBase.h"
+#include "../AttackBase.h"
 
-class BossShot : public UnitBase
+class BossShot : public AttackBase
 {
 public:
-
-
 
 	// ステート管理用列挙型定義
 	enum class STATE
@@ -16,20 +14,20 @@ public:
 		MAX
 	};
 
-	BossShot(int modelId_, const Base& boss, const VECTOR& targetPos);
+	BossShot(const Base& boss, const VECTOR& player, const int& voiceLevel);
 	~BossShot() override;
 
 	// 当たり判定したときの処理
 	void OnCollision(UnitBase* other) override;
 
-	bool End(void) { return isEnd_; }
+	const bool isEnd(void) { return attack_.isEnd_; }
 
-protected:
-	void SubLoad(void) override;
-	void SubInit(void) override;
-	void SubUpdate(void) override;
-	void SubDraw(void) override;
-	void SubRelease(void) override;
+
+
+	void DefaultLoad(void) override;
+	void ParamInit(void) override;
+	void DefaultUpdate(void) override;
+	void DefaultDraw(void) override;
 private:
 	const int MOVE_SPEED = 10;	// 移動速度
 	const int RADIUS = 200;		// 半径
@@ -39,21 +37,16 @@ private:
 	const VECTOR LOCAL_POS = { -60.0f, -250.0f, 150.0f };
 
 
-	// ボスショットのステート管理用enum変数
+#pragma region ショットの状態管理関係
 	STATE state_;
 
-	//ボスショットのステート管理用関数-----
 	void Wait(void);
 	void Move(void);
-	// ------------------------------------
+#pragma endregion 
 
-	// 攻撃が終了したかどうか
-	bool isEnd_;
 
 	const Base& boss_;
 
 	// ターゲットの現在位置（プレイヤー）
-	const VECTOR& targetPos_;
-
-	unsigned char attackCounter_;
+	const VECTOR& player_;
 };

@@ -18,13 +18,18 @@ public:
 
 	void AddEnemy(UnitBase* obj) { enemy.push_back(obj); }
 	void AddEnemy(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddEnemy(o); } }
+
+	void AddBossAttack(UnitBase* obj) { bossAttack_.push_back(obj); }
+	void AddBossAttack(std::vector<UnitBase*>obj) { for (auto& o : obj) { AddBossAttack(o); } }
+
 	void Check();
-	void Clear() { player.clear(); stageObject_.clear(); enemy.clear(); }
+	void Clear() { player.clear(); stageObject_.clear(); enemy.clear(); bossAttack_.clear(); }
 
 private:
 	std::vector<UnitBase*> player;
 	std::vector<UnitBase*> stageObject_;
 	std::vector<UnitBase*> enemy;
+	std::vector<UnitBase*> bossAttack_;
 
 	// è’ìÀä÷êîêUÇËï™ÇØ
 	bool IsHit(const Base& a, const Base& b);

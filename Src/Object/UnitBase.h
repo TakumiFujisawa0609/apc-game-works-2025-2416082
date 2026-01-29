@@ -3,7 +3,7 @@
 #include <DxLib.h>
 
 #include<functional>
-#include<unordered_map>
+#include<map>
 
 #include"../Utility/Utility.h"
 
@@ -59,7 +59,7 @@ public:
 private:
 	// ŠÖ”ƒ|ƒCƒ“ƒ^
 	using StateFunc = std::function<void()>;
-	std::unordered_map<int, StateFunc> stateFuncs_;
+	std::map<int, StateFunc> stateFuncs_;
 protected:
 	virtual void SubLoad(void) = 0;
 	virtual void SubInit(void) = 0;

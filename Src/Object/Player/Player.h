@@ -1,6 +1,7 @@
 #pragma once
 #include "../UnitBase.h"
 
+#include <algorithm>
 #include <vector>
 #include <DxLib.h>
 
@@ -57,7 +58,7 @@ private:
 
 	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -500.0f };	// 初期座標
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -1000.0f };	// 初期座標
 
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };			// モデルの向き修正用
 
@@ -159,7 +160,9 @@ private:
 	void SubDraw(void) override;		// 描画処理
 	void SubRelease(void) override;		// 解放処理
 
-	// プレイヤー情報の初期化
+private:
+
+	// プレイヤーパラメーターの初期化
 	void ParamInit(void);
 
 	// 回避用カウンタの更新処理
@@ -168,18 +171,23 @@ private:
 	// 入力を見て移動方向を決める
 	void SetMoveVec(void);
 
-	// デバッグ関係の描画用関数
-	void DebugDraw(void);
-
 	// モデルに行列の適用処理
 	void SetMatrix(void);
 
+	// 描画関係関数================
+	// デバッグ関係の描画用関数
+	void DebugDraw(void);
+
 	// HPの描画処理
 	void HpDraw(void);
+	// ============================
 
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
+	void KnockBack(const VECTOR& attackPos, float power = 25.0f);
+	void KnocBackUpdate(void);
+	VECTOR knockBackVel_;
 private:
 
 	// インスタンス----------------------------------------
@@ -241,6 +249,31 @@ private:
 	void DoAttack(void);	// 攻撃に遷移するための処理
 	void DoRoll(void);		// 回避するための処理
 #pragma endregion
+
+	void HpBarDraw(float currentHp, float maxHp, const VECTOR& pos1, const VECTOR& pos2)
+	{
+		// static 変数で前回の表示HPを保持（関数を呼ぶたびに滑らかに変化）
+		static float displayHp = maxHp;
+
+		// HP割合
+		currentHp = std::clamp(currentHp, 0.0f, maxHp);
+		float rate = displayHp / maxHp;
+
+		// 徐々に追従
+		const float speed = 0.1f;
+		displayHp += (currentHp - displayHp) * speed;
+
+		// 背景バー
+		DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, GetColor(80, 80, 80), TRUE);
+
+		// 現在のバー
+		int barWidth = static_cast<int>((pos2.x - pos1.x) * rate);
+		DrawBox(pos1.x, pos1.y, pos1.x + barWidth, pos2.y, GetColor(255, 50, 50), TRUE);
+
+		// 枠線
+		DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, GetColor(255, 255, 255), FALSE);
+	}
+
 
 };
 

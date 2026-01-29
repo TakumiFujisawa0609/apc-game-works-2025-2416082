@@ -20,7 +20,6 @@
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Boss/Attack/Hand/HandSlap.h"
 #include "../../Object/Boss/Attack/Shot/BossShot.h"
-#include "../../Object/Boss/Attack/Shot/BossShotManager.h"
 
 #include "../../Object/Enemy/EnemyManager/EnemyManager.h"
 #include "../../Object/Enemy/EnemyBase.h"
@@ -79,14 +78,18 @@ void GameScene::Load(void)
 	// -------------------------------------------------------------------------------------
 
 	// 当たり判定クラスに情報を渡す-------------
+	// ボス
 	collision_->AddEnemy(boss_);
-	collision_->AddEnemy(boss_->GetRightHand());
-	collision_->AddEnemy(boss_->GetBossShotManager()->GetShot());
 
+	// ボスの攻撃
+	for (auto& ins : boss_->GetAttackIns()) {
+		collision_->AddBossAttack(ins);
+	}
+
+	// プレイヤー
 	collision_->AddObject(player_);
  	collision_->AddObject(player_->GetLeftArm());
 	collision_->AddObject(player_->GetRightArm());
-
 	// -------------------------------------------
 
 	SoundManager& sound = SoundManager::GetIns();
@@ -137,6 +140,10 @@ void GameScene::Update(void)
 	ObjectUpdate();
 
 #pragma endregion
+
+	if (boss_->GetState() == Boss::STATE::DEATH) { return; }
+	// 当たり判定
+	collision_->Check();
 }
 
 void GameScene::Draw(void)
@@ -152,7 +159,6 @@ void GameScene::Draw(void)
 
 	stage_->Draw();
 	player_->Draw();
-	//enemy_->Draw();
 	boss_->Draw();
 
 	//UIの描画
@@ -255,8 +261,6 @@ void GameScene::ObjectUpdate(void)
 	stage_->Update();
 	skyDome_->Update();
 
-	// 当たり判定
-	collision_->Check();
 	Camera::GetInstance().Update();
 }
 

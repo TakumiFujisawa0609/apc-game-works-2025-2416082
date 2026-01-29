@@ -3,9 +3,6 @@
 
 #include <Vector>
 
-class HandSlap;
-class RotateHand;
-class BossShotManager;
 class AttackBase;
 
 class Boss : public UnitBase
@@ -37,14 +34,13 @@ public:
 	// 攻撃管理用の列挙
 	enum class ATTACK
 	{
-		NON,
-
 		SLAP,
-		ROTA_HAND,
 		SHOT,
+		STAR,
 
 		MAX
 	};
+
 
 	Boss(const VECTOR& target);
 	~Boss() override;
@@ -55,8 +51,9 @@ public:
 	// 当たり判定処理
 	void OnCollision(UnitBase* other) override;
 
-	HandSlap* GetRightHand(void) { return slap_; }
-	BossShotManager* GetBossShotManager(void) { return shotManager_; }
+	// ゲッター・セッター関数==================
+	const std::vector<AttackBase*> GetAttackIns(void);
+	// ========================================
 
 	void SetMuscleRatio(const float ratio) { playerMuscleRatio_ = ratio; }
 	void SetVoiceLevel(const float voiceLevel) { voiceLevel_ = voiceLevel; }
@@ -70,10 +67,8 @@ protected:
 	void SubDraw(void) override;
 	void SubRelease(void) override;
 private:
-	HandSlap* slap_;
-	RotateHand* rotaHnad_;
-	BossShotManager* shotManager_;
 
+	// 攻撃のインスタンスの変数
 	std::vector<AttackBase*> attacks_;
 
 	// ボスの手用のモデルハンドル
@@ -88,15 +83,11 @@ private:
 	bool isAttackInit_;		// (true : 攻撃開始後 / false : 攻撃開始前)
 	bool isAttackEnd_;		// (true : 攻撃終了後 / false : 攻撃終了前)
 
-	int color1;
-
 	const VECTOR& player_;
 	int voiceLevel_;
 
 	void SetMatrix(void);
-
 	void ToDeath(void);
-
 	void LookTarget(void);
 
 #pragma region ステート関数
@@ -108,6 +99,9 @@ private:
 
 #pragma region 攻撃関係の処理を別で管理
 	Boss::ATTACK AttackLottery(void);
+
+	std::vector<ATTACK> attackTable_;  // 攻撃順のテーブル
+	size_t attackTableIndex_ = 0;      // 現在どの攻撃か
 
 	void AttackLoad(void);
 	void AttackInit(void);

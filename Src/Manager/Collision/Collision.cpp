@@ -51,6 +51,34 @@ void Collision::Check()
 			}
 		}
 	}
+
+	for (auto& o : player) {
+		for (auto& a : bossAttack_) {
+			const Base& uo = o->GetUnit();
+			const Base& ua = a->GetUnit();
+
+			if ((uo.aliveCollision_ && !uo.isAlive_) || (ua.aliveCollision_ && !ua.isAlive_)) continue;
+
+			if (IsHit(uo, ua)) {
+				o->OnCollision(a);
+				a->OnCollision(o);
+			}
+		}
+	}
+
+	for (auto& e : enemy) {
+		for (auto& a : bossAttack_) {
+			const Base& ue = e->GetUnit();
+			const Base& ua = a->GetUnit();
+
+			if ((ue.aliveCollision_ && !ue.isAlive_) || (ua.aliveCollision_ && !ua.isAlive_)) continue;
+
+			if (IsHit(ue, ua)) {
+				e->OnCollision(a);
+				a->OnCollision(e);
+			}
+		}
+	}
 }
 
 bool Collision::IsHit(const Base& a, const Base& b)
