@@ -53,6 +53,8 @@ void HandSlap::ParamInit(void)
     attack_.attackCounter_ = COUNT_DOWN;  // 攻撃中の処理用変数の初期化
 
     attack_.parryCollRadius_ = 50;
+
+    attack_.isEnd_ = false;
 }
 
 void HandSlap::DefaultUpdate(void)
@@ -118,7 +120,7 @@ void HandSlap::Fall(void)
 
     if (IsChanceNow() == true) {
         // プレイヤーのボイスが一定以上なら吹っ飛ぶ
-        if (voiceLevel_ > 2500) {
+        if (voiceLevel_ > 2500.0f) {
             //state_ = STATE::STOP;
             attack_.isParried_ = true;
             GameScene::HitStop(10);

@@ -8,7 +8,8 @@
 
 
 Star::Star(const VECTOR& boss, const VECTOR& player, const int& voiceLevel) :
-	AttackBase(boss, player, voiceLevel)
+	AttackBase(boss, player, voiceLevel),
+	state_(STATE::ROTATE)
 {
 }
 

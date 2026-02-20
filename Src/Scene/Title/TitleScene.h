@@ -20,8 +20,8 @@ public:
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
 
 	static constexpr int VOICE_GAUGE_MAX = 10;
-	static constexpr int KINNIKU_IMAGE_SCALE_MAX = 8.0f;
-	static constexpr int KINNIKU_IMAGE_SCALE_MIN = 3.0f;
+	static constexpr float MUSCLE_IMAGE_SCALE_MAX = 8.0f;
+	static constexpr float MUSCLE_IMAGE_SCALE_MIN = 3.0f;
 
 	static constexpr int MUSCLE_INDEX = 4;
 

@@ -23,7 +23,7 @@ protected:
 		// パリィの受付時間用カウンタ
 		int parryCounter_ = PARRY_COUNT_TIME;
 
-		int parryCollRadius_ = 0;
+		float parryCollRadius_ = 0;
 
 		// 攻撃中か否か(true : 攻撃終了 / false : 攻撃中)
 		bool isEnd_ = false;

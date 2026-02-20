@@ -107,7 +107,7 @@ void TitleScene::Update(void)
 	{
 		AddBoneScale(MUSCLE_INDEX, { 0.04f,0.04f,0.04f });
 
-		if (imageScale_ <= KINNIKU_IMAGE_SCALE_MAX) {
+		if (imageScale_ <= MUSCLE_IMAGE_SCALE_MAX) {
 			imageScale_ += 0.5f;
 		}
 	}
@@ -129,12 +129,12 @@ void TitleScene::Update(void)
 	imageScale_ -= 0.03f;
 
 	// 画像の大きさが最大値に達したときの制限
-	if (imageScale_ > KINNIKU_IMAGE_SCALE_MAX) {
-		imageScale_ = KINNIKU_IMAGE_SCALE_MAX;
+	if (imageScale_ > MUSCLE_IMAGE_SCALE_MAX) {
+		imageScale_ = MUSCLE_IMAGE_SCALE_MAX;
 	}
 
 	// 画像の大きさが最低値に達したときの制限
-	if (imageScale_ <= KINNIKU_IMAGE_SCALE_MIN) {
+	if (imageScale_ <= MUSCLE_IMAGE_SCALE_MIN) {
 		imageScale_ = 3.0f;
 	}
 #pragma endregion 

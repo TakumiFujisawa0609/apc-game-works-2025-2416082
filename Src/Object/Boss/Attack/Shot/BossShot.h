@@ -30,7 +30,7 @@ public:
 	void DefaultDraw(void) override;
 private:
 	const int MOVE_SPEED = 10;	// ˆÚ“®‘¬“x
-	const int RADIUS = 200;		// ”¼Œa
+	const float RADIUS = 200.0f;		// ”¼Œa
 
 	const unsigned char SHOT_TIME = 60;
 

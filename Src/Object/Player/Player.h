@@ -264,14 +264,14 @@ private:
 		displayHp += (currentHp - displayHp) * speed;
 
 		// îwåiÉoÅ[
-		DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, GetColor(80, 80, 80), TRUE);
+		DrawBox((int)pos1.x, (int)pos1.y, (int)pos2.x, (int)pos2.y, GetColor(80, 80, 80), TRUE);
 
 		// åªç›ÇÃÉoÅ[
 		int barWidth = static_cast<int>((pos2.x - pos1.x) * rate);
-		DrawBox(pos1.x, pos1.y, pos1.x + barWidth, pos2.y, GetColor(255, 50, 50), TRUE);
+		DrawBox((int)pos1.x, (int)pos1.y, (int)pos1.x + barWidth, (int)pos2.y, GetColor(255, 50, 50), TRUE);
 
 		// ògê¸
-		DrawBox(pos1.x, pos1.y, pos2.x, pos2.y, GetColor(255, 255, 255), FALSE);
+		DrawBox((int)pos1.x, (int)pos1.y, (int)pos2.x, (int)pos2.y, GetColor(255, 255, 255), FALSE);
 	}
 
 

@@ -10,7 +10,8 @@
 BossShot::BossShot(const Base& boss, const VECTOR& player, const int& voiceLevel) :
     AttackBase(boss.pos_, player, voiceLevel),
 	boss_(boss),
-	player_(player)
+	player_(player),
+    state_(STATE::MOVE)
 {
 }
 
@@ -52,7 +53,7 @@ void BossShot::ParamInit(void)
 
     attack_.attackCounter_ = SHOT_TIME;
 
-    attack_.parryCollRadius_ = RADIUS + 20;
+    attack_.parryCollRadius_ = RADIUS + 20.0f;
 }
 
 void BossShot::DefaultUpdate(void)

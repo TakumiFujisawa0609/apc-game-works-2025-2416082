@@ -32,7 +32,7 @@ private:
 
 	static constexpr VECTOR SIZE = { 800.0f, 500.0f, 100.0f };
 	static constexpr float OFFSET_Y = 800.0f;
-	static constexpr int COUNT_DOWN = 120.0f;
+	static constexpr int COUNT_DOWN = 120;
 	static constexpr float GRAVITY = 3.0f;
 
 private:

@@ -15,7 +15,7 @@ public:
 
 	static constexpr float RADIUS = 30;
 
-	static constexpr VECTOR BONE_UP = { 0.01f, 0.01f, 0.01 };
+	static constexpr VECTOR BONE_UP = { 0.01f, 0.01f, 0.01f };
 
 	ArmBase(int modelId);
 	~ArmBase() override;

@@ -27,7 +27,17 @@ Player::Player() :
     animation_(nullptr),
     mic_(nullptr),
     leftArm_(nullptr),
-    rightArm_(nullptr)
+    rightArm_(nullptr),
+    state_(STATE::IDLE),
+    rollCounter_(0),
+    nextRollCounter_(0),
+    move_(Utility::VECTOR_ZERO),
+    knockBackVel_(Utility::VECTOR_ZERO),
+    isAttacked_(false),
+    currentHeight(0.0f),
+    conbo_(CONBO::CONBO1),
+    cameraPos_(Utility::VECTOR_ZERO),
+    attackEscapeCounter_(0)
 {
 }
 
@@ -372,7 +382,7 @@ void Player::Attack(void)
     }
 
     // アニメーションが終了したらリセット
-    if (animation_->IsPassedRatio(anim, 0.7))
+    if (animation_->IsPassedRatio(anim, 0.7f))
     {
         isAttacked_ = false;
         state_ = STATE::IDLE;
