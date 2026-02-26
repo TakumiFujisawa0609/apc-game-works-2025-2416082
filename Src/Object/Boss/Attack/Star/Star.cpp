@@ -56,7 +56,6 @@ void Star::DefaultDraw(void)
 {
 }
 
-// 当たり判定
 void Star::OnCollision(UnitBase* other)
 {
 	if (dynamic_cast<Player*>(other)) {
@@ -98,7 +97,7 @@ void Star::Move(void)
 	if (attack_.isParried_) { return; }
 	if (IsChanceNow() == true) {
 		// プレイヤーのボイスが一定以上なら吹っ飛ぶ
-		if (voiceLevel_ > PARRY_LEVEL) {
+		if (voiceLevel_ > 2500) {
 			attack_.isParried_ = true;
 			GameScene::HitStop(10);
 			GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);

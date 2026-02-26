@@ -27,7 +27,6 @@ TitleScene::~TitleScene()
 // 最初に一度だけ呼び出す処理
 void TitleScene::Load(void)
 {
-	Effekseer_Init(8000);
 	//titleLogoImage_ = LoadGraph("Data/Image/Title/脳筋の拳_ロゴ.png");			// タイトル画像
 	Utility::LoadImg(titleLogoImage_, "Data/Image/Title/脳筋の拳_ロゴ.png");
 
@@ -50,7 +49,7 @@ void TitleScene::Load(void)
 void TitleScene::Init(void)
 {
 	// プレイヤーの初期化
-	unit_.pos = DEFAULT_POS;
+	unit_.pos = { 1000.0f,100.0f,0.0f, };
 	unit_.angle = Utility::VECTOR_ZERO;
 	unit_.scale = { 2.0f,2.0f,2.0f };
 
@@ -64,7 +63,7 @@ void TitleScene::Init(void)
 
 	frameCounter_ = 0;
 
-	// 表示させている画像をランダムな座標に初期化
+	// 初期化（最初の一回だけ）
 	for (int i = 0; i < 10; i++) {
 		imagePos_[i] = VGet(
 			GetRand(Application::SCREEN_SIZE_X),
@@ -104,7 +103,7 @@ void TitleScene::Update(void)
 
 	// 音量が4000を超えたときの処理
 	// プレイヤーと「筋」「肉」の画像のスケールを一定の大きさまで増やす
-	if (mic_->GetPlayGameLevel() > 3000)
+	if (mic_->GetPlayGameLevel() > 4000)
 	{
 		AddBoneScale(MUSCLE_INDEX, { 0.04f,0.04f,0.04f });
 
@@ -187,6 +186,10 @@ void TitleScene::Draw(void)
 
 	mat = MMult(MGetScale(unit_.scale), mat);
 
+	//mat.m[3][0] = pos.x;
+	//mat.m[3][1] = pos.y;
+	//mat.m[3][2] = pos.z;
+
 	Utility::MatrixPosMult(mat, unit_.pos);
 
 	MV1SetMatrix(unit_.model_, mat);
@@ -224,7 +227,6 @@ void TitleScene::Release(void)
 		mic_ = nullptr;
 	}
 }
-
 
 void TitleScene::AddBoneScale(int index, VECTOR scale)
 {

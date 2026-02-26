@@ -162,8 +162,8 @@ void GameScene::Draw(void)
 	boss_->Draw();
 
 	//UI‚Ì•`‰æ
-	boss_->UIDraw();
 	player_->UIDraw();
+	boss_->UIDraw();
 
 #pragma endregion
 

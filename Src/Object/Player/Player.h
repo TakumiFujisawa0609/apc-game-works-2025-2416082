@@ -76,6 +76,8 @@ private:
     static constexpr float STAGE_COLL_RAD_OUTSIDE = 2050.0f;  // Å‘å”¼Œa
 	static constexpr float STAGE_COLL_RAD_INSIDE = 450.0f;  // Å‘å”¼Œa
 
+
+
 	// ƒRƒ“ƒ{‚Ì’iŠK‚É‰‚¶‚ÄUŒ‚‚µ‚½‚Æ‚«‚ÌˆÚ“®—Ê	
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
 	{
