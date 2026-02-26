@@ -82,7 +82,7 @@ void BossShot::Wait(void)
     attack_.attackCounter_--;
 
     if (attack_.attackCounter_ <= 0) {
-        attack_.attackCounter_ = SHOT_TIME;
+        attack_.attackCounter_ = 0;
         state_ = STATE::MOVE;
     }
 }
@@ -106,7 +106,7 @@ void BossShot::Move(void)
         // パリィされたかどうか
         if (IsChanceNow() == true) {
             // プレイヤーのボイスが一定以上なら吹っ飛ぶ
-            if (voiceLevel_ > 2500) {
+            if (voiceLevel_ > PARRY_LEVEL) {
                 attack_.isParried_ = true;
                 GameScene::HitStop(10);
                 GameScene::Shake(ShakeKinds::DIAG, ShakeSize::MEDIUM, 20);
@@ -129,6 +129,14 @@ void BossShot::Move(void)
         unit_.pos_.x += dir.x * MOVE_SPEED;
         unit_.pos_.y += dir.y * MOVE_SPEED;
         unit_.pos_.z += dir.z * MOVE_SPEED;
+    }
+
+    attack_.attackCounter_++;
+    if (attack_.attackCounter_ > 300) {
+        attack_.isEnd_ = true;
+        unit_.isAlive_ = false;
+    
+        attack_.attackCounter_ = SHOT_TIME;
     }
 }
 

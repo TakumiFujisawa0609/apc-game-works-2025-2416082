@@ -7,8 +7,9 @@ class MicInput;
 
 class TitleScene : public SceneBase
 {
-public:
-	enum  class ANIM_TYPE
+private:
+
+	enum class ANIM_TYPE
 	{
 		IDLE,
 		ATTACK,
@@ -16,8 +17,10 @@ public:
 		MAX
 	};
 
-	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
-	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
+	static constexpr VECTOR MAX_SIZE = { 2.0f, 2.0f, 2.0f };	// 筋肉のスケールの最大値
+	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f, 1.0f, 1.0f };	// 筋肉のスケールの最低値
+
+	static constexpr VECTOR DEFAULT_POS = { 1000.0f, 100.0f, 0.0f };	// タイトル用のプレイヤーの初期位置
 
 	static constexpr int VOICE_GAUGE_MAX = 10;
 	static constexpr float MUSCLE_IMAGE_SCALE_MAX = 8.0f;
@@ -25,6 +28,7 @@ public:
 
 	static constexpr int MUSCLE_INDEX = 4;
 
+public:
 	TitleScene();
 	~TitleScene()override;
 
@@ -40,6 +44,9 @@ public:
 	void Release(void)override;
 
 private:
+
+	void PlayerInit()
+
 	AnimationController* animation_;
 	MicInput* mic_;
 

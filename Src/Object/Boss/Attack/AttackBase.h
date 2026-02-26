@@ -10,6 +10,7 @@ class AttackBase : public UnitBase
 {
 protected:
 	static constexpr int PARRY_COUNT_TIME = 10;
+	static constexpr int PARRY_LEVEL = 3000;    // パリィできるレベルの閾値
 
 	// 攻撃のパラメータ
 	struct AttackInfo

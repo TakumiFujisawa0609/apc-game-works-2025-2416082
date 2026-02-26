@@ -104,8 +104,6 @@ void Boss::SubDraw(void)
 	AttackDraw();
 
 	MV1DrawModel(unit_.model_);
-
-	UIDraw();
 }
 
 void Boss::SubRelease(void)
@@ -281,26 +279,29 @@ void Boss::AttackRelease(void)
 
 void Boss::UIDraw(void)
 {
+	// HP描画する左上の座標と右下の座標
+	VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
+	VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
+
 	// ボスのHPバーの描画
 	DrawBar(
-		(Application::SCREEN_SIZE_X / 10) * 2,
-		(Application::SCREEN_SIZE_Y / 10) * 9,
-		(Application::SCREEN_SIZE_X / 10) * 8,
-		(Application::SCREEN_SIZE_Y / 10) * 8 + 120,
+		pos1.x, pos1.y,
+		pos2.x, pos2.y,
 		unit_.hp_, HP_MAX,
-		RGB(50, 50, 255),
-		RGB(0, 0, 0));
+		0xaaffaa,
+		0x000000
+	);
 
 	attacks_[(int)attackState_]->UIDraw();
 
 #ifdef _DEBUG
-	VECTOR pos1 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
-	VECTOR pos2 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
+	VECTOR pos3 = VSub(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
+	VECTOR pos4 = VAdd(unit_.pos_, { 0.0f,unit_.para_.capsuleHalfLen,0.0f });
 
 	int color = 0xfff000;
 
 	//当たり判定の範囲を可視化
-	DrawCapsule3D(pos1, pos2, unit_.para_.radius, 16, color, color, false);
+	DrawCapsule3D(pos3, pos4, unit_.para_.radius, 16, color, color, false);
 #endif // _DEBUG
 }
 
@@ -311,6 +312,7 @@ void Boss::OnCollision(UnitBase* other)
 	if (dynamic_cast<ArmBase*>(other)) {
 		SoundManager::GetIns().Play(SOUND::HIT, true);
 
+		unit_.inviciCounter_ = INVI_TIME;
 		unit_.hp_ -= 10;
 
 		GameScene::Shake(ShakeKinds::HIG, ShakeSize::SMALL, 15);

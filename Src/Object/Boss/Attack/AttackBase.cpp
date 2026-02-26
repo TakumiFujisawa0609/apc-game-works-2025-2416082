@@ -110,14 +110,13 @@ void AttackBase::SetModelMatrix(void)
 
 bool AttackBase::IsChanceNow(void)
 {
+    // 攻撃がプレイヤーのパリィの範囲内に入ったかどうか
     if (Utility::IsHitCircle(unit_.pos_, attack_.parryCollRadius_, player_, attack_.parryCollRadius_)) {
         isChanceNow_ = true;
         attack_.parryCounter_--;
+        GameScene::Slow(10);
+
         if (attack_.parryCounter_ <= 0) { isChanceNow_ = false; }
-        else {
-            attack_.attackCounter_ = PARRY_COUNT_TIME;
-            GameScene::Slow(10);
-        }
     }
 
     return isChanceNow_;

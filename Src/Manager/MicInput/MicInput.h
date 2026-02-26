@@ -9,6 +9,8 @@
 class MicInput
 {
 public:
+
+
     MicInput();
     ~MicInput();
 

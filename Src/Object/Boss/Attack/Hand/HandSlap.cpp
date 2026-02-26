@@ -120,7 +120,7 @@ void HandSlap::Fall(void)
 
     if (IsChanceNow() == true) {
         // プレイヤーのボイスが一定以上なら吹っ飛ぶ
-        if (voiceLevel_ > 2500.0f) {
+        if (voiceLevel_ > PARRY_LEVEL) {
             //state_ = STATE::STOP;
             attack_.isParried_ = true;
             GameScene::HitStop(10);

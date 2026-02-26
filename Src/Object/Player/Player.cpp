@@ -789,144 +789,15 @@ void Player::SetMatrix(void)
 // HP描画
 void Player::HpDraw(void)
 {
-    // HP描画する左上の座標と右下の座標
-    VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
-    VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
-
     // HP描画関数
     DrawBar(
-        pos1.x, pos1.y,
-        pos2.x, pos2.y,
+        (Application::SCREEN_SIZE_X / 10) * 2,
+        (Application::SCREEN_SIZE_Y / 10) * 9,
+        (Application::SCREEN_SIZE_X / 10) * 8,
+        (Application::SCREEN_SIZE_Y / 10) * 8 + 120,
         unit_.hp_, HP_MAX,
-        0xaaffaa,
-        0x000000
-    );
-
-    //static float prevHp = unit_.hp_;
-    //static float shake = 0.0f;
-    //static float waveTime = -1.0f; // 波紋アニメ時間
-
-    //float ratio = Utility::Clamp(unit_.hp_ / 100.0f, 0.0f, 1.0f);
-    //int startPosX = 200;
-    //int startPosY = 100;
-    //int width = 600;
-    //int height = 40;
-    //int radius = height / 2;
-    //int filled = static_cast<int>((width - height) * ratio);
-    //float t = (float)GetNowCount() / 100.0f;
-
-    //// ===== HP減少検知 =====
-    //bool isHpDecreasing = (unit_.hp_ < prevHp);
-    //if (isHpDecreasing)
-    //{
-    //    shake = 10.0f;
-    //    waveTime = 0.0f; // 波紋開始
-    //}
-
-    //// ===== shake効果 =====
-    //if (shake > 0.0f) shake *= 0.85f;
-    //int offsetX = (int)(sinf(GetNowCount() * 0.3f) * shake);
-    //int offsetY = (int)(cosf(GetNowCount() * 0.5f) * shake * 0.5f);
-
-    //// ===== 背景（暗い影）=====
-    //DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius + 3, GetColor(30, 0, 0), true);
-    //DrawCircle(startPosX + width - radius + offsetX, startPosY + radius + offsetY, radius + 3, GetColor(30, 0, 0), true);
-    //DrawBox(startPosX + radius + offsetX, startPosY - 3 + offsetY, startPosX + width - radius + offsetX, startPosY + height + 3 + offsetY, GetColor(30, 0, 0), true);
-
-    //// ===== 背景バー =====
-    //int bgColor = GetColor(40, 0, 0);
-    //DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius, bgColor, true);
-    //DrawCircle(startPosX + width - radius + offsetX, startPosY + radius + offsetY, radius, bgColor, true);
-    //DrawBox(startPosX + radius + offsetX, startPosY + offsetY, startPosX + width - radius + offsetX, startPosY + height + offsetY, bgColor, true);
-
-    //// ===== HPバー色計算 =====
-    //int r, g, b;
-    //if (ratio > 0.5f)
-    //{
-    //    float t = (ratio - 0.5f) / 0.5f;
-    //    r = (int)(255 * (1.0f - t * 0.6f));
-    //    g = 255;
-    //    b = 0;
-    //}
-    //else
-    //{
-    //    float t = ratio / 0.5f;
-    //    r = 255;
-    //    g = (int)(255 * t);
-    //    b = 0;
-    //}
-    //int hpColor = GetColor(r, g, b);
-
-    //// ===== HPバー本体 =====
-    //int filledWidth = filled + radius * 2;
-    //if (filledWidth > width) filledWidth = width;
-
-    //DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius, hpColor, true);
-    //if (filledWidth > radius * 2)
-    //    DrawBox(startPosX + radius + offsetX, startPosY + offsetY, startPosX + filledWidth - radius + offsetX, startPosY + height + offsetY, hpColor, true);
-    //if (filledWidth > radius)
-    //    DrawCircle(startPosX + filledWidth - radius + offsetX, startPosY + radius + offsetY, radius, hpColor, true);
-
-    //// ===== 枠線 =====
-    //int frameColor = GetColor(200, 200, 200);
-    //DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius, frameColor, false);
-    //DrawCircle(startPosX + width - radius + offsetX, startPosY + radius + offsetY, radius, frameColor, false);
-    //DrawBox(startPosX + radius + offsetX, startPosY + offsetY, startPosX + width - radius + offsetX, startPosY + height + offsetY, frameColor, false);
-
-    //// ===== オーラ（赤化）=====
-    //float auraPulse = 3.0f + 2.0f * sinf(t * 2.0f);
-    //int auraR = isHpDecreasing ? 255 : 100;
-    //int auraG = isHpDecreasing ? 40 : 200;
-    //int auraB = isHpDecreasing ? 40 : 80;
-    //int auraColor = GetColor(auraR, auraG, auraB);
-    //DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius + auraPulse, auraColor, false);
-    //DrawCircle(startPosX + filledWidth - radius + offsetX, startPosY + radius + offsetY, radius + auraPulse, auraColor, false);
-
-    //// ===== 波紋（ダメージ時に赤い光が走る）=====
-    //if (waveTime >= 0.0f)
-    //{
-    //    waveTime += 0.1f; // 時間進行
-    //    float pos = waveTime * (width - radius * 2); // 光の位置
-    //    float waveWidth = 80.0f;                     // 幅
-    //    float alpha = 255.0f * (1.0f - waveTime / 3.0f);
-    //    if (alpha > 0)
-    //    {
-    //        SetDrawBlendMode(DX_BLENDMODE_ADD, (int)alpha);
-    //        for (int x = 0; x < width; x++)
-    //        {
-    //            float dist = fabsf(x - pos);
-    //            if (dist < waveWidth)
-    //            {
-    //                float strength = 1.0f - dist / waveWidth;
-    //                int color = GetColor(255, (int)(80 * strength), (int)(80 * strength));
-    //                DrawLine(startPosX + x, startPosY, startPosX + x, startPosY + height, color);
-    //            }
-    //        }
-    //        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    //    }
-    //    else
-    //    {
-    //        waveTime = -1.0f; // アニメ終了
-    //    }
-    //}
-
-    //// ===== 低HP点滅 =====
-    //if (ratio <= 0.3f)
-    //{
-    //    float blink = (sinf(t * 10.0f) + 1.0f) * 0.5f;
-    //    int alpha = (int)(blink * 180);
-    //    int flashColor = GetColor(255, 60, 60);
-    //    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-    //    DrawCircle(startPosX + radius + offsetX, startPosY + radius + offsetY, radius, flashColor, true);
-    //    if (filledWidth > radius * 2)
-    //        DrawBox(startPosX + radius + offsetX, startPosY + offsetY,
-    //            startPosX + filledWidth - radius + offsetX, startPosY + height + offsetY, flashColor, true);
-    //    if (filledWidth > radius)
-    //        DrawCircle(startPosX + filledWidth - radius + offsetX, startPosY + radius + offsetY, radius, flashColor, true);
-    //    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    //}
-
-    //prevHp = unit_.hp_;
+        RGB(50, 50, 255),
+        RGB(0, 0, 0));
 }
 
 // ステージに対して無理やり当たり判定をしている
