@@ -105,7 +105,7 @@ void Boss::SubDraw(void)
 
 	MV1DrawModel(unit_.model_);
 
-	UIDraw();
+	//UIDraw();
 }
 
 void Boss::SubRelease(void)
@@ -226,12 +226,13 @@ Boss::ATTACK Boss::AttackLottery(void)
 {
 	if (attackTable_.empty()) return ATTACK::STAR;
 
+	// 今回出す攻撃
 	ATTACK nextAttack = attackTable_[attackTableIndex_];
 
-	// 次回のためにインデックスを進める
+	// 次回の攻撃をここで確定させておく
 	attackTableIndex_++;
 	if (attackTableIndex_ >= attackTable_.size()) {
-		attackTableIndex_ = 0; // ループさせたい場合
+		attackTableIndex_ = 0; 
 	}
 
 	return nextAttack;
@@ -253,7 +254,7 @@ void Boss::AttackLoad(void)
 
 void Boss::AttackInit(void)
 {
-	// 攻撃テーブルの設定（順番に攻撃）
+	// 攻撃の設定（順番に攻撃）
 	attackTable_ = {
 		ATTACK::SLAP,
 		ATTACK::SLAP,
@@ -283,10 +284,8 @@ void Boss::UIDraw(void)
 {
 	// ボスのHPバーの描画
 	DrawBar(
-		(Application::SCREEN_SIZE_X / 10) * 2,
-		(Application::SCREEN_SIZE_Y / 10) * 9,
-		(Application::SCREEN_SIZE_X / 10) * 8,
-		(Application::SCREEN_SIZE_Y / 10) * 8 + 120,
+		Application::SCREEN_SIZE_X / 20, Application::SCREEN_SIZE_Y / 20,
+		Application::SCREEN_SIZE_X / 20 * 19, Application::SCREEN_SIZE_Y / 10,
 		unit_.hp_, HP_MAX,
 		RGB(50, 50, 255),
 		RGB(0, 0, 0));

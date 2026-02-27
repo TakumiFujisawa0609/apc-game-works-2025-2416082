@@ -72,11 +72,11 @@ private:
 	static constexpr int ROLLING_TIME = 30;					// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
 
-	    // 移動範囲制限（外側）
-    static constexpr float STAGE_COLL_RAD_OUTSIDE = 2050.0f;  // 最大半径
+	// 移動範囲制限（外側）
+	static constexpr float STAGE_COLL_RAD_OUTSIDE = 2050.0f;  // 最大半径
 	static constexpr float STAGE_COLL_RAD_INSIDE = 450.0f;  // 最大半径
 
-
+	static constexpr int PLAYER_ICON_IMAGE_MAX = 2;
 
 	// コンボの段階に応じて攻撃したときの移動量	
 	static constexpr float CONBO_MOVE_SPEED[(int)CONBO::MAX] =
@@ -92,7 +92,7 @@ private:
 		{ 0.01f, 0.01f, 0.01f },
 		{ 0.02f, 0.02f, 0.02f },
 		{ 0.03f, 0.03f, 0.03f }
-	}; 
+	};
 
 	static constexpr VECTOR DOWN_MUSCLE = { -0.005f,-0.005f,-0.005f };	//常時筋肉が減るため、減らし続ける用の値
 
@@ -131,7 +131,7 @@ public:
 	void CameraPosUpdate(void);						// カメラ座標に関する処理
 
 	// カメラのローカル座標のゲット関数
-	const VECTOR &GetCameraLocalPos(void) { return cameraPos_; }
+	const VECTOR& GetCameraLocalPos(void) { return cameraPos_; }
 
 	/// <summary>
 	/// 筋肉量割合のゲット関数
@@ -197,7 +197,7 @@ private:
 	RightArm* rightArm_;				// 右腕クラス
 
 	// -----------------------------------------------------
-	
+
 #pragma region 列挙型定義
 	// ステート管理用
 	STATE state_;
@@ -217,7 +217,7 @@ private:
 
 	// 回避のクールタイムカウンタ
 	int nextRollCounter_;
-	
+
 	int rollCounter_;
 
 	// 攻撃から抜け出さないときがあるので、
@@ -226,6 +226,9 @@ private:
 
 	// 筋肉に伴い体が大きくなるためカメラの位置を変える用の変数
 	float currentHeight;
+
+	// HPの隣に置くプレイヤーのアイコン
+	int playerIconImageId_[PLAYER_ICON_IMAGE_MAX];
 
 #pragma endregion
 

@@ -37,7 +37,8 @@ Player::Player() :
     currentHeight(0.0f),
     conbo_(CONBO::CONBO1),
     cameraPos_(Utility::VECTOR_ZERO),
-    attackEscapeCounter_(0)
+    attackEscapeCounter_(0),
+    playerIconImageId_(-1)
 {
 }
 
@@ -53,6 +54,10 @@ void Player::SubLoad(void)
 
    // モデルのロード
    unit_.model_ = MV1LoadModel((playerModelPath + "Player1.mv1").c_str());
+
+   // 画像のロード
+   playerIconImageId_[0] = LoadGraph("Data/Image/Player/Player_Idle.png");
+   playerIconImageId_[1] = LoadGraph("Data/Image/Player/Player_Damage.png");
 
 #pragma region クラスの定義
 
@@ -214,6 +219,11 @@ void Player::SubRelease(void)
     // モデルの解放
     MV1DeleteModel(unit_.model_);
 
+    // 画像の解放
+    for (int i = 0; i < PLAYER_ICON_IMAGE_MAX; i++) {
+        DeleteGraph(playerIconImageId_[i]);
+    }
+
     // サウンドの開放
     for (int i = 0; i < (int)SOUND::MAX; i++) {
         SoundManager::GetIns().Delete((SOUND)i);
@@ -255,15 +265,15 @@ void Player::OnCollision(UnitBase* other)
 // UIの描画関数
 void Player::UIDraw(void)
 {
+    // 現在の筋肉の割合（ratio）
+    mic_->VoiceLevelDraw();
+
     //HP描画
     HpDraw();
     rightArm_->UIDraw();
 
 
     DebugDraw();
-
-    // 現在の筋肉の割合（ratio）
-    mic_->VoiceLevelDraw();
 }
 
 // 立ち止まっているときの処理
@@ -790,8 +800,8 @@ void Player::SetMatrix(void)
 void Player::HpDraw(void)
 {
     // HP描画する左上の座標と右下の座標
-    VECTOR pos1 = { Application::SCREEN_SIZE_X / 20,Application::SCREEN_SIZE_Y / 20 };
-    VECTOR pos2 = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 10 };
+    VECTOR pos1 = { (Application::SCREEN_SIZE_X / 10) * 2, (Application::SCREEN_SIZE_Y / 10) * 9 };
+    VECTOR pos2 = { (Application::SCREEN_SIZE_X / 10) * 8, (Application::SCREEN_SIZE_Y / 10) * 8 + 60 };
 
     // HP描画関数
     DrawBar(
@@ -801,6 +811,15 @@ void Player::HpDraw(void)
         0xaaffaa,
         0x000000
     );
+
+    if (unit_.inviciCounter_ > 0 )
+    {
+        DrawRotaGraph(pos1.x - 64, pos1.y, 0.5f, 0.0f, playerIconImageId_[1], true);
+    }
+    else if(unit_.inviciCounter_ <= 0)
+    {
+        DrawRotaGraph(pos1.x - 64, pos1.y, 0.5f, 0.0f, playerIconImageId_[0], true);
+    }
 
     //static float prevHp = unit_.hp_;
     //static float shake = 0.0f;

@@ -153,9 +153,7 @@ void TitleScene::Draw(void)
 {
 	VECTOR center = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 2 };
 
-
 	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, haikeiImage_, true);
-
 
 	// •`‰æ
 	for (int i = 0; i < 10; i++) {
@@ -186,14 +184,14 @@ void TitleScene::Draw(void)
 
 	mat = MMult(MGetScale(unit_.scale), mat);
 
-	//mat.m[3][0] = pos.x;
-	//mat.m[3][1] = pos.y;
-	//mat.m[3][2] = pos.z;
-
 	Utility::MatrixPosMult(mat, unit_.pos);
 
 	MV1SetMatrix(unit_.model_, mat);
 	MV1DrawModel(unit_.model_);
+
+	SetFontSize(32);
+	DrawString(Application::SCREEN_SIZE_X / 2 - (32 * 8), Application::SCREEN_SIZE_Y - 100, "Press Enter or X Button", 0xffffff);
+	SetFontSize(16);
 
 #ifdef _DEBUG
 	SetFontSize(32);

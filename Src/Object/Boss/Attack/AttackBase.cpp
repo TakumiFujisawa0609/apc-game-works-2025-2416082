@@ -53,18 +53,20 @@ void AttackBase::SubDraw()
     SetModelMatrix();
 
     DefaultDraw();
+
+    // モデルの描画
+    MV1DrawModel(unit_.model_);
 }
 
 void AttackBase::UIDraw(void)
 {
     if (!unit_.isAlive_ && attack_.isEnd_) { return; }
 
-    // モデルの描画
-    MV1DrawModel(unit_.model_);
+
 
     if (isChanceNow_) {
         SetFontSize(128);
-        DrawString(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, "攻撃が来た!!!\n叫ぶんだ！！！", 0xffffff);
+        DrawString(Application::SCREEN_SIZE_X / 2 - (128 * 6), Application::SCREEN_SIZE_Y / 2 - 128, "攻撃が来た!!!\n叫ぶんだ！！！\n(破ぁぁぁああ!!)", 0xffffff);
         SetFontSize(16);
     }
 }
