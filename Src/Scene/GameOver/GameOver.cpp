@@ -30,16 +30,13 @@ void GameOver::Update(void)
 		SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
 		return;
 	}
-
-
-
 }
 void GameOver::Draw(void)
 {
 	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, image_, true);
 
 	SetFontSize(32);
-	DrawString(Application::SCREEN_SIZE_X / 2 - (32 * 8), Application::SCREEN_SIZE_Y - 100, "Press Enter or X Button", 0xffffff);
+	DrawString(Application::SCREEN_SIZE_X / 2 - (32 * 8), Application::SCREEN_SIZE_Y - 100, "PRESS SPACE OR X BUTTON", 0xffffff);
 	SetFontSize(16);
 }
 void GameOver::Release(void)

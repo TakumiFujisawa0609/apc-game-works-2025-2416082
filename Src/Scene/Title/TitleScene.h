@@ -1,6 +1,7 @@
 #pragma once
 #include"../SceneBase.h"
 #include<DxLib.h>
+#include<vector>
 
 class AnimationController;
 class MicInput;
@@ -12,6 +13,17 @@ public:
 	{
 		IDLE,
 		ATTACK,
+
+		MAX
+	};
+
+	enum class TITLE_IMAGE
+	{
+		TITLE_LOGO,
+		NIKU,
+		KIN,
+		BACK_GROUND,
+		PRESS_BUTTON,
 
 		MAX
 	};
@@ -43,11 +55,10 @@ private:
 	AnimationController* animation_;
 	MicInput* mic_;
 
-	int titleLogoImage_;
-	int nikuImage_;
-	int kinImage_;
-	int haikeiImage_;
+	// タイトル画面で表示する画像のハンドルID
+	std::vector<int> titleImages_;
 
+	// 画像の座標
 	VECTOR imagePos_[10];
 	int frameCounter_;
 

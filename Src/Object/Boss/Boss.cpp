@@ -311,6 +311,7 @@ void Boss::OnCollision(UnitBase* other)
 		SoundManager::GetIns().Play(SOUND::HIT, true);
 
 		unit_.hp_ -= 10;
+		unit_.inviciCounter_ = INVI_TIME;
 
 		GameScene::Shake(ShakeKinds::HIG, ShakeSize::SMALL, 15);
 		GameScene::HitStop(5);

@@ -52,6 +52,12 @@ private:
 		MAX,
 	};
 
+	enum class UI_IMAGE
+	{
+		HP_FRAME,
+		HP_BAR,
+		MAX
+	};
 #pragma region 定数定義
 
 	static constexpr int HP_MAX = 100;
@@ -229,6 +235,7 @@ private:
 
 	// HPの隣に置くプレイヤーのアイコン
 	int playerIconImageId_[PLAYER_ICON_IMAGE_MAX];
+	int playerHpImageId_[(int)UI_IMAGE::MAX];
 
 #pragma endregion
 

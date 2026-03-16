@@ -27,13 +27,15 @@ TitleScene::~TitleScene()
 // 最初に一度だけ呼び出す処理
 void TitleScene::Load(void)
 {
-	//titleLogoImage_ = LoadGraph("Data/Image/Title/脳筋の拳_ロゴ.png");			// タイトル画像
-	Utility::LoadImg(titleLogoImage_, "Data/Image/Title/脳筋の拳_ロゴ.png");
+	titleImages_.resize((int)TITLE_IMAGE::MAX);
 
-	Utility::LoadImg(nikuImage_, "Data/Image/Title/NIKU.png");
-	Utility::LoadImg(kinImage_, "Data/Image/Title/KIN.png");
-	Utility::LoadImg(haikeiImage_, "Data/Image/Title/haikei.jpg");
-	
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::TITLE_LOGO], "Data/Image/Title/脳筋の拳_ロゴ.png");
+
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::BACK_GROUND], "Data/Image/Title/haikei.jpg");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::NIKU], "Data/Image/Title/NIKU.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::KIN], "Data/Image/Title/KIN.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON], "Data/Image/Title/PRESS_BUTTON_UI.png");
+
 	unit_.model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");		// タイトル用のプレイヤー
 
 	SoundManager::GetIns().Load(SOUND::TITLE_BGM);
@@ -81,6 +83,7 @@ void TitleScene::Update(void)
 	InputManager& input = InputManager::GetInstance();
 	SceneManager& scene = SceneManager::GetInstance();
 
+	// ゲーム終了のキーが「押された瞬間」ならゲーム終了
 	if (KEY::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
 		Application::GetInstance().GameEnd();
 		SoundManager::GetIns().Stop(SOUND::TITLE_BGM);
@@ -90,6 +93,8 @@ void TitleScene::Update(void)
 	if (KEY::GetIns().GetInfo(KEY_TYPE::ENTER).down) {
 		isStart_ = true;
 	}
+
+	// 遷移してから30フレーム後にゲームシーンへ遷移
 	if (isStart_) {
 		startCounter_++;
 		animation_->Play((int)ANIM_TYPE::ATTACK,false);
@@ -153,7 +158,7 @@ void TitleScene::Draw(void)
 {
 	VECTOR center = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 2 };
 
-	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, haikeiImage_, true);
+	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, titleImages_[(int)TITLE_IMAGE::BACK_GROUND], true);
 
 	// 描画
 	for (int i = 0; i < 10; i++) {
@@ -161,7 +166,7 @@ void TitleScene::Draw(void)
 			static_cast<int>(imagePos_[i].x),
 			static_cast<int>(imagePos_[i].y),
 			imageScale_, 0.0f,
-			((i % 2) == 1) ? kinImage_ : nikuImage_,
+			((i % 2) == 1) ? titleImages_[(int)TITLE_IMAGE::KIN] : titleImages_[(int)TITLE_IMAGE::NIKU],
 			true
 		);
 	}
@@ -171,7 +176,7 @@ void TitleScene::Draw(void)
 		center.x - 500,
 		center.y,
 		0.5f, 0.0f,
-		titleLogoImage_,
+		titleImages_[(int)TITLE_IMAGE::TITLE_LOGO],
 		true
 		);
 
@@ -185,40 +190,47 @@ void TitleScene::Draw(void)
 	mat = MMult(MGetScale(unit_.scale), mat);
 
 	Utility::MatrixPosMult(mat, unit_.pos);
-
+	
 	MV1SetMatrix(unit_.model_, mat);
 	MV1DrawModel(unit_.model_);
+	
+	//「PRESS_BUTTON」の描画
+	DrawRotaGraph(
+		center.x,
+		center.y + 300,
+		2.0f, 0.0f,
+		titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON],
+		true
+	);
 
-	SetFontSize(32);
-	DrawString(Application::SCREEN_SIZE_X / 2 - (32 * 8), Application::SCREEN_SIZE_Y - 100, "Press Enter or X Button", 0xffffff);
-	SetFontSize(16);
 
-#ifdef _DEBUG
-	SetFontSize(32);
-	DrawFormatString(0, 0, 0xffffff,"マイクレベル %i", mic_->GetLevel());
-	SetFontSize(16);
-
+	// マイクゲージの描画
 	mic_->VoiceLevelDraw();
-#endif // _DEBUG
 
 }
 
 // 解放処理
 void TitleScene::Release(void)
 {
-	DeleteGraph(titleLogoImage_);
-	DeleteGraph(nikuImage_);
-	DeleteGraph(kinImage_);
-	DeleteGraph(haikeiImage_);
+	// 画像の解放
+	for (int image : titleImages_) {
+		DeleteGraph(image);
+	}
+
+	// プレイヤーモデルの解放
 	MV1DeleteModel(unit_.model_);
+
+	// 音声の解放
 	SoundManager::GetIns().Delete(SOUND::TITLE_BGM);
 
+	// アニメーションの解放
 	if (animation_) {
 		animation_->Release();
 		delete animation_;
 		animation_ = nullptr;
 	}
 
+	// マイククラスの解放
 	if (mic_) {
 		mic_->Stop();
 		delete mic_;
@@ -226,6 +238,7 @@ void TitleScene::Release(void)
 	}
 }
 
+// プレイヤーのスケールを加算する関数
 void TitleScene::AddBoneScale(int index, VECTOR scale)
 {
 	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
