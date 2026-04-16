@@ -65,23 +65,33 @@ void GameScene::Load(void)
 
 	mainScreen_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
-	// クラスの初期化--------------------------------------------------------------------
-	auto ObjNewAndLoad = [&]<class T, class... Args>(T * &instance, Args && ... args)->void {
-		Utility::ClassNew(instance, std::forward<Args>(args)...)->Load();
-	};
+	// クラスのロード--------------------------------------------------------------------
+	
+	// コリジョンクラス
+	collision_ = new Collision();
 
-	Utility::ClassNew(collision_);
-	ObjNewAndLoad(player_);
-	ObjNewAndLoad(boss_, player_->GetUnit().pos_);
-	ObjNewAndLoad(stage_);
-	ObjNewAndLoad(skyDome_);
+	// プレイヤー
+	player_ = new Player();
+	player_->Load();
+
+	// ボス
+	boss_ = new Boss(player_->GetUnit().pos_);
+	boss_->Load();
+
+	// ステージ
+	stage_ = new Stage();
+	stage_->Load();
+	
+	// スカイドーム
+	skyDome_ = new SkyDome();
+	skyDome_->Load();
 	// -------------------------------------------------------------------------------------
 
 	// 当たり判定クラスに情報を渡す-------------
+
 	// ボス
 	collision_->AddEnemy(boss_);
 
-	// ボスの攻撃
 	for (auto& ins : boss_->GetAttackIns()) {
 		collision_->AddBossAttack(ins);
 	}
@@ -92,22 +102,27 @@ void GameScene::Load(void)
 	collision_->AddObject(player_->GetRightArm());
 	// -------------------------------------------
 
+	// サウンド管理クラスのロード
 	SoundManager& sound = SoundManager::GetIns();
 	sound.Load(SOUND::GAME_BGM);
 }
 
+// 初期化処理
 void GameScene::Init(void)
 {
+	// オブジェクトの初期化
 	player_->Init();
 	boss_->Init();
 	stage_->Init();
 	skyDome_->Init();
 
+	// マウスカーソルの非表示
 	SetMouseDispFlag(false);
 
+	// カメラのターゲット設定
 	Camera::GetInstance().SetTarget(&player_->GetCameraLocalPos(),&boss_->GetUnit().pos_);
 
-	SoundManager::GetIns().Play(SOUND::GAME_BGM, false, 120, true, true);
+	SoundManager::GetIns().Play(SOUND::GAME_BGM, false, SoundManager::DEFAULT_VOLUME, true, true);
 
 #pragma region 画面演出
 	// ヒットストップカウンターの初期化
@@ -125,8 +140,7 @@ void GameScene::Init(void)
 #pragma endregion
 }
 
-
-
+// 更新
 void GameScene::Update(void)
 {
 	// 画面演出更新
@@ -146,6 +160,7 @@ void GameScene::Update(void)
 	collision_->Check();
 }
 
+// 描画
 void GameScene::Draw(void)
 {
 	// 画面演出のために描画先を自前で用意したスクリーンに設定
@@ -155,13 +170,13 @@ void GameScene::Draw(void)
 #pragma region 描画処理
 	Camera::GetInstance().Apply();
 
+	// オブジェクト
 	skyDome_->Draw();
-
 	stage_->Draw();
 	player_->Draw();
 	boss_->Draw();
 
-	//UIの描画
+	//UI
 	player_->UIDraw();
 	boss_->UIDraw();
 
@@ -198,6 +213,7 @@ void GameScene::Release(void)
 	sound.Delete(SOUND::GAME_BGM);
 }
 
+// 画面揺らし
 void GameScene::Shake(ShakeKinds kinds, ShakeSize size, int time)
 {
 	if ((abs(shake_ - time) > 10) || shake_ <= 0)shake_ = time;
@@ -261,29 +277,31 @@ void GameScene::ObjectUpdate(void)
 	stage_->Update();
 	skyDome_->Update();
 
+	// カメラ
 	Camera::GetInstance().Update();
 }
 
 // 次のシーンに移る処理
 bool GameScene::ToSceneUpdate(void)
 {
+
 	if (KeyManager::GetIns().GetInfo(KEY_TYPE::GAME_END).down) {
-		SceneManager::GetInstance().PushScene(std::make_shared<PauseScene>());
+		SceneManager::GetInstance().PushScene(std::make_shared<PauseScene>());	// ポーズ画面
 	}
 
 	if (boss_->GetState() == Boss::STATE::DEATH) {
-		Camera::GetInstance().SetBossDeathCamera();
+		Camera::GetInstance().SetBossDeathCamera();		// ボスの死亡演出用のカメラに切り替える
 	}
 
-	if (!boss_->GetUnit().isAlive_) {
+	if (!boss_->GetUnit().isAlive_ ) {
 		this->Release();
-		SceneManager::GetInstance().JumpScene(SCENE_ID::CLEAR);
+		SceneManager::GetInstance().JumpScene(SCENE_ID::CLEAR);		// ゲームクリアシーンに遷移
 		return true;
 	}
 
 	if (!player_->GetUnit().isAlive_) {
 		this->Release();
-		SceneManager::GetInstance().JumpScene(SCENE_ID::OVER);
+		SceneManager::GetInstance().JumpScene(SCENE_ID::OVER);		// ゲームオーバーシーンに遷移
 		return true;
 	}
 

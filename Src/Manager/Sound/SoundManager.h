@@ -13,6 +13,8 @@ public:
 	static SoundManager& GetIns(void) { CreateIns(); return *ins_; }
 	static void DeleteIns(void) { if (ins_ != nullptr) { ins_->Release(); delete ins_; } }
 
+	static constexpr int DEFAULT_VOLUME = 150;
+
 	enum SOUND
 	{
 		NON=-1,
@@ -42,7 +44,7 @@ public:
 	/// <param name="volume">音量</param>
 	/// <param name="loop">ループ再生</param>
 	/// <param name="topPlay">最初から再生するか</param>
-	void Play(SOUND s, bool over = false, int volume = 150, bool loop = false, bool topPlay = true);
+	void Play(SOUND s, bool over = false, int volume = DEFAULT_VOLUME, bool loop = false, bool topPlay = true);
 
 	/// <summary>
 	/// 指定したサウンドを停止

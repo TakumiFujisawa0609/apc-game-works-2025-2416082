@@ -1,7 +1,5 @@
 #include"TitleScene.h"
 
-#include"../../Application/Application.h"
-
 #include"../SceneManager/SceneManager.h"
 
 #include "../../Manager/MicInput/MicInput.h"
@@ -29,11 +27,11 @@ void TitleScene::Load(void)
 {
 	titleImages_.resize((int)TITLE_IMAGE::MAX);
 
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::TITLE_LOGO], "Data/Image/Title/脳筋の拳_ロゴ.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::TITLE_LOGO], "Data/Image/Title/Title.png");
 
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::BACK_GROUND], "Data/Image/Title/haikei.jpg");
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::NIKU], "Data/Image/Title/NIKU.png");
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::KIN], "Data/Image/Title/KIN.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::BACK_GROUND], "Data/Image/Title/BackGround.jpg");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MEAT], "Data/Image/Title/Meat.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MUSCLE], "Data/Image/Title/Muscle.png");
 	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON], "Data/Image/Title/PRESS_BUTTON_UI.png");
 
 	unit_.model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");		// タイトル用のプレイヤー
@@ -51,9 +49,9 @@ void TitleScene::Load(void)
 void TitleScene::Init(void)
 {
 	// プレイヤーの初期化
-	unit_.pos = { 1000.0f,100.0f,0.0f, };
+	unit_.pos = DEFAULT_POS;
 	unit_.angle = Utility::VECTOR_ZERO;
-	unit_.scale = { 2.0f,2.0f,2.0f };
+	unit_.scale = SCALE;
 
 	mic_->Init();
 	mic_->Start();
@@ -156,7 +154,7 @@ void TitleScene::Update(void)
 // 描画処理
 void TitleScene::Draw(void)
 {
-	VECTOR center = { Application::SCREEN_SIZE_X / 2,Application::SCREEN_SIZE_Y / 2 };
+	VECTOR center = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 };
 
 	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, titleImages_[(int)TITLE_IMAGE::BACK_GROUND], true);
 
@@ -166,7 +164,7 @@ void TitleScene::Draw(void)
 			static_cast<int>(imagePos_[i].x),
 			static_cast<int>(imagePos_[i].y),
 			imageScale_, 0.0f,
-			((i % 2) == 1) ? titleImages_[(int)TITLE_IMAGE::KIN] : titleImages_[(int)TITLE_IMAGE::NIKU],
+			((i % 2) == 1) ? titleImages_[(int)TITLE_IMAGE::MUSCLE] : titleImages_[(int)TITLE_IMAGE::MEAT],
 			true
 		);
 	}
@@ -183,26 +181,24 @@ void TitleScene::Draw(void)
 	// タイトル専用のプレイヤーの描画
 	MATRIX mat = MGetIdent();
 
-	mat = MMult(mat, MGetRotX(unit_.angle.x));
-	mat = MMult(mat, MGetRotX(unit_.angle.y));
-	mat = MMult(mat, MGetRotZ(unit_.angle.z));
-
+	// 行列の合成
+	Utility::MatrixRotMult(mat, unit_.angle);
 	mat = MMult(MGetScale(unit_.scale), mat);
-
 	Utility::MatrixPosMult(mat, unit_.pos);
-	
 	MV1SetMatrix(unit_.model_, mat);
+
+	// プレイヤーの描画
 	MV1DrawModel(unit_.model_);
+
 	
 	//「PRESS_BUTTON」の描画
 	DrawRotaGraph(
-		center.x,
-		center.y + 300,
-		2.0f, 0.0f,
+		PRESS_BUTTON_POS.x,
+		PRESS_BUTTON_POS.y,
+		PRESS_BUTTON_EX_RATE, 0.0f,
 		titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON],
 		true
 	);
-
 
 	// マイクゲージの描画
 	mic_->VoiceLevelDraw();

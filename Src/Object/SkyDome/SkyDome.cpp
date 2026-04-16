@@ -17,17 +17,20 @@ void SkyDome::SubLoad(void)
 	MV1SetTextureGraphHandle(unit_.model_, 0, tex_, true);
 }
 
+// ‰Šú‰»ˆ—
 void SkyDome::SubInit(void)
 {
-	unit_.pos_ = { 0.0f,0.0f,0.0f };
-	unit_.scale_ = { 100.0f,100.f,100.0f };
-	unit_.angle_ = { 0.0f,0.0f,0.0f };
+	unit_.pos_ = POS;
+	unit_.scale_ = SCALE;
+	unit_.angle_ = ANGLE;
 }
 
+// XVˆ—
 void SkyDome::SubUpdate(void)
 {
 }
 
+// •`‰æˆ—
 void SkyDome::SubDraw(void)
 {
 	MATRIX mat = MGetIdent();
@@ -42,6 +45,7 @@ void SkyDome::SubDraw(void)
 	MV1DrawModel(unit_.model_);
 }
 
+// ‰ğ•úˆ—
 void SkyDome::SubRelease(void)
 {
 	MV1DeleteModel(unit_.model_);

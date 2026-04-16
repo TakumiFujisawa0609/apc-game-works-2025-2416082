@@ -1,8 +1,6 @@
 #pragma once
 #include "../SceneBase.h"
 
-class SkyDome;
-
 class GameClear : public SceneBase
 {
 public:
@@ -21,8 +19,6 @@ public:
 	void Release(void)override;
 
 private:
-
-	SkyDome* skyDome_;
 
 	int image_;
 

@@ -46,6 +46,7 @@ void Boss::SubLoad(void)
 	StateAdd((int)STATE::DEATH, [this](void) { Death();  });
 }
 
+// 初期化処理
 void Boss::SubInit(void)
 {
 	// ボスの情報の初期化	
@@ -72,6 +73,7 @@ void Boss::SubInit(void)
 	AttackInit();
 }
 
+// 更新処理
 void Boss::SubUpdate(void)
 {
 	auto& scene = SceneManager::GetInstance();
@@ -95,6 +97,7 @@ void Boss::SubUpdate(void)
 
 }
 
+// 描画処理
 void Boss::SubDraw(void)
 {
 	if (!unit_.isAlive_)return;
@@ -108,6 +111,7 @@ void Boss::SubDraw(void)
 	//UIDraw();
 }
 
+// 解放処理
 void Boss::SubRelease(void)
 {
 	//モデルの解放
@@ -122,6 +126,7 @@ void Boss::SubRelease(void)
 	SoundManager::GetIns().Delete(SOUND::GOGOGO);
 }
 
+// 行列の設定
 void Boss::SetMatrix(void)
 {
 	VECTOR offset = { 0.0f, -150.0f, 0.0f };
@@ -150,6 +155,7 @@ void Boss::SetMatrix(void)
 	MV1SetMatrix(unit_.model_, mat);
 }
 
+// ボスの死亡処理
 void Boss::ToDeath(void)
 {
 	// ボスのHPが0以下になったらDEATHに遷移
@@ -159,6 +165,7 @@ void Boss::ToDeath(void)
 	}
 }
 
+// プレイヤーの方向を向く処理
 void Boss::LookTarget(void)
 {
 	//target_ の方向に向く
@@ -179,6 +186,8 @@ void Boss::LookTarget(void)
 }
 
 #pragma region ステート処理
+
+// 攻撃
 void Boss::Attack(void)
 {
 	int idx = (int)attackState_;
@@ -189,6 +198,7 @@ void Boss::Attack(void)
 	}
 }
 
+// 待機
 void Boss::Idle(void)
 {
 	attackCounter_++;
@@ -208,6 +218,7 @@ void Boss::Damage(void)
 {
 }
 
+// 死亡
 void Boss::Death(void)
 {
 	// ボスの死亡演出
@@ -222,6 +233,7 @@ void Boss::Death(void)
 
 #pragma region 攻撃関係
 
+// 攻撃の抽選
 Boss::ATTACK Boss::AttackLottery(void)
 {
 	if (attackTable_.empty()) return ATTACK::STAR;
@@ -238,10 +250,11 @@ Boss::ATTACK Boss::AttackLottery(void)
 	return nextAttack;
 }
 
+// 攻撃のロード
 void Boss::AttackLoad(void)
 {
 	// 攻撃関連のロード
-	attacks_.reserve(10);
+	attacks_.reserve((int)ATTACK::MAX);
 	attacks_.emplace_back(new HandSlap(unit_.pos_, player_, voiceLevel_));
 	attacks_.emplace_back(new BossShot(unit_, player_, voiceLevel_));
 	attacks_.emplace_back(new Star(unit_.pos_, player_, voiceLevel_));
@@ -252,6 +265,7 @@ void Boss::AttackLoad(void)
 	}
 }
 
+// 攻撃の初期化
 void Boss::AttackInit(void)
 {
 	// 攻撃の設定（順番に攻撃）
@@ -266,11 +280,13 @@ void Boss::AttackInit(void)
 	attacks_[(int)attackState_]->Init();
 }
 
+// 攻撃の描画
 void Boss::AttackDraw(void)
 {
 	attacks_[(int)attackState_]->Draw();
 }
 
+// 攻撃の解放
 void Boss::AttackRelease(void)
 {
 	//右手の解放
@@ -280,6 +296,7 @@ void Boss::AttackRelease(void)
 }
 #pragma endregion 
 
+// UIの描画
 void Boss::UIDraw(void)
 {
 	// ボスのHPバーの描画
@@ -287,8 +304,8 @@ void Boss::UIDraw(void)
 		Application::SCREEN_SIZE_X / 20, Application::SCREEN_SIZE_Y / 20,
 		Application::SCREEN_SIZE_X / 20 * 19, Application::SCREEN_SIZE_Y / 10,
 		unit_.hp_, HP_MAX,
-		RGB(50, 50, 255),
-		RGB(0, 0, 0));
+		0x3232ff,
+		0x000000);
 
 	attacks_[(int)attackState_]->UIDraw();
 
@@ -303,6 +320,7 @@ void Boss::UIDraw(void)
 #endif // _DEBUG
 }
 
+// 当たり判定処理
 void Boss::OnCollision(UnitBase* other)
 {
 	if (unit_.inviciCounter_ > 0) return;
@@ -310,7 +328,7 @@ void Boss::OnCollision(UnitBase* other)
 	if (dynamic_cast<ArmBase*>(other)) {
 		SoundManager::GetIns().Play(SOUND::HIT, true);
 
-		unit_.hp_ -= 10;
+		unit_.hp_ -= 20;
 		unit_.inviciCounter_ = INVI_TIME;
 
 		GameScene::Shake(ShakeKinds::HIG, ShakeSize::SMALL, 15);
@@ -330,6 +348,7 @@ void Boss::OnCollision(UnitBase* other)
 	}
 }
 
+// 攻撃のインスタンスのゲッター
 const std::vector<AttackBase*> Boss::GetAttackIns(void)
 {
 	return attacks_;

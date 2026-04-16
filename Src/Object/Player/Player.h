@@ -60,23 +60,23 @@ private:
 	};
 #pragma region 定数定義
 
-	static constexpr int HP_MAX = 100;
+	static constexpr int HP_MAX = 100;	// プレイヤーの最大HP
+
+	static constexpr int HP_DAMAGE = 10;	// プレイヤーが攻撃を受けたときのダメージ量
 
 	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
-
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -1000.0f };	// 初期座標
-
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };			// モデルの向き修正用
-
 	static constexpr VECTOR LOCAL_POS = { 0.0f, CAPSULE_HALF_LENGTH, 0.0f };		// 描画と座標のずれを直すためのローカル座標
 
 	static constexpr float RADIUS_SIZE = 60.0f;				//プレイヤーの半径（仮）
-
 	static constexpr float MOVE_SPEED = 16.0f;				// 移動速度
 
 	static constexpr float ROLL_SPEED = MOVE_SPEED * 2;		// 回避速度
 	static constexpr int ROLLING_TIME = 30;					// 回避時間
 	static constexpr int NEXT_ROLL_TIME = 60;				// 回避行動のクールタイム
+
+	static constexpr float MOVE_ANGLE_INTERPOLATION = 0.3f;		// 移動するときの向き補間率
 
 	// 移動範囲制限（外側）
 	static constexpr float STAGE_COLL_RAD_OUTSIDE = 2050.0f;  // 最大半径
@@ -191,7 +191,7 @@ private:
 	// ステージとの疑似当たり判定をここでしている
 	void StageCollision(void);
 
-	void KnockBack(const VECTOR& attackPos, float power = 25.0f);
+	void KnockBack(const VECTOR& attackPos, float power = 20.0f);
 	void KnocBackUpdate(void);
 	VECTOR knockBackVel_;
 private:

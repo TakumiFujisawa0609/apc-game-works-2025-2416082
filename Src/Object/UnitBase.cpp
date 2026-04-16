@@ -10,16 +10,19 @@ UnitBase::~UnitBase() {}
 
 void UnitBase::Load(void)
 {
+	// Œp³æ‚Ì“Ç‚Ýž‚Ýˆ—
 	SubLoad();
 }
 
 void UnitBase::Init(void)
 {
+	// Œp³æ‚Ì‰Šú‰»ˆ—
 	SubInit();
 }
 
 void UnitBase::Update(void)
 {
+	// Œp³æ‚ÌXVˆ—
 	SubUpdate();
 }
 
@@ -42,7 +45,10 @@ void UnitBase::Draw(void)
 
 void UnitBase::Release(void)
 {
+	// ŠÖ”ƒ|ƒCƒ“ƒ^‚ÌƒNƒŠƒA
 	stateFuncs_.clear();
+	
+	// Œp³æ‚ÌŠJ•úˆ—
 	SubRelease();
 }
 
@@ -55,6 +61,7 @@ void UnitBase::StateAdd(int state, StateFunc func)
 
 void UnitBase::StateUpdate(int state)
 {
+	// Œp³æ‚ÅƒXƒe[ƒg‚Æˆê‚É“o˜^‚µ‚½ŠÖ”‚ðŒÄ‚Ño‚·
 	auto it = stateFuncs_.find(state);
 	if (it != stateFuncs_.end()) {
 		it->second();
@@ -63,9 +70,9 @@ void UnitBase::StateUpdate(int state)
 
 void UnitBase::Invi(void)
 {
+	// –³“GŽžŠÔ’†‚ÍƒJƒEƒ“ƒ^‚ðŒ¸‚ç‚·
 	if (unit_.inviciCounter_ > 0) { unit_.inviciCounter_--; }
 }
-
 
 
 void UnitBase::AddBoneScale(int index, VECTOR scale)

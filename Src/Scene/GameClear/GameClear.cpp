@@ -4,8 +4,6 @@
 #include "../../Manager/Input/KeyManager.h"
 #include "../SceneManager/SceneManager.h"
 
-#include "../../Object/SkyDome/SkyDome.h"
-
 #include "../../Utility/Utility.h"
 
 GameClear::GameClear() :
@@ -19,31 +17,30 @@ GameClear::~GameClear()
 
 }
 
+// 最初の一回しか呼ばれない処理
 void GameClear::Load()
 {
 	Utility::LoadImg(image_, "Data/Image/GameClear/GameClear.png");
-
-	Utility::ClassNew(skyDome_)->Load();
 }
 
+// 初期化処理
 void GameClear::Init()
 {
-	skyDome_->Init();
 }
 
+// 更新処理
 void GameClear::Update()
 {
-	skyDome_->Update();
-
+	// 決定ボタンを押したらタイトルに戻る
 	if (KeyManager::GetIns().GetInfo(KEY_TYPE::ENTER).down) {
 		SceneManager::GetInstance().ChangeScene(SCENE_ID::TITLE);
 		return;
 	}
 }
 
+// 描画処理
 void GameClear::Draw()
 {
-	skyDome_->Draw();
 	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, image_, true);
 
 	SetFontSize(32);
@@ -51,8 +48,8 @@ void GameClear::Draw()
 	SetFontSize(16);
 }
 
+// 解放処理
 void GameClear::Release()
 {
-	skyDome_->Release();
 	DeleteGraph(image_);
 }

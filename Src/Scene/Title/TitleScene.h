@@ -1,7 +1,10 @@
 #pragma once
-#include"../SceneBase.h"
-#include<DxLib.h>
-#include<vector>
+
+#include "../../Application/Application.h"
+#include "../SceneBase.h"
+
+#include <DxLib.h>
+#include <vector>
 
 class AnimationController;
 class MicInput;
@@ -20,13 +23,18 @@ public:
 	enum class TITLE_IMAGE
 	{
 		TITLE_LOGO,
-		NIKU,
-		KIN,
+		MEAT,
+		MUSCLE,
 		BACK_GROUND,
 		PRESS_BUTTON,
 
 		MAX
 	};
+
+	static constexpr VECTOR DEFAULT_POS = { 1000.0f,100.0f,0.0f, };	// タイトル用プレイヤーの初期座標
+	static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };
+
+	static constexpr VECTOR PRESS_BUTTON_POS = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 + 300, 0.0f };
 
 	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// 筋肉のスケールの最大値
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// 筋肉のスケールの最低値
@@ -36,6 +44,8 @@ public:
 	static constexpr float MUSCLE_IMAGE_SCALE_MIN = 3.0f;
 
 	static constexpr int MUSCLE_INDEX = 4;
+
+	static constexpr int PRESS_BUTTON_EX_RATE = 2.0f;
 
 	TitleScene();
 	~TitleScene()override;

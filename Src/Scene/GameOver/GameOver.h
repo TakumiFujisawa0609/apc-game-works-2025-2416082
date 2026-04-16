@@ -1,8 +1,23 @@
 #pragma once
+#include "../../Application/Application.h"
 #include"../SceneBase.h"
 
 class GameOver : public SceneBase
 {
+private:
+
+	// ÅuPRESS_BUTTONÅvÇÃï`âÊà íu
+	static constexpr VECTOR PRESS_BUTTON_POS = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 + 300, 0.0f };
+	static constexpr int PRESS_BUTTON_EX_RATE = 2.0f;
+
+	enum class GAME_OVER_IMAGE
+	{
+		BACK_GROUND,
+		PRESS_BUTTON,
+
+		MAX
+	};
+
 public:
 	GameOver();
 	~GameOver()override;
@@ -20,6 +35,6 @@ public:
 
 private:
 
-	int image_;
+	int gameOverImages_[(int)GAME_OVER_IMAGE::MAX];
 
 };

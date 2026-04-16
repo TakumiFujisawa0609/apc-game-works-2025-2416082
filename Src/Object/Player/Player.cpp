@@ -65,16 +65,18 @@ void Player::SubLoad(void)
 #pragma region クラスの定義
 
    // アニメーションクラス
-   Utility::ClassNew(animation_, unit_.model_);
+   animation_ = new AnimationController(unit_.model_);
 
    // マイク
    mic_ = new MicInput();
 
    // 左腕
-   Utility::ClassNew(leftArm_, unit_.model_)->Load();
+   leftArm_ = new LeftArm(unit_.model_);
+   leftArm_->Load();
 
    // 右腕
-   Utility::ClassNew(rightArm_, unit_.model_)->Load();
+   rightArm_ = new RightArm(unit_.model_);
+   rightArm_->Load();
 
 #pragma endregion
 
@@ -97,11 +99,11 @@ void Player::SubLoad(void)
    // -----------------------------------------------------
 
    // 関数ポインタに登録
-   StateAdd((int)STATE::IDLE, [this]() { Idle();      });
+   StateAdd((int)STATE::IDLE,   [this]() { Idle();      });
    StateAdd((int)STATE::ATTACK, [this]() { Attack();    });
-   StateAdd((int)STATE::MOVE, [this]() { Move();      });
-   StateAdd((int)STATE::ROLL, [this]() { Roll();      });
-   StateAdd((int)STATE::DEATH, [this]() { Death();     });
+   StateAdd((int)STATE::MOVE,   [this]() { Move();      });
+   StateAdd((int)STATE::ROLL,   [this]() { Roll();      });
+   StateAdd((int)STATE::DEATH,  [this]() { Death();     });
 }
 
 //初期化処理
@@ -127,6 +129,7 @@ void Player::SubInit(void)
     attackEscapeCounter_ = 0;
     // ---------------------
     
+	// ステートの初期化
     state_ = STATE::IDLE;
     conbo_ = CONBO::CONBO1;
 
@@ -182,7 +185,6 @@ void Player::SubUpdate(void)
     animation_->Update();
 
 #pragma endregion
-
 }
 
 // 描画処理
@@ -197,19 +199,20 @@ void Player::SubDraw(void)
     leftArm_->Draw();
     rightArm_->Draw();
 
+    // プレイヤーモデルの描画
     MV1DrawModel(unit_.model_);
 }
 
 // 解放処理
 void Player::SubRelease(void)
 {
-    //アニメーション
+    //アニメーションの開放
     Utility::SafeDeleteInstance(animation_);
 
-    // 左腕
+    // 左腕の開放
     Utility::SafeDeleteInstance(leftArm_);
 
-    // 右腕
+    // 右腕の開放
     Utility::SafeDeleteInstance(rightArm_);
 
     // マイクインプット
@@ -227,6 +230,7 @@ void Player::SubRelease(void)
         DeleteGraph(playerIconImageId_[i]);
     }
 
+	// HP画像の解放
 	for (int i = 0; i < (int)UI_IMAGE::MAX; i++) {
         DeleteGraph(playerHpImageId_[i]);
     }
@@ -247,23 +251,23 @@ void Player::OnCollision(UnitBase* other)
     {
         if (hand->GetState() == HandSlap::STATE::END) return;
 
-        KnockBack(hand->GetUnit().pos_, 20.0f);
-        SetDamage(10);
+        KnockBack(hand->GetUnit().pos_);
+        SetDamage(HP_DAMAGE);
         GameScene::Shake();
         return;
     }
 
     if (BossShot* shot = dynamic_cast<BossShot*>(other))
     {
-        KnockBack(shot->GetUnit().pos_, 20.0f);
-        SetDamage(10);
+        KnockBack(shot->GetUnit().pos_);
+        SetDamage(HP_DAMAGE);
         GameScene::Shake();
         return;
     }
 
     if (Star* star = dynamic_cast<Star*>(other)) {
-        KnockBack(star->GetUnit().pos_, 20.0f);
-        SetDamage(10);
+        KnockBack(star->GetUnit().pos_);
+        SetDamage(HP_DAMAGE);
         GameScene::Shake();
         return;
     }
@@ -300,7 +304,7 @@ void Player::Move(void)
     // ---------- 実際の移動 ----------
     if (move_.x != 0.0f || move_.z != 0.0f)
     {
-        MATRIX mat = MGetRotY(camera.GetAngle().y * DX_PI_F / 180.0f);
+        MATRIX mat = MGetRotY(Utility::Deg2RadF(camera.GetAngle().y));
         VECTOR worldMove = VTransform(VNorm(move_), mat);
 
         // 移動速度（筋肉量で変動）
@@ -311,10 +315,10 @@ void Player::Move(void)
 
         // プレイヤーの向きを移動方向に補間
         float targetY = atan2f(worldMove.x, worldMove.z);
-        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, 0.3f);
-
+        unit_.angle_.y = Utility::LerpAngle(unit_.angle_.y, targetY, MOVE_ANGLE_INTERPOLATION);
     }
-
+    
+    // アニメーション再生
     animation_->Play((int)ANIM_TYPE::RUN, true);
 }
 

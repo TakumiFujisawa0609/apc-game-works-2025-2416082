@@ -123,10 +123,7 @@ public:
 	// 角度の線形補間(常に最短経路)
 	static float LerpAngle(float from, float to, float t);
 
-	// 
-	template<class T, class... Args>
-	static T* ClassNew(T*& ptr, Args&&... args);
-
+	// インスタンスの開放処理を一括で
 	template<typename T>
 	static void SafeDeleteInstance(T*& ptr);
 
@@ -149,20 +146,6 @@ public:
 	}
 };
 
-/// <summary>
-/// インスタンスにクラスをNewする関数
-/// </summary>
-/// <typeparam name="T">インスタンスの型となるもの</typeparam>
-/// <typeparam name="...Args">そのクラスのコンストラクタの引数の型となるもの</typeparam>
-/// <param name="ptr">代入するためのインスタンスの変数</param>
-/// <param name="...args">そのクラスのコンストラクタの引数（順番に書いてね）</param>
-/// <returns>一応そのままLoad関数などを呼べるようにそのクラスの型のポインタをreturnしている(やらなくてもいい)</returns>
-template<class T, class ...Args>
-inline T* Utility::ClassNew(T*& ptr, Args && ...args)
-{
-	ptr = new T(std::forward<Args>(args)...);
-	return ptr;
-}
 
 /// <summary>
 /// 解放処理を一括でやるやつ
