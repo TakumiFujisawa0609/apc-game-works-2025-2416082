@@ -78,7 +78,7 @@ void TitleScene::Init(void)
 			(float)GetRand(Application::SCREEN_SIZE_Y),
 			0.0f
 		);
-	}
+	} 
 }
 
 // XVˆ—
