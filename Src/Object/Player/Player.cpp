@@ -1,6 +1,5 @@
 #include "Player.h"
 #include <cmath>
-#include <EffekseerForDXLib.h>
 
 #include "../../Application/Application.h"
 
@@ -80,16 +79,22 @@ void Player::SubLoad(void)
 
 #pragma endregion
 
+   // ä÷êîÉ|ÉCÉìÉ^Ç…ìoò^ Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`
+   StateAdd((int)STATE::IDLE,   [this]() { Idle();      });
+   StateAdd((int)STATE::ATTACK, [this]() { Attack();    });
+   StateAdd((int)STATE::MOVE,   [this]() { Move();      });
+   StateAdd((int)STATE::ROLL,   [this]() { Roll();      });
+   StateAdd((int)STATE::DEATH,  [this]() { Death();     });
+   // ä÷êîÉ|ÉCÉìÉ^Ç…ìoò^ Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`
+
    // ÉÇÉfÉãÉAÉjÉÅÅ[ÉVÉáÉìÇÃÉçÅ[Éh--------------------------------
-
-   // ÉAÉjÉÅÅ[ÉVÉáÉìí«â¡ÇÃÉâÉÄÉ_ä÷êî
-   auto AnimationAdd = [&](ANIM_TYPE type, float speed, std::string path) {
-       animation_->Add((int)type, speed, (playerModelPath + "Animation/" + path + ".mv1").c_str());
-       };
-
-   // ÉAÉjÉÅÅ[ÉVÉáÉìÇÃí«â¡
    for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
-       AnimationAdd(static_cast<ANIM_TYPE>(i), ANIMATION_INFO[i].speed, ANIMATION_INFO[i].name);
+       // ÉAÉjÉÅÅ[ÉVÉáÉìÇÃí«â¡
+       animation_->Add(
+           (int)static_cast<ANIM_TYPE>(i), 
+           ANIMATION_INFO[i].speed, 
+           (playerModelPath + "Animation/" + ANIMATION_INFO[i].name + ".mv1").c_str()
+       );
    }
    // -------------------------------------------------------
 
@@ -97,13 +102,6 @@ void Player::SubLoad(void)
    SoundManager::GetIns().Load(SOUND::PLAYER_BIG_ATTACK);
    SoundManager::GetIns().Load(SOUND::PLAYER_SMALL_ATTACK);
    // -----------------------------------------------------
-
-   // ä÷êîÉ|ÉCÉìÉ^Ç…ìoò^
-   StateAdd((int)STATE::IDLE,   [this]() { Idle();      });
-   StateAdd((int)STATE::ATTACK, [this]() { Attack();    });
-   StateAdd((int)STATE::MOVE,   [this]() { Move();      });
-   StateAdd((int)STATE::ROLL,   [this]() { Roll();      });
-   StateAdd((int)STATE::DEATH,  [this]() { Death();     });
 }
 
 //èâä˙âªèàóù
@@ -814,31 +812,21 @@ void Player::HpDraw(void)
     VECTOR pos1 = { (Application::SCREEN_SIZE_X / 10) * 2, (Application::SCREEN_SIZE_Y / 10) * 8 };
     VECTOR pos2 = { (Application::SCREEN_SIZE_X / 10) * 8, (Application::SCREEN_SIZE_Y / 10) * 9 + 60 };
 
-    //// HPï`âÊä÷êî
-    //DrawBar(
-    //    pos1.x, pos1.y,
-    //    pos2.x, pos2.y,
-    //    unit_.hp_, HP_MAX,
-    //    0xaaffaa,
-    //    0x000000
-    //);
-
-	//DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y, playerHpImageId_[(int)UI_IMAGE::HP_FRAME], true);
-    // DrawRectGraph(pos1.x, pos1.y, pos2.x, pos2.y, unit_.hp_ * 512, 300, 512, playerHpImageId_[(int)UI_IMAGE::HP_BAR], true);
     float rate = unit_.hp_ / (float)HP_MAX;
+    float width = (pos2.x - pos1.x) * rate;
+    float height = pos2.y - pos1.y;
 
-    int width = (pos2.x - pos1.x) * rate;
-    int height = pos2.y - pos1.y;
-
-    DrawExtendGraph(pos1.x, pos1.y, pos2.x, pos2.y,
-        playerHpImageId_[(int)UI_IMAGE::HP_FRAME], true);
+    DrawExtendGraph(
+        pos1.x, pos1.y,
+        pos2.x, pos2.y,
+        playerHpImageId_[(int)UI_IMAGE::HP_FRAME], 
+        true
+    );
 
     DrawRectGraph(
-        pos1.x,
-        pos1.y,
-        0,
-        0,
-        width,
+        pos1.x, pos1.y,
+        0, 0,
+        (int)width,
         42,
         playerHpImageId_[(int)UI_IMAGE::HP_BAR],
         true
@@ -855,7 +843,7 @@ void Player::HpDraw(void)
 
 }
 
-// ÉXÉeÅ[ÉWÇ…ëŒÇµÇƒñ≥óùÇ‚ÇËìñÇΩÇËîªíËÇÇµÇƒÇ¢ÇÈ
+// ÉXÉeÅ[ÉWÇÃìñÇΩÇËîªíË
 void Player::StageCollision(void)
 {
     float distance = sqrtf(unit_.pos_.x * unit_.pos_.x + unit_.pos_.z * unit_.pos_.z);
@@ -893,9 +881,6 @@ void Player::KnockBack(const VECTOR& attackPos, float power)
     dir = VScale(dir, 1.0f / len);
 
     knockBackVel_ = VScale(dir, power);
-
-    // è≠ÇµïÇÇ©ÇπÇΩÇ¢Ç»ÇÁ
-    //knockBackVel_.y = 5.0f;
 }
 
 void Player::KnocBackUpdate(void)

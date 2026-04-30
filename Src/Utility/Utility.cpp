@@ -6,6 +6,11 @@
 #include <DxLib.h>
 #include "Utility.h"
 
+VECTOR Utility::ChangeAllVec(float v)
+{
+    return VECTOR(v, v, v);
+}
+
 int Utility::Round(float v)
 {
     return static_cast<int>(roundf(v));

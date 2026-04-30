@@ -45,7 +45,7 @@ public:
 
 	static constexpr int MUSCLE_INDEX = 4;
 
-	static constexpr int PRESS_BUTTON_EX_RATE = 2.0f;
+	static constexpr double PRESS_BUTTON_EX_RATE = 2.0f;
 
 	TitleScene();
 	~TitleScene()override;
@@ -69,7 +69,7 @@ private:
 	std::vector<int> titleImages_;
 
 	// âÊëúÇÃç¿ïW
-	VECTOR imagePos_[10];
+	std::vector<VECTOR> imagePos_;
 	int frameCounter_;
 
 	struct SubBase
@@ -83,7 +83,6 @@ private:
 
 	SubBase unit_;
 
-	int startCounter_;
 	bool isStart_;
 	int	voiceLevel_;
 

@@ -1,7 +1,6 @@
 #include "SceneManager.h"
 
 #include <DxLib.h>
-#include <EffekseerForDXLib.h>
 
 #include "../../Manager/Loading/Loading.h"
 
@@ -32,8 +31,6 @@ void SceneManager::Init(void)
 	Loading::GetInstance()->Init();
 	Loading::GetInstance()->Load();
 
-
-
 	// 最初はタイトル画面から
 	ChangeScene(SCENE_ID::TITLE);
 
@@ -48,8 +45,7 @@ void SceneManager::Init(void)
 	SetUseBackCulling(false);
 	// ライトを有効にする
 	SetUseLighting(true);
-	// ディレクショナルライト方向の設定(正規化されていなくても良い)
-	// 正面から斜め下に向かったライト
+	// ディレクショナルライト方向の設定
 	ChangeLightTypeDir({ 0.00f, -1.00f, 0.00f });
 
 	// フォグ設定
@@ -99,9 +95,6 @@ void SceneManager::Update(void)
 	{
 		// 現在のシーンの更新
 		scenes_.back()->Update();
-
-		// Effekseerにより再生中のエフェクトを更新する
-		UpdateEffekseer3D();
 	}
 }
 
@@ -122,19 +115,7 @@ void SceneManager::Draw(void)
 		{
 			scene->Draw();
 		}
-
-		// Effekseerにより再生中のエフェクトを描画する
-		DrawEffekseer3D();
 	}
-
-#ifdef _DEBUG
-
-	// 残存しているシーンの数
-	SetFontSize(32);
-	DrawFormatString(0, 32, 0xffffff, "現在のシーンの残存数は%i個", SceneManager::GetInstance().GetSceneSize());
-	SetFontSize(16);
-
-#endif // _DEBUG
 }
 
 // 解放

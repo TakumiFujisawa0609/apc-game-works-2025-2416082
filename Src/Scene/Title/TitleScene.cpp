@@ -11,8 +11,17 @@
 #include"../../Utility/Utility.h"
 
 // コンストラクタ
-TitleScene::TitleScene():
-	mic_(nullptr)
+TitleScene::TitleScene() :
+	animation_(nullptr),
+	mic_(nullptr),
+	frameCounter_(0),
+	imagePos_(),
+	imageScale_(0.0f),
+	isStart_(false),
+	voiceLevel_(0),
+	titleImages_(),
+	unit_()
+
 {
 }
 
@@ -56,7 +65,6 @@ void TitleScene::Init(void)
 	mic_->Init();
 	mic_->Start();
 
-	startCounter_ = 0;
 	isStart_ = false;
 
 	imageScale_ = 0.5f;
@@ -64,10 +72,10 @@ void TitleScene::Init(void)
 	frameCounter_ = 0;
 
 	// 初期化（最初の一回だけ）
-	for (int i = 0; i < 10; i++) {
-		imagePos_[i] = VGet(
-			GetRand(Application::SCREEN_SIZE_X),
-			GetRand(Application::SCREEN_SIZE_Y),
+	for (VECTOR& pos : imagePos_) {
+		pos = VGet(
+			(float)GetRand(Application::SCREEN_SIZE_X),
+			(float)GetRand(Application::SCREEN_SIZE_Y),
 			0.0f
 		);
 	}
@@ -92,11 +100,12 @@ void TitleScene::Update(void)
 		isStart_ = true;
 	}
 
-	// 遷移してから30フレーム後にゲームシーンへ遷移
 	if (isStart_) {
-		startCounter_++;
 		animation_->Play((int)ANIM_TYPE::ATTACK,false);
-		scene.JumpScene(SCENE_ID::GAME);
+		if (animation_->IsEnd((int)ANIM_TYPE::ATTACK)) {
+			scene.JumpScene(SCENE_ID::GAME);
+			return;
+		}
 		return;
 	}
 
@@ -106,9 +115,9 @@ void TitleScene::Update(void)
 
 	// 音量が4000を超えたときの処理
 	// プレイヤーと「筋」「肉」の画像のスケールを一定の大きさまで増やす
-	if (mic_->GetPlayGameLevel() > 4000)
+	if (mic_->GetPlayGameLevel() > 3500)
 	{
-		AddBoneScale(MUSCLE_INDEX, { 0.04f,0.04f,0.04f });
+		AddBoneScale(MUSCLE_INDEX, Utility::ChangeAllVec(0.04f));
 
 		if (imageScale_ <= MUSCLE_IMAGE_SCALE_MAX) {
 			imageScale_ += 0.5f;
@@ -119,10 +128,10 @@ void TitleScene::Update(void)
 	// 10フレームごとに座標を更新
 	frameCounter_++;
 	if (frameCounter_ % 10 == 0) {
-		for (int i = 0; i < 10; i++) {
-			imagePos_[i] = VGet(
-				GetRand(Application::SCREEN_SIZE_X),
-				GetRand(Application::SCREEN_SIZE_Y),
+		for (VECTOR& pos : imagePos_) {
+			pos = VGet(
+				(float)GetRand(Application::SCREEN_SIZE_X),
+				(float)GetRand(Application::SCREEN_SIZE_Y),
 				0.0f
 			);
 		}
@@ -138,7 +147,7 @@ void TitleScene::Update(void)
 
 	// 画像の大きさが最低値に達したときの制限
 	if (imageScale_ <= MUSCLE_IMAGE_SCALE_MIN) {
-		imageScale_ = 3.0f;
+		imageScale_ = MUSCLE_IMAGE_SCALE_MIN;
 	}
 #pragma endregion 
 

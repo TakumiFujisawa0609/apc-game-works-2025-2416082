@@ -4,10 +4,11 @@
 
 #include "AnimationController.h"
 
-AnimationController::AnimationController(int modelId)
+AnimationController::AnimationController(int modelId):
+	isLoop_(false),
+	modelId_(modelId),
+	playType_(-1)
 {
-	modelId_ = modelId;
-	playType_ = -1;
 }
 
 AnimationController::~AnimationController(void)
@@ -16,16 +17,6 @@ AnimationController::~AnimationController(void)
 
 void AnimationController::AddInFbx(int type, float speed, int animIndex)
 {
-	//Animation animation;
-	//animation.animIndex = animIndex;
-	//animation.speed = speed;
-
-	//if (animations_.count(type) == 0)
-	//{
-	//	// “®“I”z—ñ‚É’Ç‰Á
-	//	animations_.emplace(type, animation);
-	//}
-
 	Animation animation;
 	animation.model = -1;
 	animation.animIndex = animIndex;

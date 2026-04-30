@@ -19,6 +19,8 @@ public:
 
 	static constexpr float kEpsilonNormalSqrt = 1e-15F;
 
+	static VECTOR ChangeAllVec(float v);
+
 	// 四捨五入
 	static int Round(float v);
 
@@ -65,10 +67,8 @@ public:
 	static double Distance(const Vector2& v1, const Vector2& v2);
 
 
-	// 
 	static float VLength(const VECTOR& v);
 
-	//
 	static VECTOR VDivision(const VECTOR& v, float f);
 
 	// ベクトル正規化

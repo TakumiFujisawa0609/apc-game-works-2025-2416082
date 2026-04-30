@@ -53,17 +53,6 @@ void ArmBase::SubUpdate(void)
 	}
 
 	unit_.isAlive_ = (cnt_ > 0);
-
-
-#ifdef _DEBUG
-
-	if (CheckHitKey(KEY_INPUT_0)) {
-		AddArmScale({ -0.05, -0.05, -0.05 });
-	}
-	if (CheckHitKey(KEY_INPUT_9)) {
-		AddBoneScale(4, { 0.05, 0.05, 0.05 });
-	}
-#endif // _DEBUG
 }
 
 void ArmBase::SubDraw(void)

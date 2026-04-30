@@ -4,11 +4,28 @@
 
 #include "../../Application/Application.h"
 
-#include "../../Manager/Input/InputManager.h"
+#include "../../Manager/Input/KeyManager.h"
 
 #include "../../Utility/Utility.h"
 
 Camera* Camera::instance_ = nullptr;
+
+Camera::Camera() :
+    mode_(MODE::PLAYER_FOLLOW),
+    modeFuncs_(),
+    cameraPos_(0.0f,0.0f,0.0f),
+    angle_(Utility::VECTOR_ZERO),
+    mouseX(0),
+    mouseY(0),
+    targetPlayerPos_(nullptr),
+    targetBossPos_(nullptr),
+    bossPos_(Utility::VECTOR_ZERO),
+    deathTimer_(0.0f),
+    radius_(0.0f),
+    height_(0.0f)
+{
+
+}
 
 void Camera::Init() 
 {
@@ -40,13 +57,13 @@ void Camera::Apply()
     switch (mode_)
     {
     case Camera::PLAYER_FOLLOW:
-        SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
+        SetCameraPositionAndTarget_UpVecY(cameraPos_, *targetPlayerPos_);
         break;
     case Camera::BOSS_DEATH:
-        SetCameraPositionAndTarget_UpVecY(camPos_, *targetBossPos_);
+        SetCameraPositionAndTarget_UpVecY(cameraPos_, *targetBossPos_);
         break;
     case Camera::PLAYER_DEATH:
-        SetCameraPositionAndTarget_UpVecY(camPos_, *targetPlayerPos_);
+        SetCameraPositionAndTarget_UpVecY(cameraPos_, *targetPlayerPos_);
         break;
     default:
         break;
@@ -82,64 +99,60 @@ void Camera::MouseMoveCamera(void)
         return;
     }
 
-    const float sens = 0.1f; // 感度調整
+    const float sens = MOUSE_SENSI; // 感度調整
     angle_.y += deltaX * sens;
     angle_.x += deltaY * sens;
 
-    // 上下の回転制限
-    float limit = DX_PI_F * 18;
-    if (angle_.x > limit) angle_.x = limit;
-    if (angle_.x < -limit) angle_.x = -limit;
+
+    if (angle_.x > CAMERA_MOVE_LIMIT) angle_.x = CAMERA_MOVE_LIMIT;
+    if (angle_.x < -CAMERA_MOVE_LIMIT) angle_.x = -CAMERA_MOVE_LIMIT;
 }
 
 void Camera::PadMoveCamera()
 {
-    int lx = 0, ly = 0;
+    int lx = 0;
+    int ly = 0;
     GetJoypadAnalogInputRight(&lx, &ly, DX_INPUT_PAD1);
 
-    const float sens = 0.05f;
     const int deadZone = 200;
 
     if (abs(lx) > deadZone)
-        angle_.y += lx * sens * 0.1f;
+        angle_.y += lx * PAD_SENSI * 0.1f;
 
     if (abs(ly) > deadZone)
-        angle_.x += ly * sens * 0.1f;
+        angle_.x += ly * PAD_SENSI * 0.1f;
 
     // 上下制限
-    if (angle_.x > 89.0f) angle_.x = 89.0f;
-    if (angle_.x < -89.0f) angle_.x = -89.0f;
+    if (angle_.x > CAMERA_MOVE_LIMIT) angle_.x = CAMERA_MOVE_LIMIT;
+    if (angle_.x < -CAMERA_MOVE_LIMIT) angle_.x = -CAMERA_MOVE_LIMIT;
 }
 
 void Camera::PlayerFollowCamera(void)
 {
-    auto& input = InputManager::GetInstance();
     MouseMoveCamera();
     PadMoveCamera();
 
-    if (input.IsNew(KEY_INPUT_RIGHT)) angle_.y += 5;
-    if (input.IsNew(KEY_INPUT_LEFT))  angle_.y -= 5;
-    if (input.IsNew(KEY_INPUT_DOWN) && angle_.x <= 30)  angle_.x += 5;
-    if (input.IsNew(KEY_INPUT_UP) && angle_.x >= -30)  angle_.x -= 5;
+    if (KEY::GetIns().GetInfo(KEY_TYPE::DOWN).down && angle_.x <= 30)  angle_.x += 5;
+    if (KEY::GetIns().GetInfo(KEY_TYPE::UP).down && angle_.x >= -30)  angle_.x -= 5;
+    if (KEY::GetIns().GetInfo(KEY_TYPE::RIGHT).down) angle_.y += 5;
+    if (KEY::GetIns().GetInfo(KEY_TYPE::LEFT).down)  angle_.y -= 5;
 
     // Y軸回転行列を作成
-    MATRIX matY = MGetRotY(angle_.y * DX_PI_F / 180.0f);
-    MATRIX matX = MGetRotX(angle_.x * DX_PI_F / 180.0f);
+    MATRIX matY = MGetRotY(Utility::Deg2RadF(angle_.y));
+    MATRIX matX = MGetRotX(Utility::Deg2RadF(angle_.x));
     MATRIX mat = MMult(matX, matY);
 
     // LOCAL_POSの周りで回転させる
     VECTOR rotatePos = VTransform(LOCAL_POS, mat);
 
     // 回転後の位置をターゲット座標に加算
-    camPos_ = VAdd(*targetPlayerPos_, rotatePos);
+    cameraPos_ = VAdd(*targetPlayerPos_, rotatePos);
 }
 
 void Camera::PlayerDeathCamera(void)
 {
-    // --- タイマー更新（60FPS想定） ---
     deathTimer_ += 1.0f / 60.0f;
 
-    // --- 基本パラメータ ---
     const float startRadius = 1000.0f;    // 初期距離
     const float startHeight = 200.0f;     // 初期高さ
     const float rotationSpeedDegPerSec = 30.0f;  // Y軸回転速度（°/秒）
@@ -151,13 +164,13 @@ void Camera::PlayerDeathCamera(void)
     float currentHeight = startHeight + riseSpeed * deathTimer_;
 
     VECTOR offset = VGet(0.0f, currentHeight, -currentRadius);
-    camPos_ = VAdd(*targetPlayerPos_, offset);
+    cameraPos_ = VAdd(*targetPlayerPos_, offset);
 
     // --- Y軸回転（ラジアン換算） ---
     angle_.y += Utility::Deg2RadF(rotationSpeedDegPerSec) * (1.0f / 60.0f);
 
     // --- Optional: ターゲット方向を常にプレイヤーに向ける ---
-    VECTOR dir = VSub(*targetPlayerPos_, camPos_);
+    VECTOR dir = VSub(*targetPlayerPos_, cameraPos_);
     angle_.x = atanf(dir.y / sqrtf(dir.x * dir.x + dir.z * dir.z));
     angle_.z = 0.0f; // ロールはなし
 }
@@ -165,10 +178,10 @@ void Camera::PlayerDeathCamera(void)
 
 void Camera::BossDeathCamera(void)
 {
-    const float baseRadius = 1000.0f;  
+    const float baseRadius = -1000.0f;
     const float baseHeight = 200.0f;   
 
-    const VECTOR offset = VGet(0.0f, baseHeight, -baseRadius);
-    camPos_ = VAdd(bossPos_, offset);
+    const VECTOR offset = VGet(0.0f, baseHeight, baseRadius);
+    cameraPos_ = VAdd(bossPos_, offset);
 }
 

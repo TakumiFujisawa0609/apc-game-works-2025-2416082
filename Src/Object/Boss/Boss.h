@@ -8,6 +8,7 @@ class AttackBase;
 class Boss : public UnitBase
 {
 public:
+#pragma region 定数定義
 	const VECTOR LOCAL_ANGLE = { 0.0f, Utility::Deg2RadF(180.0f), 0.0f };
 
 	static constexpr float RADIUS = 250.0f;				// 半径の大きさ
@@ -40,10 +41,12 @@ public:
 
 		MAX
 	};
+#pragma endregion 定数定義
 
-
-	Boss(const VECTOR& target);
-	~Boss() override;
+	// コンストラクタ
+	Boss(const VECTOR& target);	
+	// デストラクタ
+	~Boss() override;			
 
 	// UI描画
 	void UIDraw(void);
@@ -53,12 +56,11 @@ public:
 
 	// ゲッター・セッター関数==================
 	const std::vector<AttackBase*> GetAttackIns(void);
-	// ========================================
+	const STATE GetState(void) { return state_; }
 
 	void SetMuscleRatio(const float ratio) { playerMuscleRatio_ = ratio; }
-	void SetVoiceLevel(const float voiceLevel) { voiceLevel_ = voiceLevel; }
-
-	const STATE GetState(void) { return state_; }
+	void SetVoiceLevel(const float voiceLevel) { voiceLevel_ = (int)voiceLevel; }
+	// ========================================
 
 protected:
 	void SubLoad(void) override;
@@ -68,33 +70,16 @@ protected:
 	void SubRelease(void) override;
 private:
 
-	// 攻撃のインスタンスの変数
-	std::vector<AttackBase*> attacks_;
-
-	// ボスの手用のモデルハンドル
-	int handModel_;
-
-	float playerMuscleRatio_;
-
-	STATE state_;
-	ATTACK attackState_;
-
-	int attackCounter_;		// 攻撃用カウンタ
-	bool isAttackInit_;		// (true : 攻撃開始後 / false : 攻撃開始前)
-	bool isAttackEnd_;		// (true : 攻撃終了後 / false : 攻撃終了前)
-
-	const VECTOR& player_;
-	int voiceLevel_;
-
 	void SetMatrix(void);
-	void ToDeath(void);
 	void LookTarget(void);
 
-#pragma region ステート関数
-	void Attack(void);
-	void Idle(void);
-	void Damage(void);
-	void Death(void);
+#pragma region ステート管理用関数
+	void ToDeath(void);		// 死亡ステートへの遷移関数
+
+	void Idle(void);		// 何もしてない
+	void Attack(void);		// 攻撃ステート
+	void Damage(void);		// ダメージステート
+	void Death(void);		// 死亡ステート
 #pragma endregion
 
 #pragma region 攻撃関係の処理を別で管理
@@ -108,4 +93,27 @@ private:
 	void AttackDraw(void);
 	void AttackRelease(void);
 #pragma endregion
+
+#pragma region 変数定義
+	// 攻撃のインスタンスの変数
+	std::vector<AttackBase*> attacks_;
+
+	// ボスの手用のモデルハンドル
+	int handModel_;
+
+	// 筋肉の割合
+	float playerMuscleRatio_;
+
+	// ステート管理用変数
+	STATE state_;
+	ATTACK attackState_;
+
+	int attackCounter_;		// 攻撃用カウンタ
+	bool isAttackInit_;		// (true : 攻撃開始後 / false : 攻撃開始前)
+	bool isAttackEnd_;		// (true : 攻撃終了後 / false : 攻撃終了前)
+
+	const VECTOR& playerPos_;	// プレイヤーの座標
+	int voiceLevel_;		// マイクに入力された音量
+#pragma endregion 変数定義
+
 };
