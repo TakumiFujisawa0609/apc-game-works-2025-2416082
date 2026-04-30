@@ -11,8 +11,18 @@
 #include"../../Utility/Utility.h"
 
 // コンストラクタ
-TitleScene::TitleScene():
-	mic_(nullptr)
+TitleScene::TitleScene() :
+	animation_(nullptr),
+	mic_(nullptr),
+	frameCounter_(0),
+	imagePos_(),
+	imageScale_(0.0f),
+	isStart_(false),
+	startCounter_(0),
+	voiceLevel_(0),
+	titleImages_(),
+	unit_()
+
 {
 }
 

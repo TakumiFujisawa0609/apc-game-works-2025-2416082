@@ -1,7 +1,5 @@
 #include "Application.h"
 
-#include <EffekseerForDXLib.h>
-
 #include"../Manager/FPS/FPS.h"
 #include"../Manager/Input/KeyManager.h"
 #include"../Manager/Input/InputManager.h"
@@ -27,30 +25,14 @@ Application::~Application(void)
 {
 }
 
-void Application::InitEffekseer(void)
-{
-	if (Effekseer_Init(8000) == -1) {
-		DxLib_End();
-		return;
-	}
-
-	SetChangeScreenModeGraphicsSystemResetFlag(false);
-	Effekseer_SetGraphicsDeviceLostCallbackFunctions();
-}
 
 // 初期化
 void Application::Init(void)
 {
-	// アプリケーションの初期設定
-	SetWindowText("");
-
 	// ウィンドウ関連
-	SetWindowText("脳筋の拳_田中大樹_2416082");
+	SetWindowText("脳筋の拳");
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);	// サイズ変更
 	ChangeWindowMode(true);	// false = フルスクリーン
-
-	// エフェクシアの初期化
-	InitEffekseer();
 
 	// DxLibの初期化
 	isInitFail_ = false;
@@ -117,7 +99,6 @@ void Application::Release(void)
 
 	// フレームレート解放
 	delete fps_;
-	Effkseer_End();
 
 	// DxLib終了
 	if (DxLib_End() == -1)

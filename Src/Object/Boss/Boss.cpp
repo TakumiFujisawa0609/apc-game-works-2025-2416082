@@ -18,7 +18,7 @@
 #include "../Player/Arm/RightArm.h"
 
 Boss::Boss(const VECTOR& target) :
-	player_(target),
+	playerPos_(target),
 	playerMuscleRatio_()
 {
 }
@@ -169,7 +169,7 @@ void Boss::ToDeath(void)
 void Boss::LookTarget(void)
 {
 	//target_ ÇÃï˚å¸Ç…å¸Ç≠
-	VECTOR dir = VSub(player_, unit_.pos_);
+	VECTOR dir = VSub(playerPos_, unit_.pos_);
 	float targetAngleY = atan2f(dir.x, dir.z);
 
 	float rotationSpeed = Utility::Deg2RadF(1.0f);
@@ -255,9 +255,9 @@ void Boss::AttackLoad(void)
 {
 	// çUåÇä÷òAÇÃÉçÅ[Éh
 	attacks_.reserve((int)ATTACK::MAX);
-	attacks_.emplace_back(new HandSlap(unit_.pos_, player_, voiceLevel_));
-	attacks_.emplace_back(new BossShot(unit_, player_, voiceLevel_));
-	attacks_.emplace_back(new Star(unit_.pos_, player_, voiceLevel_));
+	attacks_.emplace_back(new HandSlap(unit_.pos_, playerPos_, voiceLevel_));
+	attacks_.emplace_back(new BossShot(unit_, playerPos_, voiceLevel_));
+	attacks_.emplace_back(new Star(unit_.pos_, playerPos_, voiceLevel_));
 
 	for (AttackBase*& attack : attacks_)
 	{

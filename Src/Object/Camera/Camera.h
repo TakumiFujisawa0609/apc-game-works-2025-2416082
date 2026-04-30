@@ -8,9 +8,14 @@ class Camera
 {
 public:
 
-	static constexpr float CAMERA_PLAYER_POS = 300.0f;
+	static constexpr float CAMERA_MOVE_LIMIT = DX_PI_F * 18;	// 上下の回転制限
 
-	static constexpr VECTOR LOCAL_POS = { 0.0f, 400.0f, -800.0f };
+	static constexpr float MOUSE_SENSI = 0.1f;
+	static constexpr float PAD_SENSI = 0.05f;
+
+	static constexpr float CAMERA_PLAYER_POS = 300.0f;	// カメラ座標
+
+	static constexpr VECTOR LOCAL_POS = { 0.0f, 400.0f, -800.0f };	// ローカル座標
 
 	enum MODE
 	{
@@ -39,12 +44,15 @@ private:
 	// 静的インスタンス
 	static Camera* instance_;
 
+	Camera();
+	~Camera() = default;
+
 	MODE mode_;
 
 	using ModeFunc = void(Camera::*)();
 	std::map<MODE, ModeFunc> modeFuncs_;
 
-	VECTOR camPos_;
+	VECTOR cameraPos_;
 	VECTOR angle_;
 
 	int mouseX, mouseY;

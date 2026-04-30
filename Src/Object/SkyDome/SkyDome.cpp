@@ -2,7 +2,8 @@
 
 #include "../../Utility/Utility.h"
 
-SkyDome::SkyDome()
+SkyDome::SkyDome():
+	tex_(-1)
 {
 }
 

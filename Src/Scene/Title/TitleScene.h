@@ -45,7 +45,7 @@ public:
 
 	static constexpr int MUSCLE_INDEX = 4;
 
-	static constexpr int PRESS_BUTTON_EX_RATE = 2.0f;
+	static constexpr double PRESS_BUTTON_EX_RATE = 2.0f;
 
 	TitleScene();
 	~TitleScene()override;

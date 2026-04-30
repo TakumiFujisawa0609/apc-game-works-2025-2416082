@@ -37,8 +37,6 @@ public:
 	void GameEnd(void) { gameEnd_ = true; }
 	bool GetGameEnd(void) { return gameEnd_; }
 
-
-
 private:
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする
@@ -57,8 +55,6 @@ private:
 	// Application copy = *Application::GetInstance();
 	// Application copied(*Application::GetInstance());
 	// Application moved = std::move(*Application::GetInstance());
-
-	void InitEffekseer(void);
 
 private:
 

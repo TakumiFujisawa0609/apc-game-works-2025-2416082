@@ -22,10 +22,14 @@ public:
 		NON=-1,
 		
 		ENTER,
-
 		GAME_END,
 
-		MAX,
+		UP,
+		DOWN,
+		RIGHT,
+		LEFT,
+
+		MAX
 	};
 
 	struct KEY_INFO { bool prev = false, now = false, up = false, down = false; };

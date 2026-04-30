@@ -102,7 +102,7 @@ private:
 
 	static constexpr VECTOR DOWN_MUSCLE = { -0.005f,-0.005f,-0.005f };	//常時筋肉が減るため、減らし続ける用の値
 
-
+#pragma endregion 定数定義
 
 	// モデルアニメーション用----------------------------------
 	struct AnimInfo
@@ -122,13 +122,12 @@ private:
 		{ "Death", 30.0f },
 	};
 	// --------------------------------------------------------
-#pragma endregion
 
 public:
 
 
-	Player();
-	~Player() override;
+	Player();			// コンストラクタ
+	~Player() override;	// デストラクタ
 
 	void UIDraw(void);				// UI描画
 
@@ -201,16 +200,7 @@ private:
 	MicInput* mic_;						// マイクインプットクラス
 	LeftArm* leftArm_;					// 左腕クラス
 	RightArm* rightArm_;				// 右腕クラス
-
 	// -----------------------------------------------------
-
-#pragma region 列挙型定義
-	// ステート管理用
-	STATE state_;
-
-	// 現在のコンボ
-	CONBO conbo_;
-#pragma endregion
 
 #pragma region 変数
 
@@ -236,6 +226,12 @@ private:
 	// HPの隣に置くプレイヤーのアイコン
 	int playerIconImageId_[PLAYER_ICON_IMAGE_MAX];
 	int playerHpImageId_[(int)UI_IMAGE::MAX];
+
+	// ステート管理用
+	STATE state_;
+
+	// 現在のコンボ
+	CONBO conbo_;
 
 #pragma endregion
 
