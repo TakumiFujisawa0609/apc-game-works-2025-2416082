@@ -45,6 +45,8 @@ public:
 
 	static constexpr int MUSCLE_INDEX = 4;
 
+	static constexpr int MUSCLE_KANJI_MAX = 10;
+
 	static constexpr double PRESS_BUTTON_EX_RATE = 2.0f;
 
 	TitleScene();
@@ -64,6 +66,20 @@ public:
 private:
 	AnimationController* animation_;
 	MicInput* mic_;
+
+	// モデルアニメーション用----------------------------------
+	struct AnimInfo
+	{
+		const char* name;
+		float speed;
+	};
+
+	// アニメーションのパスと再生速度の設定
+	const std::vector<AnimInfo> ANIMATION_INFO = {
+		{ "Idle1", 30.0f },
+		{ "Punching", 100.0f },
+	};
+	// --------------------------------------------------------
 
 	// タイトル画面で表示する画像のハンドルID
 	std::vector<int> titleImages_;

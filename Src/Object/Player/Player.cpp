@@ -25,8 +25,7 @@
 Player::Player() :
     animation_(nullptr),
     mic_(nullptr),
-    leftArm_(nullptr),
-    rightArm_(nullptr),
+    arms_(),
     state_(STATE::IDLE),
     rollCounter_(0),
     nextRollCounter_(0),
@@ -69,13 +68,13 @@ void Player::SubLoad(void)
    // マイク
    mic_ = new MicInput();
 
-   // 左腕
-   leftArm_ = new LeftArm(unit_.model_);
-   leftArm_->Load();
+   // 腕
+   arms_.emplace_back(new LeftArm(unit_.model_));
+   arms_.emplace_back(new RightArm(unit_.model_));
 
-   // 右腕
-   rightArm_ = new RightArm(unit_.model_);
-   rightArm_->Load();
+   for (ArmBase*& arm : arms_) {
+       arm->Load();
+   }
 
 #pragma endregion
 
@@ -88,7 +87,8 @@ void Player::SubLoad(void)
    // 関数ポインタに登録 ～～～～～～～～～～～～～～～～～
 
    // モデルアニメーションのロード--------------------------------
-   for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
+   for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) 
+   {
        // アニメーションの追加
        animation_->Add(
            (int)static_cast<ANIM_TYPE>(i), 
@@ -107,6 +107,7 @@ void Player::SubLoad(void)
 //初期化処理
 void Player::SubInit(void)
 {
+    // パラメーターの初期化
     ParamInit();
 
     // カメラの注視点をずらす
@@ -132,8 +133,9 @@ void Player::SubInit(void)
     conbo_ = CONBO::CONBO1;
 
     // 腕の初期化
-    leftArm_->Init();
-    rightArm_->Init();
+    for (ArmBase*& arm : arms_) {
+        arm->Init();
+    }
 
     // 入力デバイスの初期化
     mic_->Init();
@@ -176,8 +178,9 @@ void Player::SubUpdate(void)
 #pragma region 他クラスの更新処理
 
     // 腕の更新処理
-    leftArm_->Update();
-    rightArm_->Update();
+    for (ArmBase*& arm : arms_) {
+        arm->Update();
+    }
 
     // アニメーション処理
     animation_->Update();
@@ -194,8 +197,9 @@ void Player::SubDraw(void)
     SetMatrix();
 
     // 腕に関する描画処理
-    leftArm_->Draw();
-    rightArm_->Draw();
+    for (ArmBase*& arm : arms_) {
+        arm->Draw();
+    }
 
     // プレイヤーモデルの描画
     MV1DrawModel(unit_.model_);
@@ -207,11 +211,10 @@ void Player::SubRelease(void)
     //アニメーションの開放
     Utility::SafeDeleteInstance(animation_);
 
-    // 左腕の開放
-    Utility::SafeDeleteInstance(leftArm_);
-
-    // 右腕の開放
-    Utility::SafeDeleteInstance(rightArm_);
+    // 腕の開放処理
+    for (ArmBase*& arm : arms_) {
+        arm->Release();
+    }
 
     // マイクインプット
     if (mic_) {
@@ -234,9 +237,8 @@ void Player::SubRelease(void)
     }
 
     // サウンドの開放
-    for (int i = 0; i < (int)SOUND::MAX; i++) {
-        SoundManager::GetIns().Delete((SOUND)i);
-    }
+    SoundManager::GetIns().Delete(SOUND::PLAYER_BIG_ATTACK);
+    SoundManager::GetIns().Delete(SOUND::PLAYER_SMALL_ATTACK);
 }
 
 
@@ -250,7 +252,7 @@ void Player::OnCollision(UnitBase* other)
         if (hand->GetState() == HandSlap::STATE::END) return;
 
         KnockBack(hand->GetUnit().pos_);
-        SetDamage(HP_DAMAGE);
+        SetDamage(HandSlap::SLAP_DAMAGE);
         GameScene::Shake();
         return;
     }
@@ -258,14 +260,14 @@ void Player::OnCollision(UnitBase* other)
     if (BossShot* shot = dynamic_cast<BossShot*>(other))
     {
         KnockBack(shot->GetUnit().pos_);
-        SetDamage(HP_DAMAGE);
+        SetDamage(BossShot::SHOT_DAMAGE);
         GameScene::Shake();
         return;
     }
 
     if (Star* star = dynamic_cast<Star*>(other)) {
         KnockBack(star->GetUnit().pos_);
-        SetDamage(HP_DAMAGE);
+        SetDamage(Star::STAR_DAMAGE);
         GameScene::Shake();
         return;
     }
@@ -279,8 +281,6 @@ void Player::UIDraw(void)
 
     //HP描画
     HpDraw();
-    rightArm_->UIDraw();
-
 
     DebugDraw();
 }
@@ -305,8 +305,8 @@ void Player::Move(void)
         MATRIX mat = MGetRotY(Utility::Deg2RadF(camera.GetAngle().y));
         VECTOR worldMove = VTransform(VNorm(move_), mat);
 
-        // 移動速度（筋肉量で変動）
-        unit_.para_.speed = (GetMuscleRatio(LeftArm::LEFT_ARM_INDEX) < 0.7f) ? MOVE_SPEED : MOVE_SPEED / 2;
+        // 移動速度（筋肉量の割合で変動）
+        unit_.para_.speed = (GetMuscleRatio() < 0.7f) ? MOVE_SPEED : MOVE_SPEED / 2;
 
         worldMove = VScale(worldMove, unit_.para_.speed);
         unit_.pos_ = VAdd(unit_.pos_, worldMove);
@@ -366,17 +366,17 @@ void Player::Attack(void)
     {
     case CONBO::CONBO1:
         anim = static_cast<int>(AT::ATTACK1);
-        leftArm_->SetAttackTime(10);
+        arms_.at(0)->SetAttackTime(10);
         break;
     case CONBO::CONBO2:
         anim = (int)AT::ATTACK2;
         anim = static_cast<int>(AT::ATTACK2);
-        rightArm_->SetAttackTime(10);
+        arms_.at(1)->SetAttackTime(10);
         break;
     case CONBO::CONBO3:
         anim = (int)AT::ATTACK3;
         anim = static_cast<int>(AT::ATTACK3);
-        leftArm_->SetAttackTime(10);
+        arms_.at(0)->SetAttackTime(10);
         break;
     }
 
@@ -661,10 +661,10 @@ void Player::VoiceUpMuscle(void)
     AddBoneScale(4, DOWN_MUSCLE);
 }
 
-const float Player::GetMuscleRatio(int index)
+const float Player::GetMuscleRatio()
 {
     // 指定ボーンのローカル行列を取得
-    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, index);
+    MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, ArmBase::MUSCLE_INDEX);
 
     // Y軸のスケールを抽出
     float scaleY = VSize({ mat.m[1][0], mat.m[1][1], mat.m[1][2] });
@@ -812,13 +812,12 @@ void Player::HpDraw(void)
     VECTOR pos1 = { (Application::SCREEN_SIZE_X / 10) * 2, (Application::SCREEN_SIZE_Y / 10) * 8 };
     VECTOR pos2 = { (Application::SCREEN_SIZE_X / 10) * 8, (Application::SCREEN_SIZE_Y / 10) * 9 + 60 };
 
-    float rate = unit_.hp_ / (float)HP_MAX;
-    float width = (pos2.x - pos1.x) * rate;
-    float height = pos2.y - pos1.y;
+    float drawWidth = (pos2.x - pos1.x) * (unit_.hp_ / (float)HP_MAX);
+    float drawHeight = pos2.y - pos1.y;
 
     DrawExtendGraph(
-        pos1.x, pos1.y,
-        pos2.x, pos2.y,
+        (int)pos1.x, (int)pos1.y,
+        (int)pos2.x, (int)pos2.y,
         playerHpImageId_[(int)UI_IMAGE::HP_FRAME], 
         true
     );
@@ -826,7 +825,7 @@ void Player::HpDraw(void)
     DrawRectGraph(
         pos1.x, pos1.y,
         0, 0,
-        (int)width,
+        (int)drawWidth,
         42,
         playerHpImageId_[(int)UI_IMAGE::HP_BAR],
         true

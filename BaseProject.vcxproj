@@ -162,7 +162,6 @@
     <ClCompile Include="Src\Object\SkyDome\SkyDome.cpp" />
     <ClCompile Include="Src\Object\Stage\Stage.cpp" />
     <ClCompile Include="Src\Object\UnitBase.cpp" />
-    <ClCompile Include="Src\Scene\Event\ShoutEvent\ShoutEvent.cpp" />
     <ClCompile Include="Src\Scene\GameClear\GameClear.cpp" />
     <ClCompile Include="Src\Scene\GameOver\GameOver.cpp" />
     <ClCompile Include="Src\Scene\Game\GameScene.cpp" />
@@ -200,7 +199,6 @@
     <ClInclude Include="Src\Object\SkyDome\SkyDome.h" />
     <ClInclude Include="Src\Object\Stage\Stage.h" />
     <ClInclude Include="Src\Object\UnitBase.h" />
-    <ClInclude Include="Src\Scene\Event\ShoutEvent\ShoutEvent.h" />
     <ClInclude Include="Src\Scene\GameClear\GameClear.h" />
     <ClInclude Include="Src\Scene\GameOver\GameOver.h" />
     <ClInclude Include="Src\Scene\Game\GameScene.h" />

@@ -5,6 +5,8 @@
 class Star : public AttackBase
 {
 public:
+	static constexpr int STAR_DAMAGE = 10;
+
 	Star(const VECTOR& boss, const VECTOR& player, const int& voiceLevel);
 	~Star() override;
 

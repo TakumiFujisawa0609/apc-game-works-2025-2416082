@@ -5,6 +5,8 @@ class BossShot : public AttackBase
 {
 public:
 
+	static constexpr int SHOT_DAMAGE = 10;
+
 	// ステート管理用列挙型定義
 	enum class STATE
 	{

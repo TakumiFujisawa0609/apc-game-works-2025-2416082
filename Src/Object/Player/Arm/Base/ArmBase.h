@@ -6,11 +6,8 @@ class ArmBase : public UnitBase
 {
 public:
 
-
-
-	static constexpr int RIGHT_ARM_INDEX = 4;//35;
+	static constexpr int MUSCLE_INDEX = 4;
 	static constexpr int RIGHT_HAND_INDEX = 38;
-	static constexpr int LEFT_ARM_INDEX = 4;//11;   
 	static constexpr int LEFT_HAND_INDEX = 13;  
 
 	static constexpr float RADIUS = 30;
@@ -21,7 +18,6 @@ public:
 	~ArmBase() override;
 
 	void OnCollision(UnitBase* other) override;
-	void UIDraw(void);
 
 	// ŒÄ‚Ño‚µ‚ÄŠÔ‚ğİ’è‚µ‚½uŠÔ‚©‚çAUŒ‚”»’è‚ªo‚Ä‚­‚é
 	void SetAttackTime(int collTime);

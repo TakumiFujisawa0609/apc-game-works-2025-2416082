@@ -92,14 +92,15 @@ void GameScene::Load(void)
 	// ボス
 	collision_->AddEnemy(boss_);
 
-	for (auto& ins : boss_->GetAttackIns()) {
-		collision_->AddBossAttack(ins);
+	for (auto& attack : boss_->GetAttackIns()) {
+		collision_->AddBossAttack(attack);
 	}
 
 	// プレイヤー
 	collision_->AddObject(player_);
- 	collision_->AddObject(player_->GetLeftArm());
-	collision_->AddObject(player_->GetRightArm());
+	for (ArmBase*& arm : player_->GetArm()) {
+		collision_->AddObject(arm);
+	}
 	// -------------------------------------------
 
 	// サウンド管理クラスのロード
@@ -270,7 +271,7 @@ void GameScene::ObjectUpdate(void)
 
 	// ボス
 	boss_->Update();
-	boss_->SetMuscleRatio(player_->GetMuscleRatio(4));
+	boss_->SetMuscleRatio(player_->GetMuscleRatio());
 	boss_->SetVoiceLevel(player_->GetVoiceLevel());
 
 	// ステージ

@@ -15,6 +15,8 @@ public:
 	static constexpr int SCREEN_SIZE_X = (FULL_SCREEN_SIZE_X / 10) * 8;	// スクリーン横幅;
 	static constexpr int SCREEN_SIZE_Y = (FULL_SCREEN_SIZE_Y / 10) * 8;	// スクリーン縦幅;
 
+	static constexpr VECTOR SCREEN_CENTER_POS = { SCREEN_SIZE_X / 2, SCREEN_SIZE_Y / 2 };
+
 public:
 	// シングルトン（生成・取得・削除）
 	static void CreateInstance(void) { if (instance_ == nullptr) { instance_ = new Application(); instance_->Init(); } }

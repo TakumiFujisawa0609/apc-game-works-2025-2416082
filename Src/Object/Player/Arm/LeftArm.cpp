@@ -28,7 +28,7 @@ void LeftArm::SubInit(void)
 
 void LeftArm::SubUpdate(void)
 {
-	MATRIX mat_ = MV1GetFrameLocalMatrix(unit_.model_, LEFT_ARM_INDEX);
+	MATRIX mat_ = MV1GetFrameLocalMatrix(unit_.model_, MUSCLE_INDEX);
 
 	// スケール抽出（各軸ベクトルの長さを取る）
 	float scale[3];
@@ -40,9 +40,7 @@ void LeftArm::SubUpdate(void)
 	unit_.para_.radius = RADIUS * ((scale[0] + scale[1] + scale[2]) / 3.0f);
 
 	MATRIX matp = MV1GetFrameLocalWorldMatrix(unit_.model_, LEFT_HAND_INDEX);
-
-	// 行列から位置（座標）を取り出す
-	unit_.pos_ = VGet(matp.m[3][0], matp.m[3][1], matp.m[3][2]);
+	unit_.pos_ = Utility::GetMatrixPos(matp);	// 右手のフレーム座標取得
 
 	ArmBase::SubUpdate();
 }
@@ -50,8 +48,6 @@ void LeftArm::SubUpdate(void)
 void LeftArm::SubDraw(void)
 {
 	if (!unit_.isAlive_) { return; }
-
-	//DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xfff000, 0xfff000, false);
 
 	ArmBase::SubDraw();
 }

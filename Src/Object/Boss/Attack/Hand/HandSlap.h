@@ -7,6 +7,8 @@ class HandSlap : public AttackBase
 {
 public:
 
+	static constexpr int SLAP_DAMAGE = 10;
+
 	enum class STATE
 	{
 		WAIT,

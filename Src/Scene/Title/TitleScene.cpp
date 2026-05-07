@@ -35,21 +35,37 @@ TitleScene::~TitleScene()
 void TitleScene::Load(void)
 {
 	titleImages_.resize((int)TITLE_IMAGE::MAX);
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::TITLE_LOGO],	"Data/Image/Title/Title.png");
 
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::TITLE_LOGO], "Data/Image/Title/Title.png");
-
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::BACK_GROUND], "Data/Image/Title/BackGround.jpg");
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MEAT], "Data/Image/Title/Meat.png");
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MUSCLE], "Data/Image/Title/Muscle.png");
-	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON], "Data/Image/Title/PRESS_BUTTON_UI.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::BACK_GROUND],	"Data/Image/Title/BackGround.jpg");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MEAT],			"Data/Image/Title/Meat.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::MUSCLE],		"Data/Image/Title/Muscle.png");
+	Utility::LoadImg(titleImages_[(int)TITLE_IMAGE::PRESS_BUTTON],	"Data/Image/Title/PRESS_BUTTON_UI.png");
 
 	unit_.model_ = MV1LoadModel("Data/Model/Player/Player1.mv1");		// タイトル用のプレイヤー
 
 	SoundManager::GetIns().Load(SOUND::TITLE_BGM);
 
 	animation_ = new AnimationController(unit_.model_);
-	animation_->Add((int)(ANIM_TYPE::IDLE), 30, "Data/Model/Player/Animation/Idle1.mv1");	//タイトル用のプレイヤーに使うアイドルアニメーション
-	animation_->Add((int)(ANIM_TYPE::ATTACK), 60, "Data/Model/Player/Animation/Punching.mv1");	//タイトル用のプレイヤーに使う攻撃アニメーション
+
+	// パスの省略
+	std::string playerModelPath = "Data/Model/Player/";
+
+	// モデルアニメーションのロード--------------------------------
+	for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
+		// アニメーションの追加
+		animation_->Add(
+			(int)static_cast<ANIM_TYPE>(i),
+			ANIMATION_INFO[i].speed,
+			(playerModelPath + "Animation/" + ANIMATION_INFO[i].name + ".mv1").c_str()
+		);
+	}
+	// -------------------------------------------------------
+
+	imagePos_.resize(MUSCLE_KANJI_MAX);
+	for (VECTOR& pos : imagePos_) {
+		pos = Utility::VECTOR_ZERO;
+	}
 
 	mic_ = new MicInput();
 }
@@ -163,8 +179,6 @@ void TitleScene::Update(void)
 // 描画処理
 void TitleScene::Draw(void)
 {
-	VECTOR center = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 };
-
 	DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, titleImages_[(int)TITLE_IMAGE::BACK_GROUND], true);
 
 	// 描画
@@ -178,9 +192,10 @@ void TitleScene::Draw(void)
 		);
 	}
 
+	VECTOR center = Application::SCREEN_CENTER_POS;
 	// タイトルロゴの描画
 	DrawRotaGraph(
-		center.x - 500,
+		center.x - 500.0f,
 		center.y,
 		0.5f, 0.0f,
 		titleImages_[(int)TITLE_IMAGE::TITLE_LOGO],

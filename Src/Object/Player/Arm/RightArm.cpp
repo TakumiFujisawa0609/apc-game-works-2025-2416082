@@ -21,20 +21,12 @@ void RightArm::SubLoad(void)
 
 void RightArm::SubInit(void)
 {
-	//unit_.para_.colliShape = CollisionShape::SPHERE;
-	//unit_.para_.colliType = CollisionType::ALLY;
-
-	//unit_.isAlive_ = false;
-
-	//unit_.para_.radius = RADIUS;
-
 	ArmBase::SubInit();
 }
 
 void RightArm::SubUpdate(void)
 {
-	// --- スケール連動処理 ---
-	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, RIGHT_ARM_INDEX);
+	MATRIX mat = MV1GetFrameLocalMatrix(unit_.model_, MUSCLE_INDEX);
 
 	// スケール抽出（各軸ベクトルの長さを取る）
 	float scale[3];
@@ -46,7 +38,7 @@ void RightArm::SubUpdate(void)
 	unit_.para_.radius = RADIUS * ((scale[0] + scale[1] + scale[2]) / 3.0f);
 
 	MATRIX matp = MV1GetFrameLocalWorldMatrix(unit_.model_, RIGHT_HAND_INDEX);
-	unit_.pos_ = VGet(matp.m[3][0], matp.m[3][1], matp.m[3][2]);
+	unit_.pos_ = Utility::GetMatrixPos(matp);	// 右手のフレーム座標取得
 
 	ArmBase::SubUpdate();
 }
@@ -54,8 +46,6 @@ void RightArm::SubUpdate(void)
 void RightArm::SubDraw(void)
 {
 	if (!unit_.isAlive_) { return; }
-
-	//DrawSphere3D(unit_.pos_, unit_.para_.radius, 16, 0xfff000, 0xfff000, false);
 
 	ArmBase::SubDraw();
 }

@@ -9,8 +9,7 @@ class AnimationController;
 
 class MicInput;
 
-class LeftArm;
-class RightArm;
+class ArmBase;
 
 class Player : public UnitBase
 {
@@ -61,8 +60,6 @@ private:
 #pragma region 定数定義
 
 	static constexpr int HP_MAX = 100;	// プレイヤーの最大HP
-
-	static constexpr int HP_DAMAGE = 10;	// プレイヤーが攻撃を受けたときのダメージ量
 
 	static constexpr float CAPSULE_HALF_LENGTH = 100;								// カプセルの真ん中から外側（円の中心）までの長さ
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, CAPSULE_HALF_LENGTH, -1000.0f };	// 初期座標
@@ -125,6 +122,10 @@ private:
 
 public:
 
+	static constexpr int MUSCLE_INDEX = 4;
+
+	static constexpr int LEFT_ARM_INDEX = 0;
+	static constexpr int RIGHT_ARM_INDEX = 1;
 
 	Player();			// コンストラクタ
 	~Player() override;	// デストラクタ
@@ -134,28 +135,6 @@ public:
 	void OnCollision(UnitBase* other) override;		// 当たり判定処理
 
 	void CameraPosUpdate(void);						// カメラ座標に関する処理
-
-	// カメラのローカル座標のゲット関数
-	const VECTOR& GetCameraLocalPos(void) { return cameraPos_; }
-
-	/// <summary>
-	/// 筋肉量割合のゲット関数
-	/// </summary>
-	/// <param name="index">モデルのフレームの配列</param>
-	/// <returns>筋肉の割合(Ratio)が返ってくる</returns>
-	const float GetMuscleRatio(int index);
-
-	// プレイヤーのステートのゲット関数
-	const STATE GetState(void) { return state_; }
-
-	void SetDamage(int damage);
-
-	int GetVoiceLevel(void) const;
-
-	// 腕クラスのインスタンスのゲット関数
-	LeftArm* GetLeftArm(void) { return leftArm_; }
-	RightArm* GetRightArm(void) { return rightArm_; }
-
 
 private:
 
@@ -198,8 +177,7 @@ private:
 	// インスタンス----------------------------------------
 	AnimationController* animation_;	// アニメーションクラス
 	MicInput* mic_;						// マイクインプットクラス
-	LeftArm* leftArm_;					// 左腕クラス
-	RightArm* rightArm_;				// 右腕クラス
+	std::vector<ArmBase*> arms_;
 	// -----------------------------------------------------
 
 #pragma region 変数
@@ -224,7 +202,7 @@ private:
 	float currentHeight;
 
 	// HPの隣に置くプレイヤーのアイコン
-	int playerIconImageId_[PLAYER_ICON_IMAGE_MAX];
+	std::vector<int> playerIconImageId_;
 	int playerHpImageId_[(int)UI_IMAGE::MAX];
 
 	// ステート管理用
@@ -280,6 +258,24 @@ private:
 		DrawBox((int)pos1.x, (int)pos1.y, (int)pos2.x, (int)pos2.y, GetColor(255, 255, 255), FALSE);
 	}
 
+public:
+#pragma region ゲッター・セッター関数
+		// カメラのローカル座標のゲット関数
+		const VECTOR& GetCameraLocalPos(void) { return cameraPos_; }
+
+		const float GetMuscleRatio();
+
+		// プレイヤーのステートのゲット関数
+		const STATE GetState(void) { return state_; }
+
+		void SetDamage(int damage);
+
+		int GetVoiceLevel(void) const;
+
+		// 腕クラスのインスタンスのゲット関数
+		std::vector<ArmBase*> GetArm(void) { return arms_; }
+
+#pragma endregion 
 
 };
 

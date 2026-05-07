@@ -67,52 +67,11 @@ void ArmBase::OnCollision(UnitBase* other)
 {
 	auto& sound = SoundManager::GetIns();
 
-
 	if (dynamic_cast<Boss*>(other))
 	{
 		isHit_ = true;
 		return;
 	}
-}
-
-
-
-void ArmBase::UIDraw(void)
-{
-
-
-
-	// プレイヤーのモデルのフレーム番号のデバッグ描画
-#ifdef _DEBUG
-	auto& input = InputManager::GetInstance();
-	int frameNum = MV1GetFrameNum(unit_.model_);
-
-	if (input.IsTrgDown(KEY_INPUT_UP))
-	{
-		frameScrollIndex_--;
-		if (frameScrollIndex_ < 0) frameScrollIndex_ = 0;
-	}
-
-	if (input.IsTrgDown(KEY_INPUT_DOWN))
-	{
-		frameScrollIndex_++;
-		if (frameScrollIndex_ > frameNum - 1) frameScrollIndex_ = frameNum - 1;
-	}
-
-	int y = 200;
-	const int maxLines = 20; 
-
-	for (int i = 0; i < maxLines; i++)
-	{
-		int idx = frameScrollIndex_ + i;
-		if (idx >= frameNum) break;
-
-		const char* name = MV1GetFrameName(unit_.model_, idx);
-		DrawFormatString(0, y, GetColor(255, 255, 255),
-			"Frame %d : %s", idx, name ? name : "(null)");
-		y += 16;
-	}
-#endif // _DEBUG
 }
 
 void ArmBase::SetAttackTime(int collTime)
@@ -123,6 +82,6 @@ void ArmBase::SetAttackTime(int collTime)
 
 void ArmBase::AddArmScale(VECTOR scale)
 {
-	AddBoneScale(LEFT_ARM_INDEX, scale);
-	AddBoneScale(RIGHT_ARM_INDEX, scale);
+	AddBoneScale(ArmBase::MUSCLE_INDEX, scale);
+	AddBoneScale(MUSCLE_INDEX, scale);
 }

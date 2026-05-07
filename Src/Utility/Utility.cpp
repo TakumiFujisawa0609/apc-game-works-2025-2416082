@@ -513,6 +513,11 @@ MATRIX Utility::MatrixAllMultZYX(const std::initializer_list<VECTOR>& vecs)
     return m;
 }
 
+VECTOR Utility::GetMatrixPos(const MATRIX& mat)
+{
+    return VGet(mat.m[3][0], mat.m[3][1], mat.m[3][2]);
+}
+
 void Utility::MatrixPosMult(MATRIX& mat, const VECTOR& pos)
 {
     mat.m[3][0] = pos.x;
