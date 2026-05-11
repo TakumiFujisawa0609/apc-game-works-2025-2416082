@@ -192,11 +192,10 @@ void TitleScene::Draw(void)
 		);
 	}
 
-	VECTOR center = Application::SCREEN_CENTER_POS;
 	// É^ÉCÉgÉãÉçÉSÇÃï`âÊ
 	DrawRotaGraph(
-		center.x - 500.0f,
-		center.y,
+		TITLE_LOGO_POS.x,
+		TITLE_LOGO_POS.y,
 		0.5f, 0.0f,
 		titleImages_[(int)TITLE_IMAGE::TITLE_LOGO],
 		true

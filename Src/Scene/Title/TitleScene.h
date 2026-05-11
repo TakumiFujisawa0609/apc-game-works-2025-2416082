@@ -31,23 +31,27 @@ public:
 		MAX
 	};
 
+	// ƒvƒŒƒCƒ„[```````````````````````````````````````````````
 	static constexpr VECTOR DEFAULT_POS = { 1000.0f,100.0f,0.0f, };	// ƒ^ƒCƒgƒ‹—pƒvƒŒƒCƒ„[‚Ì‰ŠúÀ•W
-	static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };
+	static constexpr VECTOR SCALE = { 2.0f,2.0f,2.0f };				// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚ÌƒTƒCƒY
 
-	static constexpr VECTOR PRESS_BUTTON_POS = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 + 300, 0.0f };
-
-	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };	// ‹Ø“÷‚ÌƒXƒP[ƒ‹‚ÌÅ‘å’l
+	static constexpr VECTOR MAX_SIZE = { 2.0f,2.0f,2.0f };			// ‹Ø“÷‚ÌƒXƒP[ƒ‹‚ÌÅ‘å’l
 	static constexpr VECTOR MIN_ARM_MUSCLE = { 1.0f,1.0f,1.0f };	// ‹Ø“÷‚ÌƒXƒP[ƒ‹‚ÌÅ’á’l
+	// ƒvƒŒƒCƒ„[```````````````````````````````````````````````
 
-	static constexpr int VOICE_GAUGE_MAX = 10;
-	static constexpr float MUSCLE_IMAGE_SCALE_MAX = 8.0f;
-	static constexpr float MUSCLE_IMAGE_SCALE_MIN = 3.0f;
+	// ‰æ‘œ`````````````````````````````````````````````````
+	static constexpr VECTOR PRESS_BUTTON_POS = { Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 + 300, 0.0f };		// ƒ{ƒ^ƒ“—pUI‚Ì•`‰æÀ•W
+	static constexpr VECTOR TITLE_LOGO_POS = { Application::SCREEN_CENTER_POS.x - 500.0f,	Application::SCREEN_CENTER_POS.y };		// ƒ^ƒCƒgƒ‹ƒƒS‚Ì•`‰æÀ•W
 
-	static constexpr int MUSCLE_INDEX = 4;
+	static constexpr float MUSCLE_IMAGE_SCALE_MAX = 8.0f;	// ”wŒi‚ÌŠ¿š‰æ‘œ‚ªº‚Å‘å‚«‚­‚È‚éÅ‘å”{—¦
+	static constexpr float MUSCLE_IMAGE_SCALE_MIN = 3.0f;	// ”wŒi‚ÌŠ¿š‰æ‘œ‚ÌƒTƒCƒY‚ÌÅ¬”{—¦
 
-	static constexpr int MUSCLE_KANJI_MAX = 10;
+	static constexpr int MUSCLE_INDEX = 4;		// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚Ì‹Ø“÷‚ÌƒtƒŒ[ƒ€”
 
-	static constexpr double PRESS_BUTTON_EX_RATE = 2.0f;
+	static constexpr int MUSCLE_KANJI_MAX = 10;	// u‹Øvu“÷v‚Ì”
+
+	static constexpr double PRESS_BUTTON_EX_RATE = 2.0f;	// ƒ{ƒ^ƒ“‚ÌUI‚Ì•`‰æ‚µ‚½‚Æ‚«‚Ì‘å‚«‚³”{—¦
+	// ‰æ‘œ`````````````````````````````````````````````````
 
 	TitleScene();
 	~TitleScene()override;
@@ -77,7 +81,7 @@ private:
 	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒpƒX‚ÆÄ¶‘¬“x‚Ìİ’è
 	const std::vector<AnimInfo> ANIMATION_INFO = {
 		{ "Idle1", 30.0f },
-		{ "Punching", 100.0f },
+		{ "Punching", 100.0f }
 	};
 	// --------------------------------------------------------
 
